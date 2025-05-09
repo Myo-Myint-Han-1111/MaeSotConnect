@@ -1,0 +1,165 @@
+/* CourseCard.css */
+.course-card {
+  max-width: 350px;
+  min-height: 500px;
+  overflow: hidden;
+  margin: 1rem;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  will-change: transform, box-shadow;
+}
+
+.card-content {
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0.5rem 0 0.5rem 0;
+  color: hsl(var(--foreground));
+}
+
+.card-subtitle {
+  font-size: 0.9rem;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 1rem;
+}
+
+.card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.available-days {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 4px 0;
+  margin-top: auto;
+}
+
+.day-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.digital-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.status-bar {
+  height: 8px;
+  background: #9e9e9e;
+}
+
+.digital-calendar.available .status-bar {
+  background: #2b2a2a;
+}
+
+.day-display {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  color: #333;
+  background-color: #f8f8f8;
+}
+
+.see-more-container {
+  display: flex;
+  justify-content: center;
+}
+
+.see-more-button {
+  width: 60%;
+  padding: 0.5rem 1rem;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-radius: 0.5rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.carousel-container {
+  position: relative;
+  z-index: 1;
+}
+
+.carousel-button,
+.prev-button,
+.next-button,
+.card-image-container .carousel-button {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .course-card {
+    max-width: 100%;
+  }
+
+  .available-days {
+    gap: 2px;
+  }
+
+  .digital-calendar {
+    width: 28px;
+    height: 40px;
+  }
+}
+
+@media screen and (orientation: portrait) {
+  .available-days {
+    display: flex;
+    justify-content: space-between;
+    gap: 4px;
+  }
+
+  .carousel-indicators {
+    display: flex;
+    bottom: 10px;
+  }
+}
+
+@media screen and (orientation: landscape) {
+  .available-days {
+    justify-content: space-between;
+    padding: 2px 0;
+  }
+
+  .digital-calendar {
+    width: 24px;
+    height: 34px;
+  }
+
+  .day-display {
+    font-size: 9px;
+  }
+}

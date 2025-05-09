@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String        @id @default(cuid())
+  name           String
+  email          String        @unique
+  password       String?
+  image          String?
+  role           Role          @default(ORGANIZATION_ADMIN)
+  emailVerified  DateTime?
+  organizationId String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  accounts       Account[]
+  sessions       Session[]
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Course {
+  id                String   @id @default(uuid())
+  title             String
+  titleMm           String?
+  subtitle          String
+  subtitleMm        String?
+  location          String
+  locationMm        String?
+  startDate         String
+  startDateMm       String?
+  duration          String
+  durationMm        String?
+  schedule          String
+  scheduleMm        String?
+  fee               String?
+  feeMm             String?
+  availableDays     Boolean[]
+  description       String?
+  descriptionMm     String?
+  outcomes          String[]
+  outcomesMm        String[]
+  scheduleDetails   String?
+  scheduleDetailsMm String?
+  selectionCriteria String[]
+  selectionCriteriaMm String[]
+  organizationId    String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  organizationInfo  Organization? @relation(fields: [organizationId], references: [id])
+  images            Image[]
+  badges            Badge[]
+  faq               FAQ[]
+}
+
+model Image {
+  id       String @id @default(cuid())
+  url      String
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model Badge {
+  id              String @id @default(cuid())
+  text            String
+  color           String
+  backgroundColor String
+  courseId        String
+  course          Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model FAQ {
+  id         String  @id @default(uuid())
+  question    String
+  questionMm  String?
+  answer      String
+  answerMm    String?
+  courseId    String
+  course      Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model Organization {
+  id           String   @id @default(cuid())
+  name         String
+  description  String
+  phone        String
+  email        String
+  address      String
+  facebookPage String?
+  latitude     Float
+  longitude    Float
+  courses      Course[]
+  users        User[]
+}
+
+enum Role {
+  PLATFORM_ADMIN
+  ORGANIZATION_ADMIN
+}

@@ -1,0 +1,547 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useLanguage } from "@/context/LanguageContext";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  ChevronLeft,
+  MapPin,
+  Clock,
+  Calendar,
+  BookOpen,
+  Target,
+  Info,
+  CalendarDays,
+  CheckSquare,
+  HelpCircle,
+  PhoneCall,
+  Mail,
+  Facebook,
+} from "lucide-react";
+import ImageCarousel from "@/components/common/ImageCarousel";
+import DayIndicator from "@/components/common/DayIndicator";
+import BadgeDisplay from "@/components/common/BadgeDisplay";
+import Link from "next/link";
+
+interface CourseDetail {
+  id: string;
+  title: string;
+  titleMm?: string; // Myanmar title
+  subtitle: string;
+  subtitleMm?: string; // Myanmar subtitle
+  location: string;
+  locationMm?: string; // Myanmar location
+  startDate: string;
+  startDateMm?: string; // Myanmar start date
+  duration: string;
+  durationMm?: string; // Myanmar duration
+  schedule: string;
+  scheduleMm?: string; // Myanmar schedule
+  fee?: string;
+  feeMm?: string; // Myanmar fee
+  availableDays: boolean[];
+  description?: string;
+  descriptionMm?: string; // Myanmar description
+  outcomes?: string[];
+  outcomesMm?: string[]; // Myanmar outcomes
+  scheduleDetails?: string;
+  scheduleDetailsMm?: string; // Myanmar schedule details
+  selectionCriteria?: string[];
+  selectionCriteriaMm?: string[]; // Myanmar selection criteria
+  badges: {
+    text: string;
+    color: string;
+    backgroundColor: string;
+  }[];
+  images: string[];
+  faq?: {
+    question: string;
+    questionMm?: string; // Myanmar question
+    answer: string;
+    answerMm?: string; // Myanmar answer
+  }[];
+  organizationInfo?: {
+    name: string;
+    description: string;
+    phone: string;
+    email: string;
+    address: string;
+    facebookPage?: string;
+    mapLocation: {
+      lat: number;
+      lng: number;
+    };
+  };
+}
+
+export default function CourseDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const router = useRouter();
+  const { t, language } = useLanguage();
+  const [course, setCourse] = useState<CourseDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Helper function to get localized content for string values
+  const getLocalizedContent = (
+    enContent: string | null | undefined,
+    mmContent: string | null | undefined
+  ): string => {
+    if (language === "mm" && mmContent) {
+      return mmContent;
+    }
+    return enContent || "";
+  };
+
+  // Helper function for localized string arrays
+  const getLocalizedArray = (
+    enArray: string[] | null | undefined,
+    mmArray: string[] | null | undefined
+  ): string[] => {
+    if (language === "mm" && mmArray && mmArray.length > 0) {
+      return mmArray;
+    }
+    return enArray || [];
+  };
+
+  useEffect(() => {
+    async function fetchCourse() {
+      try {
+        const response = await fetch(`/api/courses/${id}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch course");
+        }
+        const data = await response.json();
+        setCourse(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load course");
+        console.error("Error fetching course:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (id) {
+      fetchCourse();
+    }
+  }, [id]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="content py-20">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="flex justify-center items-center h-64">
+            <div className="h-16 w-16 border-t-4 border-primary border-solid rounded-full animate-spin"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !course) {
+    return (
+      <div className="content py-20">
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <h1 className="text-3xl font-bold mb-4">{t("course.notfound")}</h1>
+          <Button onClick={() => router.push("/")}>
+            <ChevronLeft className="mr-2 h-4 w-4" />
+            {t("course.back")}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="content mt-20">
+      <div className="max-w-6xl mx-auto px-4">
+        {/* Back Button */}
+        <div className="relative z-10 bg-background py-2 mb-4">
+          <Button
+            variant="outline"
+            size="sm"
+            className="border border-gray-300 bg-white hover:bg-gray-100 rounded-md shadow-sm"
+            onClick={() => router.push("/")}
+          >
+            <ChevronLeft className="mr-2 h-4 w-4" />
+            {t("course.back")}
+          </Button>
+        </div>
+
+        {/* Title and Subtitle */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">
+            {getLocalizedContent(course.title, course.titleMm)}
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            {getLocalizedContent(course.subtitle, course.subtitleMm)}
+          </p>
+        </div>
+
+        {/* Badges */}
+        <BadgeDisplay badges={course.badges} size="medium" />
+
+        {/* Image Gallery and Info Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-10">
+          <div className="lg:col-span-3">
+            <ImageCarousel
+              images={course.images}
+              altText={getLocalizedContent(course.title, course.titleMm)}
+              variant="fullsize"
+              indicatorStyle="dots"
+              aspectRatio="video"
+            />
+          </div>
+
+          {/* Course Info Card */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("course.details")}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Location */}
+                <div className="flex items-start">
+                  <MapPin className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      {t("course.location")}
+                    </p>
+                    <p className="text-sm text-muted-foreground" dir="auto">
+                      {getLocalizedContent(course.location, course.locationMm)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Start Date */}
+                <div className="flex items-start">
+                  <Calendar className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      {t("course.startDate")}
+                    </p>
+                    <p className="text-sm text-muted-foreground" dir="auto">
+                      {getLocalizedContent(
+                        course.startDate,
+                        course.startDateMm
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Duration */}
+                <div className="flex items-start">
+                  <Clock className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      {t("course.duration")}
+                    </p>
+                    <p className="text-sm text-muted-foreground" dir="auto">
+                      {getLocalizedContent(course.duration, course.durationMm)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Schedule */}
+                <div className="flex items-start">
+                  <BookOpen className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      {t("course.schedule")}
+                    </p>
+                    <p className="text-sm text-muted-foreground" dir="auto">
+                      {getLocalizedContent(course.schedule, course.scheduleMm)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Fee (if available) */}
+                {(course.fee || course.feeMm) && (
+                  <div className="flex items-start">
+                    <div className="h-5 w-5 mr-2 mt-0.5 flex items-center justify-center text-muted-foreground">
+                      ฿
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {t("course.fee")}
+                      </p>
+                      <p className="text-sm text-muted-foreground" dir="auto">
+                        {getLocalizedContent(course.fee, course.feeMm)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Day Availability Section */}
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <h3 className="text-sm font-medium mb-3">
+                    {t("course.availableDays")}
+                  </h3>
+                  <DayIndicator
+                    days={[
+                      t("course.days.sun"),
+                      t("course.days.mon"),
+                      t("course.days.tue"),
+                      t("course.days.wed"),
+                      t("course.days.thu"),
+                      t("course.days.fri"),
+                      t("course.days.sat"),
+                    ]}
+                    availableDays={course.availableDays}
+                    size="medium"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Course Details Accordion */}
+        <div className="mb-10">
+          <Accordion type="multiple" className="w-full">
+            {/* Description Section */}
+            {(course.description || course.descriptionMm) && (
+              <AccordionItem
+                value="description"
+                className="border rounded-md mb-3 px-4"
+              >
+                <AccordionTrigger className="py-4">
+                  <div className="flex items-center">
+                    <Info className="h-5 w-5 mr-2 text-primary" />
+                    <span className="text-lg font-semibold">
+                      {t("course.description")}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pb-4">
+                  <p className="text-muted-foreground" dir="auto">
+                    {getLocalizedContent(
+                      course.description,
+                      course.descriptionMm
+                    )}
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+
+            {/* Course Outcomes */}
+            {((course.outcomes && course.outcomes.length > 0) ||
+              (course.outcomesMm && course.outcomesMm.length > 0)) && (
+              <AccordionItem
+                value="outcomes"
+                className="border rounded-md mb-3 px-4"
+              >
+                <AccordionTrigger className="py-4">
+                  <div className="flex items-center">
+                    <Target className="h-5 w-5 mr-2 text-primary" />
+                    <span className="text-lg font-semibold">
+                      {t("course.learning.outcomes")}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pb-4">
+                  <ul className="list-disc pl-5 space-y-2">
+                    {getLocalizedArray(course.outcomes, course.outcomesMm).map(
+                      (outcome, index) => (
+                        <li
+                          key={index}
+                          className="text-muted-foreground"
+                          dir="auto"
+                        >
+                          {outcome}
+                        </li>
+                      )
+                    )}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+
+            {/* Schedule Details */}
+            {(course.scheduleDetails || course.scheduleDetailsMm) && (
+              <AccordionItem
+                value="schedule"
+                className="border rounded-md mb-3 px-4"
+              >
+                <AccordionTrigger className="py-4">
+                  <div className="flex items-center">
+                    <CalendarDays className="h-5 w-5 mr-2 text-primary" />
+                    <span className="text-lg font-semibold">
+                      {t("course.schedule.details")}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pb-4">
+                  <p className="text-muted-foreground" dir="auto">
+                    {getLocalizedContent(
+                      course.scheduleDetails,
+                      course.scheduleDetailsMm
+                    )}
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+
+            {/* Selection Criteria */}
+            {((course.selectionCriteria &&
+              course.selectionCriteria.length > 0) ||
+              (course.selectionCriteriaMm &&
+                course.selectionCriteriaMm.length > 0)) && (
+              <AccordionItem
+                value="criteria"
+                className="border rounded-md mb-3 px-4"
+              >
+                <AccordionTrigger className="py-4">
+                  <div className="flex items-center">
+                    <CheckSquare className="h-5 w-5 mr-2 text-primary" />
+                    <span className="text-lg font-semibold">
+                      {t("course.selectionCriteria")}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pb-4">
+                  <ul className="list-disc pl-5 space-y-2">
+                    {getLocalizedArray(
+                      course.selectionCriteria,
+                      course.selectionCriteriaMm
+                    ).map((criteria, index) => (
+                      <li
+                        key={index}
+                        className="text-muted-foreground"
+                        dir="auto"
+                      >
+                        {criteria}
+                      </li>
+                    ))}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+
+            {/* FAQ Section */}
+            {course.faq && course.faq.length > 0 && (
+              <AccordionItem
+                value="faq"
+                className="border rounded-md mb-3 px-4"
+              >
+                <AccordionTrigger className="py-4">
+                  <div className="flex items-center">
+                    <HelpCircle className="h-5 w-5 mr-2 text-primary" />
+                    <span className="text-lg font-semibold">
+                      {t("course.faq")}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pb-4">
+                  <div className="space-y-4">
+                    {course.faq.map((item, index) => (
+                      <div
+                        key={index}
+                        className="border-b pb-4 last:border-b-0"
+                      >
+                        <h3 className="font-semibold mb-2" dir="auto">
+                          {getLocalizedContent(item.question, item.questionMm)}
+                        </h3>
+                        <p className="text-muted-foreground" dir="auto">
+                          {getLocalizedContent(item.answer, item.answerMm)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+          </Accordion>
+        </div>
+
+        {/* Organization Info */}
+        {course.organizationInfo && (
+          <section className="mb-10">
+            <h2 className="text-2xl font-bold mb-4">
+              {t("about.organization")}
+            </h2>
+            <Card>
+              <CardContent className="pt-6">
+                <h3 className="text-xl font-semibold mb-2">
+                  {course.organizationInfo.name}
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  {course.organizationInfo.description}
+                </p>
+                <div className="space-y-3">
+                  <div className="flex items-center">
+                    <PhoneCall className="h-5 w-5 mr-3 text-primary flex-shrink-0" />
+                    <span>{course.organizationInfo.phone}</span>
+                  </div>
+
+                  <div className="flex items-center">
+                    <Mail className="h-5 w-5 mr-3 text-primary flex-shrink-0" />
+                    <Link
+                      href={`mailto:${course.organizationInfo.email}`}
+                      className="text-primary hover:underline"
+                    >
+                      {course.organizationInfo.email}
+                    </Link>
+                  </div>
+
+                  {course.organizationInfo.facebookPage && (
+                    <div className="flex items-center">
+                      <Facebook className="h-5 w-5 mr-3 text-primary flex-shrink-0" />
+                      <Link
+                        href={course.organizationInfo.facebookPage}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        {t("course.facebook")}
+                      </Link>
+                    </div>
+                  )}
+
+                  <div className="flex items-center">
+                    <MapPin className="h-5 w-5 mr-3 text-primary flex-shrink-0" />
+                    <span>{course.organizationInfo.address}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+        )}
+
+        {/* Bottom CTA */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-16 p-6 bg-muted rounded-lg">
+          <div>
+            <h3 className="text-xl font-bold">
+              {language === "mm"
+                ? "ဤသင်တန်းကို စိတ်ဝင်စားပါသလား?"
+                : "Interested in this course?"}
+            </h3>
+            <p className="text-muted-foreground">
+              {language === "mm"
+                ? "လျှောက်ထားရန် သို့မဟုတ် ပိုမိုလေ့လာရန် အဖွဲ့အစည်းကို တိုက်ရိုက်ဆက်သွယ်ပါ"
+                : "Contact the organization directly to apply or learn more"}
+            </p>
+          </div>
+          <Button
+            size="lg"
+            className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+          >
+            {t("course.apply")}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
