@@ -1,27 +1,41 @@
 // src/lib/upload.ts
-import { promises as fs } from "fs";
-import path from "path";
 import { v4 as uuidv4 } from "uuid";
+import { createClient } from "@supabase/supabase-js";
+
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Where program photos are stored for the app
+const BUCKET_NAME = "course-images";
 
 export async function saveFile(file: File): Promise<string> {
   // Generate a unique filename
   const filename = `${uuidv4()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "")}`;
+  
+  // Convert the file to buffer
+  const buffer = await file.arrayBuffer();
+  
+  // Upload to Supabase Storage
+  const { data, error } = await supabase
+    .storage
+    .from(BUCKET_NAME)
+    .upload(filename, buffer, {
+      contentType: file.type, // Set the correct content type
+      upsert: false // Don't overwrite if file exists
+    });
 
-  // Define the upload directory path
-  const uploadDir = path.join(process.cwd(), "public", "uploads");
-
-  // Ensure the directory exists
-  try {
-    await fs.access(uploadDir);
-  } catch {
-    await fs.mkdir(uploadDir, { recursive: true });
+  if (error) {
+    console.error("Error uploading file:", error);
+    throw new Error(`Failed to upload file: ${error.message}`);
   }
 
-  // Convert the file to buffer and save it
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const filepath = path.join(uploadDir, filename);
-  await fs.writeFile(filepath, buffer);
+  // Generate and return the public URL
+  const { data: { publicUrl } } = supabase
+    .storage
+    .from(BUCKET_NAME)
+    .getPublicUrl(filename);
 
-  // Return the public URL
-  return `/uploads/${filename}`;
+  return publicUrl;
 }
