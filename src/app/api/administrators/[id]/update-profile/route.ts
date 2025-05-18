@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
+import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
@@ -20,7 +20,7 @@ export async function PUT(
     const resolvedParams = await Promise.resolve(params);
     const id = resolvedParams.id;
 
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     // Must be authenticated
     if (!session) {

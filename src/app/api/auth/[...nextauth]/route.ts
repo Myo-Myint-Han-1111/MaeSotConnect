@@ -1,6 +1,4 @@
-import NextAuth from "next-auth";
-import { authOptions } from "@/lib/auth/auth";
+import { handlers } from "@/lib/auth/auth";
+export const runtime = "nodejs"; // Force Node.js runtime for this route
 
-const handler = NextAuth(authOptions);
-
-export { handler as GET, handler as POST };
+export const { GET, POST } = handlers;

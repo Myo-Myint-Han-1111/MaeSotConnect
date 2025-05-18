@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
+import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { authOptions } from "@/lib/auth/auth";
@@ -24,7 +24,7 @@ export async function GET(
     const resolvedParams = await Promise.resolve(params);
     const id = resolvedParams.id;
 
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session) {
       return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
@@ -68,7 +68,7 @@ export async function PUT(
     const resolvedParams = await Promise.resolve(params);
     const id = resolvedParams.id;
 
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     // Only platform admins can update organizations
     if (!session || session.user.role !== "PLATFORM_ADMIN") {
@@ -141,7 +141,7 @@ export async function DELETE(
     const resolvedParams = await Promise.resolve(params);
     const id = resolvedParams.id;
 
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     // Only platform admins can delete organizations
     if (!session || session.user.role !== "PLATFORM_ADMIN") {

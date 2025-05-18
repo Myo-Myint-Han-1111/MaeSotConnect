@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-interface User {
+interface Administrator {
   id: string;
   name: string;
   email: string;
@@ -33,13 +33,13 @@ interface User {
   };
 }
 
-export default function EditUserPage() {
+export default function EditAdministratorPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [administrator, setAdministrator] = useState<Administrator | null>(null);
   const [fetchLoading, setFetchLoading] = useState(true);
 
   // Form state
@@ -60,15 +60,15 @@ export default function EditUserPage() {
   }, [session, isPlatformAdmin, router]);
 
   useEffect(() => {
-    async function fetchUser() {
+    async function fetchAdministrator() {
       try {
-        const response = await fetch(`/api/users/${id}`);
+        const response = await fetch(`/api/administrators/${id}`);
         if (!response.ok) {
-          throw new Error("Failed to fetch user");
+          throw new Error("Failed to fetch administrator");
         }
 
         const data = await response.json();
-        setUser(data);
+        setAdministrator(data);
 
         // Initialize form state
         setName(data.name);
@@ -79,14 +79,14 @@ export default function EditUserPage() {
         setError(
           err instanceof Error ? err.message : "An unexpected error occurred"
         );
-        console.error("Error fetching user:", err);
+        console.error("Error fetching administrator:", err);
       } finally {
         setFetchLoading(false);
       }
     }
 
     if (session && isPlatformAdmin && id) {
-      fetchUser();
+      fetchAdministrator();
     }
   }, [session, isPlatformAdmin, id]);
 
@@ -96,7 +96,7 @@ export default function EditUserPage() {
     setError(null);
 
     try {
-      const response = await fetch(`/api/users/${id}`, {
+      const response = await fetch(`/api/administrators/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -112,15 +112,15 @@ export default function EditUserPage() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || "Failed to update user");
+        throw new Error(data.error || "Failed to update administrator");
       }
 
-      router.push("/admin/users");
+      router.push("/admin/administrators");
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "An unexpected error occurred"
       );
-      console.error("Error updating user:", err);
+      console.error("Error updating administrator:", err);
       setIsLoading(false);
     }
   };
@@ -144,15 +144,15 @@ export default function EditUserPage() {
     );
   }
 
-  if (!user) {
+  if (!administrator) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-2xl font-semibold mb-2">User Not Found</h2>
+        <h2 className="text-2xl font-semibold mb-2">Administrator Not Found</h2>
         <p className="text-muted-foreground mb-6">
-          The user you are looking for does not exist or has been deleted.
+          The administrator you are looking for does not exist or has been deleted.
         </p>
-        <Button onClick={() => router.push("/admin/users")}>
-          Back to Users
+        <Button onClick={() => router.push("/admin/administrators")}>
+          Back to Administrators
         </Button>
       </div>
     );
@@ -160,11 +160,11 @@ export default function EditUserPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Edit User: {user.name}</h1>
+      <h1 className="text-2xl font-bold mb-6">Edit Administrator: {administrator.name}</h1>
 
       <Card className="max-w-2xl">
         <CardHeader>
-          <CardTitle>User Information</CardTitle>
+          <CardTitle>Administrator Information</CardTitle>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
@@ -248,7 +248,7 @@ export default function EditUserPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push("/admin/users")}
+              onClick={() => router.push("/admin/administrators")}
               disabled={isLoading}
             >
               Cancel

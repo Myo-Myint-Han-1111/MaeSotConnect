@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
+import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/auth/password";
-import { authOptions } from "@/lib/auth/auth";
 
 // Input validation schema
 const updateAdminSchema = z.object({
@@ -24,7 +23,7 @@ export async function GET(
     const organizationId = resolvedParams.id;
     const adminId = resolvedParams.adminId;
 
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     // Must be authenticated
     if (!session) {
@@ -83,7 +82,7 @@ export async function PUT(
     const organizationId = resolvedParams.id;
     const adminId = resolvedParams.adminId;
 
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     // Must be authenticated
     if (!session) {
@@ -167,7 +166,7 @@ export async function DELETE(
     const organizationId = resolvedParams.id;
     const adminId = resolvedParams.adminId;
 
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     // Must be authenticated
     if (!session) {

@@ -1,15 +1,11 @@
 // src/app/layout.tsx
+"use client";
+
 import React from "react";
+import { SessionProvider } from "next-auth/react";
 import { LanguageProvider } from "@/context/LanguageContext";
-import { AuthProvider } from "@/components/providers/AuthProvider";
-import { ToastProvider } from "@/context/ToastContext"; // Add this import
-
+import { ToastProvider } from "@/context/ToastContext";
 import "./globals.css";
-
-export const metadata = {
-  title: "Mae Sot Connect",
-  description: "Education and vocational resources in Mae Sot",
-};
 
 export default function RootLayout({
   children,
@@ -20,11 +16,11 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head />
       <body>
-        <AuthProvider>
+        <SessionProvider>
           <LanguageProvider>
             <ToastProvider>{children}</ToastProvider>
           </LanguageProvider>
-        </AuthProvider>
+        </SessionProvider>
       </body>
     </html>
   );

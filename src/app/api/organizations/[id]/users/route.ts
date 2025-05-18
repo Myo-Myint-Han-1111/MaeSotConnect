@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
+import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/db";
 import { authOptions } from "@/lib/auth/auth";
 
@@ -11,7 +11,7 @@ export async function GET(
     const resolvedParams = await Promise.resolve(params);
     const id = resolvedParams.id;
 
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session) {
       return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });

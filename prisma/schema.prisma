@@ -29,14 +29,15 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String?
-  access_token      String?
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String?
+  id_token          String? @db.Text
   session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -58,39 +59,37 @@ model VerificationToken {
 }
 
 model Course {
-  id                String   @id @default(uuid())
-  title             String
-  titleMm           String?
-  subtitle          String
-  subtitleMm        String?
-  location          String
-  locationMm        String?
-  startDate         String
-  startDateMm       String?
-  duration          String
-  durationMm        String?
-  schedule          String
-  scheduleMm        String?
-  fee               String?
-  feeMm             String?
-  availableDays     Boolean[]
-  description       String?
-  descriptionMm     String?
-  outcomes          String[]
-  outcomesMm        String[]
-  scheduleDetails   String?
-  scheduleDetailsMm String?
-  selectionCriteria String[]
+  id                  String       @id @default(uuid())
+  title               String
+  titleMm             String?
+  subtitle            String
+  subtitleMm          String?
+  location            String
+  locationMm          String?
+  startDate           String
+  startDateMm         String?
+  duration            String
+  durationMm          String?
+  schedule            String
+  scheduleMm          String?
+  fee                 String?
+  feeMm               String?
+  availableDays       Boolean[]
+  description         String?
+  descriptionMm       String?
+  outcomes            String[]
+  outcomesMm          String[]
+  scheduleDetails     String?
+  scheduleDetailsMm   String?
+  selectionCriteria   String[]
   selectionCriteriaMm String[]
-  organizationId    String
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  // Relationships
-  organizationInfo  Organization? @relation(fields: [organizationId], references: [id])
-  images            Image[]
-  badges            Badge[]
-  faq               FAQ[]
+  organizationId      String
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  badges              Badge[]
+  organizationInfo    Organization @relation(fields: [organizationId], references: [id])
+  faq                 FAQ[]
+  images              Image[]
 }
 
 model Image {
@@ -111,12 +110,12 @@ model Badge {
 
 model FAQ {
   id         String  @id @default(uuid())
-  question    String
-  questionMm  String?
-  answer      String
-  answerMm    String?
-  courseId    String
-  course      Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  question   String
+  questionMm String?
+  answer     String
+  answerMm   String?
+  courseId   String
+  course     Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
 }
 
 model Organization {
@@ -131,6 +130,14 @@ model Organization {
   longitude    Float
   courses      Course[]
   users        User[]
+}
+
+model AdminAllowList {
+  id      String   @id @default(cuid())
+  email   String   @unique
+  addedBy String?
+  addedAt DateTime @default(now())
+  notes   String?
 }
 
 enum Role {

@@ -1,50 +1,27 @@
 "use client";
 
 import React, { useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn as nextAuthSignIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function SignIn() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const { t, language } = useLanguage();
+  
+  const handleGoogleSignIn = () => {
     setIsLoading(true);
-    setError("");
-
-    try {
-      const result = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
-      });
-
-      if (result?.error) {
-        setError("Invalid email or password");
-        setIsLoading(false);
-        return;
-      }
-
-      router.push("/dashboard");
-      router.refresh();
-    } catch {
-      setError("An unexpected error occurred");
-      setIsLoading(false);
-    }
+    nextAuthSignIn("google", { callbackUrl: "/dashboard" });
   };
 
   return (
@@ -55,53 +32,48 @@ export default function SignIn() {
             Mae Sot Connect
           </CardTitle>
           <CardDescription className="text-center">
-            Enter your credentials to sign in
+            {language === 'mm' ? 'သင့်အကောင့်ကို အသုံးပြုရန် အကောင့်ဝင်ပါ' : 'Sign in to your account'}
           </CardDescription>
         </CardHeader>
 
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            {error && (
-              <div className="p-3 rounded-md bg-red-50 text-red-500 text-sm">
-                {error}
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="email">
-                Email
-              </label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+        <CardContent className="space-y-4">
+          {error && (
+            <div className="p-3 rounded-md bg-red-50 text-red-500 text-sm">
+              {error}
             </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="password">
-                Password
-              </label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-          </CardContent>
-
-          <CardFooter>
-            <Button className="w-full" type="submit" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Sign In"}
-            </Button>
-          </CardFooter>
-        </form>
+          )}
+          
+          {/* Google Sign In Button */}
+          <Button
+            className="w-full bg-white text-gray-800 hover:bg-gray-100 border border-gray-300"
+            onClick={handleGoogleSignIn}
+            disabled={isLoading}
+            type="button"
+          >
+            <svg
+              className="mr-2 h-4 w-4"
+              aria-hidden="true"
+              focusable="false"
+              data-prefix="fab"
+              data-icon="google"
+              role="img"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 488 512"
+            >
+              <path
+                fill="currentColor"
+                d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"
+              ></path>
+            </svg>
+            {language === 'mm' ? 'Google ဖြင့် အကောင့်ဝင်ရန်' : 'Sign in with Google'}
+          </Button>
+          
+          <div className="text-center text-xs text-muted-foreground mt-4">
+            {language === 'mm'
+              ? 'Google အကောင့်ဖြင့်သာ အကောင့်ဝင်နိုင်မည်ဖြစ်သည်'
+              : 'Only Google sign-in is supported'}
+          </div>
+        </CardContent>
       </Card>
     </div>
   );

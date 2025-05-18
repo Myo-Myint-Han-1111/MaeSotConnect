@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
+import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/auth/password";
@@ -15,7 +15,7 @@ const adminSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     // Must be authenticated
     if (!session) {
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     // Hash the password
     const hashedPassword = await hashPassword(password);
 
-    // Create the user
+    // Create the user as organization admin
     const user = await prisma.user.create({
       data: {
         name,
@@ -80,9 +80,9 @@ export async function POST(request: NextRequest) {
     const { password: _, ...userWithoutPassword } = user;
     return NextResponse.json(userWithoutPassword, { status: 201 });
   } catch (error) {
-    console.error("Error creating administrator:", error);
+    console.error("Error creating admin user:", error);
     return NextResponse.json(
-      { error: "Failed to create administrator" },
+      { error: "Failed to create admin user" },
       { status: 500 }
     );
   }

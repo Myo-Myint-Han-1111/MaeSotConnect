@@ -67,10 +67,10 @@ export default function AdminLayout({
             active: pathname.startsWith("/admin/organizations"),
           },
           {
-            label: "Users",
-            href: "/admin/users",
+            label: "Administrators",
+            href: "/admin/administrators",
             icon: <Users className="h-5 w-5" />,
-            active: pathname.startsWith("/admin/users"),
+            active: pathname.startsWith("/admin/administrators"),
           },
         ]
       : []),

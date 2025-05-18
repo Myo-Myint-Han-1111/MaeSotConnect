@@ -1,6 +1,6 @@
 // src/app/api/courses/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
+import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { authOptions } from "@/lib/auth/auth";
@@ -72,7 +72,7 @@ export async function GET(
       return NextResponse.json({ error: "Course not found" }, { status: 404 });
     }
 
-    // Format data to match the expected structure - NOW WITH MYANMAR FIELDS
+    // Format data to match the expected structure
     const formattedCourse = {
       id: course.id,
       title: course.title,
@@ -145,7 +145,7 @@ export async function PUT(
     const resolvedParams = await Promise.resolve(params);
     const id = resolvedParams.id;
 
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     // Must be authenticated
     if (!session) {
@@ -329,7 +329,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     // Must be authenticated
     if (!session) {

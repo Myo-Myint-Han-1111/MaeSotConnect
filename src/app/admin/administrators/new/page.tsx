@@ -93,11 +93,11 @@ export default function NewUserPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Create New User</h1>
+      <h1 className="text-2xl font-bold mb-6">Create New Administrator</h1>
 
       <Card className="max-w-2xl">
         <CardHeader>
-          <CardTitle>User Information</CardTitle>
+          <CardTitle>Administrator Information</CardTitle>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">

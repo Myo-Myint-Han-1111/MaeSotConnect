@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { z } from "zod";
+import { auth } from "@/lib/auth/auth";import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/auth/password";
 import { authOptions } from "@/lib/auth/auth";
 
 // Input validation schema for updates
-const updateUserSchema = z.object({
+const updateAdministratorSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").optional(),
   email: z.string().email("Invalid email address").optional(),
   password: z
@@ -25,26 +24,26 @@ export async function GET(
     const resolvedParams = await Promise.resolve(params);
     const id = resolvedParams.id;
 
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session) {
       return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
     }
 
-    // Platform admins can view any user, org admins can only view users in their organization
-    if (session.user.role !== "PLATFORM_ADMIN") {
-      // Check if user is from the same organization
-      const user = await prisma.user.findUnique({
+    // Platform admins can view any administrator, org admins can only view administrators in their organization
+    if (session.administrator.role !== "PLATFORM_ADMIN") {
+      // Check if administrator is from the same organization
+      const administrator = await prisma.user.findUnique({
         where: { id },
         select: { organizationId: true },
       });
 
-      if (!user || user.organizationId !== session.user.organizationId) {
+      if (!administrator || administrator.organizationId !== session.administrator.organizationId) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
       }
     }
 
-    const user = await prisma.user.findUnique({
+    const administrator = await prisma.user.findUnique({
       where: { id },
       select: {
         id: true,
@@ -60,15 +59,15 @@ export async function GET(
       },
     });
 
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if (!administrator) {
+      return NextResponse.json({ error: "Administrator not found" }, { status: 404 });
     }
 
-    return NextResponse.json(user);
+    return NextResponse.json(administrator);
   } catch (error) {
-    console.error("Error fetching user:", error);
+    console.error("Error fetching administrator:", error);
     return NextResponse.json(
-      { error: "Failed to fetch user" },
+      { error: "Failed to fetch administrator" },
       { status: 500 }
     );
   }
@@ -82,15 +81,15 @@ export async function PUT(
     const resolvedParams = await Promise.resolve(params);
     const id = resolvedParams.id;
 
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
-    // Only platform admins can update users
-    if (!session || session.user.role !== "PLATFORM_ADMIN") {
+    // Only platform admins can update administrators
+    if (!session || session.administrator.role !== "PLATFORM_ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     const body = await request.json();
-    const parsedData = updateUserSchema.safeParse(body);
+    const parsedData = updateAdministratorSchema.safeParse(body);
 
     if (!parsedData.success) {
       return NextResponse.json(
@@ -99,13 +98,13 @@ export async function PUT(
       );
     }
 
-    // Check if user exists
-    const existingUser = await prisma.user.findUnique({
+    // Check if administrator exists
+    const existingAdministrator = await prisma.user.findUnique({
       where: { id },
     });
 
-    if (!existingUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if (!existingAdministrator) {
+      return NextResponse.json({ error: "Administrator not found" }, { status: 404 });
     }
 
     const { name, email, password, role, organizationId } = parsedData.data;
@@ -149,20 +148,20 @@ export async function PUT(
     if (organizationId !== undefined)
       updateData.organizationId = organizationId;
 
-    // Update the user
-    const updatedUser = await prisma.user.update({
+    // Update the administrator
+    const updatedAdministrator = await prisma.user.update({
       where: { id },
       data: updateData,
     });
 
-    // Return the updated user without password
+    // Return the updated administrator without password
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: passwordField, ...userWithoutPassword } = updatedUser;
-    return NextResponse.json(userWithoutPassword);
+    const { password: passwordField, ...administratorWithoutPassword } = updatedAdministrator;
+    return NextResponse.json(administratorWithoutPassword);
   } catch (error) {
-    console.error("Error updating user:", error);
+    console.error("Error updating administrator:", error);
     return NextResponse.json(
-      { error: "Failed to update user" },
+      { error: "Failed to update administrator" },
       { status: 500 }
     );
   }
@@ -176,40 +175,40 @@ export async function DELETE(
     const resolvedParams = await Promise.resolve(params);
     const id = resolvedParams.id;
 
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
-    // Only platform admins can delete users
-    if (!session || session.user.role !== "PLATFORM_ADMIN") {
+    // Only platform admins can delete administrators
+    if (!session || session.administrator.role !== "PLATFORM_ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    // Check if user exists
-    const existingUser = await prisma.user.findUnique({
+    // Check if administrator exists
+    const existingAdministrator = await prisma.user.findUnique({
       where: { id },
     });
 
-    if (!existingUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if (!existingAdministrator) {
+      return NextResponse.json({ error: "Administrator not found" }, { status: 404 });
     }
 
     // Prevent deleting yourself
-    if (existingUser.id === session.user.id) {
+    if (existingAdministrator.id === session.administrator.id) {
       return NextResponse.json(
         { error: "Cannot delete your own account" },
         { status: 400 }
       );
     }
 
-    // Delete the user
+    // Delete the administrator
     await prisma.user.delete({
       where: { id },
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error deleting user:", error);
+    console.error("Error deleting administrator:", error);
     return NextResponse.json(
-      { error: "Failed to delete user" },
+      { error: "Failed to delete administrator" },
       { status: 500 }
     );
   }

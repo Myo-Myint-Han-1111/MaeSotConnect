@@ -1,13 +1,14 @@
-import "next-auth";
+import NextAuth, { DefaultSession } from "next-auth";
 import { Role } from "@prisma/client";
 
 declare module "next-auth" {
   interface User {
     role?: Role;
     organizationId?: string | null;
+    image?: string;
   }
 
-  interface Session {
+  interface Session extends DefaultSession {
     user: {
       id: string;
       name: string;
@@ -15,11 +16,19 @@ declare module "next-auth" {
       image?: string;
       role: Role;
       organizationId?: string | null;
-    };
+    } & DefaultSession["user"];
+    
+    // Add administrator with the same shape as user
+    administrator: {
+      id: string;
+      name: string;
+      email: string;
+      image?: string;
+      role: Role;
+      organizationId?: string | null;
+    } & DefaultSession["user"];
   }
-}
 
-declare module "next-auth/jwt" {
   interface JWT {
     role?: Role;
     organizationId?: string | null;
