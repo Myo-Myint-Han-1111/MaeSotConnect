@@ -214,12 +214,12 @@ export async function PUT(
 
     // Process and save new image files
     const newImageUrls: string[] = [];
-    for (const [key, value] of formData.entries()) {
-      if (key.startsWith("image_") && value instanceof File) {
-        const imageUrl = await saveFile(value);
-        newImageUrls.push(imageUrl);
+      for (const [key, value] of formData.entries()) {
+        if (key.startsWith("image_") && value instanceof File) {
+          const imageUrl = await saveFile(value, session.user.organizationId ?? undefined);
+          newImageUrls.push(imageUrl);
+        }
       }
-    }
 
     // Combine existing and new image URLs
     const allImageUrls = [...existingImageUrls, ...newImageUrls];

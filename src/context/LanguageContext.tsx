@@ -43,9 +43,9 @@ export const translations = {
     "nav.language": "ENG | MM",
 
     // Home page
-    "home.welcome": "Welcome to the Website",
+    "home.welcome": "What do you want to learn?",
     "home.subtitle":
-      "Let's learn education and vocational resources in Mae-Sot.",
+      "Learn the skills. Create your path.",
     "home.search.placeholder":
       "Search courses by name, location, or category...",
     "home.filter.category": "Filter by category:",
@@ -148,9 +148,9 @@ export const translations = {
     "nav.language": "အင်္ဂလိပ် | မြန်မာ",
 
     // Home page
-    "home.welcome": "ဝဘ်ဆိုဒ်မှ ကြိုဆိုပါသည်",
+    "home.welcome": "မင်းဘာသင်ချင်လဲ",
     "home.subtitle":
-      "မဲဆောက်မြို့ရှိ ပညာရေးနှင့် အသက်မွေးဝမ်းကျောင်းဆိုင်ရာ အရင်းအမြစ်များကို လေ့လာကြစို့။",
+      "အတက်ပညာကိုသင်ယူလေ့လာပါ။ သင်လမ်းကြောင်းကိုဖန်တီးပါ။",
     "home.search.placeholder":
       "သင်တန်းအမည်၊ တည်နေရာ သို့မဟုတ် အမျိုးအစားဖြင့် ရှာဖွေပါ...",
     "home.filter.category": "အမျိုးအစားဖြင့် စစ်ထုတ်ရန်:",

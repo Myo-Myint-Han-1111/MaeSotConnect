@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { authOptions } from "@/lib/auth/auth";
 
 // Input validation schema
 const organizationSchema = z.object({
@@ -187,6 +186,69 @@ export async function DELETE(
     console.error("Error deleting organization:", error);
     return NextResponse.json(
       { error: "Failed to delete organization" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    // Get current session to check permissions
+    const session = await auth();
+
+    // Only platform admins can create organizations
+    if (!session || session.user.role !== "PLATFORM_ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    console.log("Starting organization creation...");
+    const body = await request.json();
+    console.log("Organization creation request body:", body);
+
+    const parsedData = organizationSchema.safeParse(body);
+
+    if (!parsedData.success) {
+      console.log("Validation errors:", parsedData.error.errors);
+      return NextResponse.json(
+        { error: parsedData.error.errors },
+        { status: 400 }
+      );
+    }
+
+    const {
+      name,
+      description,
+      phone,
+      email,
+      address,
+      facebookPage,
+      latitude,
+      longitude,
+    } = parsedData.data;
+
+    console.log("Creating organization with data:", parsedData.data);
+
+    // Create the organization
+    const organization = await prisma.organization.create({
+      data: {
+        name,
+        description,
+        phone,
+        email,
+        address,
+        facebookPage,
+        latitude,
+        longitude,
+      },
+    });
+
+    console.log("Organization created successfully:", organization);
+    return NextResponse.json(organization, { status: 201 });
+  } catch (error) {
+    console.error("Error deleting organization:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json(
+      { error: "Failed to delete organization", details: errorMessage },
       { status: 500 }
     );
   }

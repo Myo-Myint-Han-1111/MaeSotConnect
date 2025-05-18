@@ -6,6 +6,10 @@ import { CourseCard } from "@/components/CourseCard/CourseCard";
 import { BADGE_STYLES } from "@/components/Badges/BadgeSystem";
 import { convertToMyanmarNumber } from "@/lib/utils";
 import { getFontSizeClasses } from "@/lib/font-sizes";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 interface Course {
   id: string;
@@ -327,13 +331,13 @@ export default function Home() {
   if (loading) {
     return (
       <>
-        <div className="w-full hero-section pt-20" data-language={language}>
+        <div className="w-full hero-gradient pt-32 pb-24" data-language={language}>
           <div className="max-w-6xl mx-auto px-4">
             <div
               className={`${getFontSizeClasses(
                 "heading1",
                 language
-              )} text-white`}
+              )} text-white text-center pt-8`}
               data-language={language}
             >
               {t("home.welcome")}
@@ -342,7 +346,7 @@ export default function Home() {
               className={`${getFontSizeClasses(
                 "bodyLarge",
                 language
-              )} text-white max-w-2xl mx-auto mt-2`}
+              )} text-white max-w-2xl mx-auto mt-4 text-center`}
               data-language={language}
             >
               {t("home.subtitle")}
@@ -350,7 +354,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="content">
+        <div className="content -mt-6">
           <div className="flex items-center justify-center py-20">
             <div className="h-16 w-16 border-t-4 border-primary border-solid rounded-full animate-spin"></div>
           </div>
@@ -361,11 +365,11 @@ export default function Home() {
 
   return (
     <>
-      {/* Hero section - Now full width with space below navbar */}
-      <div className="w-full hero-section pt-20" data-language={language}>
-        <div className="max-w-6xl mx-auto px-4">
+      {/* Hero section with gradient background */}
+      <div className="w-full hero-gradient pt-32 pb-24" data-language={language}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div
-            className={`${getFontSizeClasses("heading1", language)} text-white`}
+            className={`${getFontSizeClasses("heading1", language)} text-white text-left pt-8`}
             data-language={language}
           >
             {t("home.welcome")}
@@ -374,7 +378,7 @@ export default function Home() {
             className={`${getFontSizeClasses(
               "bodyLarge",
               language
-            )} text-white max-w-2xl mx-auto mt-2`}
+            )} text-white max-w-2xl mt-4 text-left`}
             data-language={language}
           >
             {t("home.subtitle")}
@@ -382,19 +386,19 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Rest of content in container */}
-      <div className="content">
-        <div className="section">
-          {/* Search bar */}
-          <div className="search-container mb-6">
-            <div className="relative w-full max-w-xl mx-auto">
-              <input
+      {/* Search bar positioned to intersect with hero section */}
+      <div className="search-container -mt-6 mb-8 relative z-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-xl bg-white rounded-lg shadow-lg p-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Input
                 type="text"
                 placeholder={t("home.search.placeholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 data-language={language}
-                className={`w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary ${getFontSizeClasses(
+                className={`w-full pl-10 py-3 rounded-md border-none focus:ring-2 focus:ring-primary ${getFontSizeClasses(
                   "bodyRegular",
                   language
                 )}`}
@@ -409,15 +413,20 @@ export default function Home() {
               )}
             </div>
           </div>
+        </div>
+      </div>
 
+      {/* Rest of content in container */}
+      <div className="content">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Filter badges */}
           <div className="mb-6">
-            <div className="flex flex-col items-center gap-4">
-              <span className="text-sm text-muted-foreground">
+            <div className="flex flex-col items-start gap-4">
+              <span className="text-sm text-muted-foreground ml-1">
                 {t("home.filter.category")}
               </span>
 
-              <div className="flex flex-wrap gap-3 justify-center">
+              <div className="flex flex-wrap gap-3 justify-start">
                 {allBadges.map((badge) => {
                   // Use the centralized badge system to get styles
                   const badgeStyle = BADGE_STYLES[badge] || {
@@ -451,7 +460,7 @@ export default function Home() {
               {(searchTerm || activeFilters.length > 0) && (
                 <button
                   onClick={clearFilters}
-                  className="px-3 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors mt-2"
+                  className="px-3 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors mt-2 ml-1"
                 >
                   {t("home.filter.clear")}
                 </button>
@@ -461,7 +470,7 @@ export default function Home() {
 
           {/* Results count */}
           {filteredCourses.length > 0 && (
-            <p className="text-center text-sm text-muted-foreground mb-6">
+            <p className="text-left text-sm text-muted-foreground mb-6 ml-1">
               {language === "mm"
                 ? convertToMyanmarNumber(filteredCourses.length)
                 : filteredCourses.length}{" "}
@@ -473,35 +482,35 @@ export default function Home() {
 
           {/* Course cards grid */}
           {filteredCourses.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
               {filteredCourses.map((course) => (
                 <CourseCard
                   key={course.id}
                   id={course.id}
-                  images={course.images} // Now passing the correct image object structure
+                  images={course.images}
                   title={course.title}
-                  titleMm={course.titleMm || null} // Convert undefined to null
+                  titleMm={course.titleMm || null}
                   subtitle={course.subtitle}
-                  subtitleMm={course.subtitleMm || null} // Convert undefined to null
+                  subtitleMm={course.subtitleMm || null}
                   location={course.location}
-                  locationMm={course.locationMm || null} // Convert undefined to null
+                  locationMm={course.locationMm || null}
                   startDate={course.startDate}
-                  startDateMm={course.startDateMm || null} // Convert undefined to null
+                  startDateMm={course.startDateMm || null}
                   duration={course.duration}
-                  durationMm={course.durationMm || null} // Convert undefined to null
+                  durationMm={course.durationMm || null}
                   schedule={course.schedule}
-                  scheduleMm={course.scheduleMm || null} // Convert undefined to null
+                  scheduleMm={course.scheduleMm || null}
                   fee={course.fee}
-                  feeMm={course.feeMm || null} // Convert undefined to null
+                  feeMm={course.feeMm || null}
                   availableDays={course.availableDays}
-                  badges={course.badges} // Now passing the correct badge object structure
+                  badges={course.badges}
                 />
               ))}
             </div>
           ) : (
             // For No courses Found
-            <div className="text-center py-16">
-              <div className="no-results-icon mx-auto">🔎</div>
+            <div className="flex flex-col items-center justify-center py-16">
+              <div className="no-results-icon">🔎</div>
               <h3
                 className={`${getFontSizeClasses(
                   "heading3",
@@ -514,7 +523,7 @@ export default function Home() {
                 className={`${getFontSizeClasses(
                   "bodyRegular",
                   language
-                )} text-muted-foreground max-w-md mx-auto`}
+                )} text-muted-foreground max-w-md`}
               >
                 {t("home.no.results.desc")}
               </p>
@@ -528,6 +537,46 @@ export default function Home() {
           )}
         </div>
       </div>
+      
+      {/* Footer with navigation links */}
+      <footer className="bg-gray-100 py-8 mt-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div className="mb-4 md:mb-0">
+              <Link href="/" className="flex items-center space-x-2">
+                <span className="font-semibold text-gray-700">StudyinThailand.org</span>
+              </Link>
+            </div>
+            
+            <nav className="flex flex-col md:flex-row gap-4 md:gap-8">
+              <Link 
+                href="/" 
+                className="text-gray-600 hover:text-primary transition-colors text-sm"
+              >
+                {t("nav.home")}
+              </Link>
+              <Link 
+                href="/about" 
+                className="text-gray-600 hover:text-primary transition-colors text-sm"
+              >
+                {t("nav.about")}
+              </Link>
+              <Link 
+                href="/contact" 
+                className="text-gray-600 hover:text-primary transition-colors text-sm"
+              >
+                {t("nav.contact")}
+              </Link>
+            </nav>
+          </div>
+          
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <p className="text-xs text-gray-500 text-center">
+              © {new Date().getFullYear()} StudyinThailand.org. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
     </>
   );
 }

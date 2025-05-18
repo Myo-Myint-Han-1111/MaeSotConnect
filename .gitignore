@@ -44,5 +44,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Local uploads
-/public/uploads
+# Scripts for troubleshooting
+scripts/
+supabase/

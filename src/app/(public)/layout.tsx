@@ -3,11 +3,11 @@ import { Navbar } from "@/components/Navbar/Navbar";
 
 // Brand configuration
 const brand = {
-  name: "Mae Sot Connect",
-  logo: "/images/maesotconnect.png",
+  name: "StudyinThailand.org",
+  logo: "/images/studyinthailand.svg",
 };
 
-// Navigation items
+// Navigation items (now used in footer, not in Navbar)
 const navItems = [
   { name: "Home", path: "/" },
   { name: "About Us", path: "/about" },
@@ -22,7 +22,7 @@ export default function PublicLayout({
   return (
     <div className="app">
       <Navbar brand={brand} items={navItems} />
-      <div className="page-transition-container">{children}</div>
+      <main className="page-transition-container">{children}</main>
     </div>
   );
 }

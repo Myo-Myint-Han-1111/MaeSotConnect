@@ -86,31 +86,61 @@
 }
 
 .content {
-  max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
-  padding: 0 1rem;
 }
 
-/* Add these styles to your globals.css file */
-
-.hero-section {
-  background: linear-gradient(to right, #1e3a8a, #2a4365);
+/* Hero section with gradient background */
+.hero-gradient {
+  background: linear-gradient(135deg, #4257b2 0%, #2d3a85 50%, #1e2860 100%);
   color: white;
-  padding: 4rem 2rem;
-  text-align: center;
-  margin-bottom: 2rem;
   width: 100%;
-  /* Add these to ensure full width */
   box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Dark overlay for hero gradient */
+.hero-gradient::after {
+  content: "";
+  position: absolute;
+  top: 0;
   left: 0;
   right: 0;
-  /* Add padding-top to create space below the navbar (adjust as needed) */
-  margin-top: 4rem; /* This creates space below the navbar */
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.1);
+  z-index: 0;
 }
 
-/* Add a responsive adjustment for mobile */
+/* Make sure content sits above the overlay */
+.hero-gradient > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Search container styles */
+.search-container {
+  position: relative;
+  z-index: 10;
+}
+
+/* Add a subtle shadow to the search input */
+.search-container input {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.search-container input:focus {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Add responsive adjustments for mobile */
 @media (max-width: 640px) {
-  .hero-section {
-    padding: 3rem 1rem;
+  .hero-gradient {
+    padding: 2rem 1rem 3rem;
+  }
+  
+  .search-container {
+    margin-top: -1.5rem;
   }
 }

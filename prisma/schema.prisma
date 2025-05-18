@@ -83,11 +83,11 @@ model Course {
   scheduleDetailsMm   String?
   selectionCriteria   String[]
   selectionCriteriaMm String[]
-  organizationId      String
+  organizationId      String?      
   createdAt           DateTime     @default(now())
   updatedAt           DateTime     @updatedAt
   badges              Badge[]
-  organizationInfo    Organization @relation(fields: [organizationId], references: [id])
+  organizationInfo    Organization? @relation(fields: [organizationId], references: [id])
   faq                 FAQ[]
   images              Image[]
 }

@@ -196,6 +196,10 @@ export async function POST(request: NextRequest) {
     const parsedData = JSON.parse(jsonData);
     const validationResult = courseSchema.safeParse(parsedData);
 
+    if (!parsedData.organizationId || parsedData.organizationId === "") {
+      parsedData.organizationId = null;
+    }
+
     if (!validationResult.success) {
       return NextResponse.json(
         { error: validationResult.error.errors },
@@ -251,7 +255,7 @@ export async function POST(request: NextRequest) {
           scheduleDetailsMm: parsedData.scheduleDetailsMm,
           selectionCriteria: parsedData.selectionCriteria,
           selectionCriteriaMm: parsedData.selectionCriteriaMm || [],
-          organizationId: parsedData.organizationId,
+          organizationId: parsedData.organizationId || null,
         },
       });
 
