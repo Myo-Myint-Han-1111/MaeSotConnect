@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { authOptions } from "@/lib/auth/auth";
 import { saveFile } from "@/lib/upload";
 
 // Input validation schema
@@ -214,12 +213,15 @@ export async function PUT(
 
     // Process and save new image files
     const newImageUrls: string[] = [];
-      for (const [key, value] of formData.entries()) {
-        if (key.startsWith("image_") && value instanceof File) {
-          const imageUrl = await saveFile(value, session.user.organizationId ?? undefined);
-          newImageUrls.push(imageUrl);
-        }
+    for (const [key, value] of formData.entries()) {
+      if (key.startsWith("image_") && value instanceof File) {
+        const imageUrl = await saveFile(
+          value,
+          session.user.organizationId ?? undefined
+        );
+        newImageUrls.push(imageUrl);
       }
+    }
 
     // Combine existing and new image URLs
     const allImageUrls = [...existingImageUrls, ...newImageUrls];

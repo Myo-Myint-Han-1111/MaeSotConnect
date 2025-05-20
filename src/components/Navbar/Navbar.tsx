@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
+import { usePathname } from "next/navigation";
 
 interface NavItem {
   name: string;
@@ -23,6 +24,13 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ brand }) => {
   const { language, setLanguage } = useLanguage();
+  const pathname = usePathname();
+
+  // Check if we're on a page that needs the alternate navbar style
+  const isAlternateStyle =
+    pathname.startsWith("/about") ||
+    pathname.startsWith("/contact") ||
+    pathname.startsWith("/courses/");
 
   const changeLanguage = (value: string) => {
     if (value === "en" || value === "mm") {
@@ -31,7 +39,11 @@ export const Navbar: React.FC<NavbarProps> = ({ brand }) => {
   };
 
   return (
-    <header className="absolute top-0 left-0 w-full z-30 bg-transparent">
+    <header
+      className={`absolute top-0 left-0 w-full z-30 ${
+        isAlternateStyle ? "bg-[#4257b2]" : "bg-transparent"
+      }`}
+    >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Brand/Logo */}
@@ -61,18 +73,22 @@ export const Navbar: React.FC<NavbarProps> = ({ brand }) => {
                 <TabsTrigger
                   value="en"
                   className={`px-3 py-1.5 text-xs font-medium transition-colors rounded-sm 
-                    ${language === "en" 
-                      ? "bg-white text-primary font-semibold" 
-                      : "bg-transparent text-white hover:bg-white/10"}`}
+                    ${
+                      language === "en"
+                        ? "bg-white text-primary font-semibold"
+                        : "bg-transparent text-white hover:bg-white/10"
+                    }`}
                 >
                   ENG
                 </TabsTrigger>
                 <TabsTrigger
                   value="mm"
                   className={`px-3 py-1.5 text-xs font-medium transition-colors rounded-sm
-                    ${language === "mm" 
-                      ? "bg-white text-primary font-semibold" 
-                      : "bg-transparent text-white hover:bg-white/10"}`}
+                    ${
+                      language === "mm"
+                        ? "bg-white text-primary font-semibold"
+                        : "bg-transparent text-white hover:bg-white/10"
+                    }`}
                 >
                   MM
                 </TabsTrigger>

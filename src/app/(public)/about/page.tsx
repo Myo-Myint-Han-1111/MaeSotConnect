@@ -2,6 +2,10 @@
 
 import React from "react";
 import { useLanguage } from "../../../context/LanguageContext";
+import { useRouter } from "next/navigation";
+
+import { Button } from "../../../components/ui/button";
+import { ChevronLeft } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -33,6 +37,7 @@ const styles = {
 
 const About: React.FC = () => {
   const { t } = useLanguage();
+  const router = useRouter(); // Initialize the router hook
 
   // Sample team data
   const teamMembers = [
@@ -64,16 +69,22 @@ const About: React.FC = () => {
 
   return (
     <div className="content">
-      <section className="hero-section">
-        <h1 className="text-4xl font-bold text-white">{t("about.title")}</h1>
-        <p className="text-xl text-white max-w-2xl mx-auto mt-2">
-          {t("about.subtitle")}
-        </p>
-      </section>
+      {/* Back Button */}
+      <div className="relative z-10 bg-background py-4 pt-20 max-w-6xl mx-auto px-4">
+        <Button
+          variant="outline"
+          size="sm"
+          className="border border-gray-300 bg-white hover:bg-gray-100 rounded-md shadow-sm"
+          onClick={() => router.push("/")}
+        >
+          <ChevronLeft className="mr-2 h-4 w-4" />
+          {t("course.back")}
+        </Button>
+      </div>
 
-      <section className="max-w-6xl mx-auto px-4 py-12">
+      <section className="max-w-6xl mx-auto px-4 py-2">
         <Tabs defaultValue="mission" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:w-[300px] mx-auto mb-8">
+          <TabsList className="grid w-full grid-cols-2 md:w-[300px] mx-auto mb-4 p-1 rounded-md ">
             <TabsTrigger value="mission">Our Mission</TabsTrigger>
             <TabsTrigger value="team">Our Team</TabsTrigger>
           </TabsList>

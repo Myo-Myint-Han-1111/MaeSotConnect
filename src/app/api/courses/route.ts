@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { authOptions } from "@/lib/auth/auth";
 import { saveFile } from "@/lib/upload";
 
 // Input validation schema

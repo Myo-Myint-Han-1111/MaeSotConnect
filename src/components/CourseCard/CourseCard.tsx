@@ -2,8 +2,8 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardFooter } from "../ui/card";
-import { Button } from "../ui/button";
+import { Card, CardContent } from "../ui/card";
+// import { Button } from "../ui/button";
 import { useLanguage } from "../../context/LanguageContext";
 import ImageCarousel from "../common/ImageCarousel";
 import DayIndicator from "../common/DayIndicator";
@@ -126,7 +126,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         />
       </CardContent>
 
-      <CardFooter className="see-more-container">
+      {/* <CardFooter className="see-more-container">
         <Button
           onClick={(e) => {
             e.stopPropagation();
@@ -136,7 +136,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         >
           {t("course.seemore")}
         </Button>
-      </CardFooter>
+      </CardFooter> */}
     </Card>
   );
 };

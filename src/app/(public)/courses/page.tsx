@@ -437,7 +437,7 @@ const courseDetailStyles = `
 
 /* Add specific styling for content to fix navbar overlap */
 .content {
-  padding-top: 6rem; /* Add more space below the navbar */
+  padding-top: 9rem; /* Add more space below the navbar */
   position: relative;
   z-index: 1; /* Ensure content appears above other elements */
 }
@@ -540,10 +540,10 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
 
   // Back Button to Landing Page
   return (
-    <div className="content mt-20">
-      <div className="max-w-6xl mx-auto px-4">
-        {/* Non-sticky back button that stays at the top */}
-        <div className="relative z-10 bg-background py-2 mb-4">
+    <div className="content">
+      <div className="max-w-6xl mx-auto px-4 relative">
+        {/* Back button positioned normally now that we have proper spacing */}
+        <div className="mb-8 mt-4">
           <Button
             variant="outline"
             size="sm"
@@ -554,13 +554,11 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
             {t("course.back")}
           </Button>
         </div>
-
         {/* Title and Subtitle */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold">{course.title}</h1>
           <p className="text-lg text-muted-foreground">{course.subtitle}</p>
         </div>
-
         {/* Badges */}
         <div className="flex flex-wrap gap-2 mb-6">
           {course.badges.map((badge, index) => (
@@ -576,7 +574,6 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
             </Badge>
           ))}
         </div>
-
         {/* Image Gallery and Info Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-10">
           {/* Enhanced Image Gallery with swipe support */}
@@ -667,7 +664,6 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
             </Card>
           </div>
         </div>
-
         {/* Course Details Accordion */}
         <div className="mb-10">
           <Accordion type="multiple" className="w-full">
@@ -797,7 +793,6 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
             )}
           </Accordion>
         </div>
-
         {/* Organization Info */}
         {course.organizationInfo && (
           <section className="mb-10">
@@ -849,7 +844,6 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
             </Card>
           </section>
         )}
-
         {/* Bottom CTA */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-16 p-6 bg-muted rounded-lg">
           <div>

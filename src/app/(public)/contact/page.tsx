@@ -2,25 +2,35 @@
 
 import React from "react";
 import { useLanguage } from "../../../context/LanguageContext";
+import { Button } from "../../../components/ui/button";
+import { ChevronLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "../../../components/ui/card";
-import { PhoneCall, Mail, Facebook, MapPin } from "lucide-react";
+import { PhoneCall, Mail, Facebook } from "lucide-react";
 
 const ContactUs: React.FC = () => {
   const { t } = useLanguage();
+  const router = useRouter();
 
   return (
     <div className="content">
-      <section className="hero-section">
-        <h1 className="text-4xl font-bold text-white">{t("contact.title")}</h1>
-        <p className="text-xl text-white max-w-2xl mx-auto mt-2">
-          {t("contact.subtitle")}
-        </p>
-      </section>
+      {/* Back Button */}
+      <div className="relative z-10 bg-background pt-20 max-w-6xl mx-auto px-4">
+        <Button
+          variant="outline"
+          size="sm"
+          className="border border-gray-300 bg-white hover:bg-gray-100 rounded-md shadow-sm"
+          onClick={() => router.push("/")}
+        >
+          <ChevronLeft className="mr-2 h-4 w-4" />
+          {t("course.back")}
+        </Button>
+      </div>
 
       <section className="section py-12">
         <div className="max-w-6xl mx-auto px-4">
@@ -92,28 +102,6 @@ const ContactUs: React.FC = () => {
                 </a>
               </CardContent>
             </Card>
-          </div>
-        </div>
-      </section>
-
-      <section className="section py-12 bg-muted">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div>
-              <h2 className="text-3xl font-bold mb-1 text-center">
-                {t("contact.location.title")}
-              </h2>
-            </div>
-
-            <div className="w-full h-[400px] bg-card rounded-lg p-4 flex items-center justify-center">
-              <div className="text-center text-muted-foreground">
-                <MapPin className="h-8 w-8 mx-auto mb-4 opacity-50" />
-                <p>{t("contact.location.maptext")}</p>
-                <p className="text-sm mt-2">
-                  Google Maps integration would be here
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </section>
