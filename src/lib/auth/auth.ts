@@ -8,8 +8,11 @@ import { Role } from "@prisma/client";
 
 // Simple admin emails function
 const getAdminEmails = (): string[] => {
-  const adminEmailsEnv = process.env.ADMIN_EMAILS || '';
-  return adminEmailsEnv.split(',').map(email => email.trim()).filter(Boolean);
+  const adminEmailsEnv = process.env.ADMIN_EMAILS || "";
+  return adminEmailsEnv
+    .split(",")
+    .map((email) => email.trim())
+    .filter(Boolean);
 };
 
 export const authConfig: NextAuthConfig = {
@@ -25,24 +28,24 @@ export const authConfig: NextAuthConfig = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        // Use type assertion to handle the role
-        token.role = user.role as Role;
-        token.organizationId = user.organizationId as string | null;
+        // Always set role to PLATFORM_ADMIN
+        token.role = Role.PLATFORM_ADMIN;
+        token.organizationId = null; // No organization association
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub as string;
-        session.user.role = token.role as Role;
-        session.user.organizationId = token.organizationId as string | null;
+        session.user.role = Role.PLATFORM_ADMIN; // Always PLATFORM_ADMIN
+        session.user.organizationId = null; // No organization association
       }
       return session;
     },
     async signIn({ user, account, profile }) {
       try {
-        if (account?.provider === 'google' && profile?.email) {
-          // Always assign a role
+        if (account?.provider === "google" && profile?.email) {
+          // Always assign a role of PLATFORM_ADMIN
           user.role = Role.PLATFORM_ADMIN;
           return true;
         }
@@ -51,7 +54,7 @@ export const authConfig: NextAuthConfig = {
         console.error("Error in signIn callback:", error);
         return false;
       }
-    }
+    },
   },
   pages: {
     signIn: "/auth/signin",

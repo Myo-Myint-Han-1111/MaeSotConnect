@@ -3,7 +3,6 @@ import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
-import { authOptions } from "@/lib/auth/auth";
 
 // Input validation schema
 const updateProfileSchema = z.object({

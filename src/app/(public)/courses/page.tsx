@@ -32,6 +32,8 @@ import {
   PhoneCall,
   Mail,
   Facebook,
+  FileText,
+  User,
 } from "lucide-react";
 
 // Import the enhanced ImageCarousel component
@@ -437,7 +439,7 @@ const courseDetailStyles = `
 
 /* Add specific styling for content to fix navbar overlap */
 .content {
-  padding-top: 9rem; /* Add more space below the navbar */
+  padding-top: 6rem; /* Add more space below the navbar */
   position: relative;
   z-index: 1; /* Ensure content appears above other elements */
 }
@@ -453,25 +455,48 @@ interface CourseDetailProps {
     id: string;
     images: string[];
     title: string;
+    titleMm?: string | null;
     subtitle: string;
+    subtitleMm?: string | null;
+    location: string;
+    locationMm?: string | null;
+    startDate: string;
+    startDateMm?: string | null;
+    endDate?: string; // New field
+    endDateMm?: string | null; // New field
+    duration: string | number;
+    durationMm?: string | number | null;
+    schedule: string;
+    scheduleMm?: string | null;
+    fee?: string;
+    feeMm?: string | null;
+    feeAmount?: number; // New field
+    feeAmountMm?: number | null; // New field
+    ageMin?: number; // New field
+    ageMinMm?: number | null; // New field
+    ageMax?: number; // New field
+    ageMaxMm?: number | null; // New field
+    document?: string; // New field
+    documentMm?: string | null; // New field
+    availableDays: boolean[];
+    description?: string;
+    descriptionMm?: string | null;
+    outcomes?: string[];
+    outcomesMm?: string[] | null;
+    scheduleDetails?: string;
+    scheduleDetailsMm?: string | null;
+    selectionCriteria?: string[];
+    selectionCriteriaMm?: string[] | null;
     badges: {
       text: string;
       color: string;
       backgroundColor: string;
     }[];
-    location: string;
-    startDate: string;
-    duration: string;
-    schedule: string;
-    fee?: string;
-    availableDays: boolean[];
-    description?: string;
-    outcomes?: string[];
-    scheduleDetails?: string;
-    selectionCriteria?: string[];
     faq?: {
       question: string;
+      questionMm?: string | null;
       answer: string;
+      answerMm?: string | null;
     }[];
     organizationInfo?: {
       name: string;
@@ -480,7 +505,12 @@ interface CourseDetailProps {
       email: string;
       address: string;
       facebookPage?: string;
-      mapLocation: {
+      district?: string; // New field
+      province?: string; // New field
+      latitude: number;
+      longitude: number;
+      mapLocation?: {
+        // Keeping for backward compatibility
         lat: number;
         lng: number;
       };
@@ -491,7 +521,7 @@ interface CourseDetailProps {
 const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
   const { id } = useParams<{ id: string }>();
   const course = courses.find((c) => c.id === id);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   // Add CSS to head when component mounts
   useEffect(() => {
@@ -523,6 +553,68 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
     return badgeText;
   };
 
+  // Format fee based on feeAmount if available, otherwise use legacy fee
+  const formatFee = () => {
+    if (course?.feeAmount !== undefined) {
+      // Use the new numeric fee amount
+      const amount = course.feeAmount;
+      if (amount === 0) return language === "mm" ? "အခမဲ့" : "Free";
+
+      return new Intl.NumberFormat(language === "mm" ? "my" : "en", {
+        style: "currency",
+        currency: "THB",
+        maximumFractionDigits: 0,
+      }).format(amount);
+    } else if (course?.fee) {
+      // Fall back to legacy string fee field
+      return language === "mm" && course.feeMm ? course.feeMm : course.fee;
+    }
+
+    return "";
+  };
+
+  // Format duration based on type
+  const formatDuration = () => {
+    if (!course) return "";
+
+    // Use localized duration if available
+    const durationValue =
+      language === "mm" &&
+      course.durationMm !== undefined &&
+      course.durationMm !== null
+        ? course.durationMm
+        : course.duration;
+
+    // If duration is a number, format it with "months"
+    if (typeof durationValue === "number") {
+      return language === "mm"
+        ? `${durationValue} လ`
+        : `${durationValue} month${durationValue !== 1 ? "s" : ""}`;
+    }
+
+    // Otherwise return as string
+    return durationValue;
+  };
+
+  // Format age range
+  const formatAgeRange = () => {
+    if (!course) return "";
+    if (!course.ageMin && !course.ageMax) return "";
+
+    const min =
+      language === "mm" && course.ageMinMm !== undefined
+        ? course.ageMinMm
+        : course.ageMin;
+    const max =
+      language === "mm" && course.ageMaxMm !== undefined
+        ? course.ageMaxMm
+        : course.ageMax;
+
+    if (min && !max) return `${min}+`;
+    if (!min && max) return `0-${max}`;
+    return `${min}-${max}`;
+  };
+
   // if no course is found!!
   if (!course) {
     return (
@@ -540,10 +632,10 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
 
   // Back Button to Landing Page
   return (
-    <div className="content">
-      <div className="max-w-6xl mx-auto px-4 relative">
-        {/* Back button positioned normally now that we have proper spacing */}
-        <div className="mb-8 mt-4">
+    <div className="content mt-20">
+      <div className="max-w-6xl mx-auto px-4">
+        {/* Non-sticky back button that stays at the top */}
+        <div className="relative z-10 bg-background py-2 mb-4">
           <Button
             variant="outline"
             size="sm"
@@ -554,11 +646,21 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
             {t("course.back")}
           </Button>
         </div>
+
         {/* Title and Subtitle */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold">{course.title}</h1>
-          <p className="text-lg text-muted-foreground">{course.subtitle}</p>
+          <h1 className="text-3xl font-bold">
+            {language === "mm" && course.titleMm
+              ? course.titleMm
+              : course.title}
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            {language === "mm" && course.subtitleMm
+              ? course.subtitleMm
+              : course.subtitle}
+          </p>
         </div>
+
         {/* Badges */}
         <div className="flex flex-wrap gap-2 mb-6">
           {course.badges.map((badge, index) => (
@@ -574,13 +676,18 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
             </Badge>
           ))}
         </div>
+
         {/* Image Gallery and Info Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-10">
           {/* Enhanced Image Gallery with swipe support */}
           <div className="lg:col-span-3">
             <ImageCarousel
               images={course.images}
-              altText={course.title}
+              altText={
+                language === "mm" && course.titleMm
+                  ? course.titleMm
+                  : course.title
+              }
               variant="fullsize"
               indicatorStyle="dots"
               aspectRatio="video"
@@ -601,8 +708,10 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
                     <p className="text-sm font-medium text-foreground">
                       {t("course.location")}
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      {course.location}
+                    <p className="text-sm text-muted-foreground" dir="auto">
+                      {language === "mm" && course.locationMm
+                        ? course.locationMm
+                        : course.location}
                     </p>
                   </div>
                 </div>
@@ -614,11 +723,30 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
                     <p className="text-sm font-medium text-foreground">
                       {t("course.startDate")}
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      {course.startDate}
+                    <p className="text-sm text-muted-foreground" dir="auto">
+                      {language === "mm" && course.startDateMm
+                        ? course.startDateMm
+                        : course.startDate}
                     </p>
                   </div>
                 </div>
+
+                {/* End Date - NEW FIELD */}
+                {course.endDate && (
+                  <div className="flex items-start">
+                    <Calendar className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {language === "mm" ? "ပြီးဆုံးမည့်ရက်" : "End Date"}
+                      </p>
+                      <p className="text-sm text-muted-foreground" dir="auto">
+                        {language === "mm" && course.endDateMm
+                          ? course.endDateMm
+                          : course.endDate}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Duration */}
                 <div className="flex items-start">
@@ -627,8 +755,8 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
                     <p className="text-sm font-medium text-foreground">
                       {t("course.duration")}
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      {course.duration}
+                    <p className="text-sm text-muted-foreground" dir="auto">
+                      {formatDuration()}
                     </p>
                   </div>
                 </div>
@@ -640,11 +768,65 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
                     <p className="text-sm font-medium text-foreground">
                       {t("course.schedule")}
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      {course.schedule}
+                    <p className="text-sm text-muted-foreground" dir="auto">
+                      {language === "mm" && course.scheduleMm
+                        ? course.scheduleMm
+                        : course.schedule}
                     </p>
                   </div>
                 </div>
+
+                {/* Fee */}
+                {(course.fee || course.feeAmount !== undefined) && (
+                  <div className="flex items-start">
+                    <div className="h-5 w-5 mr-2 mt-0.5 flex items-center justify-center text-muted-foreground">
+                      ฿
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {t("course.fee")}
+                      </p>
+                      <p className="text-sm text-muted-foreground" dir="auto">
+                        {formatFee()}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Age Range - NEW FIELD */}
+                {(course.ageMin !== undefined ||
+                  course.ageMax !== undefined) && (
+                  <div className="flex items-start">
+                    <User className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {language === "mm" ? "အသက်" : "Age Range"}
+                      </p>
+                      <p className="text-sm text-muted-foreground" dir="auto">
+                        {formatAgeRange()}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Required Documents - NEW FIELD */}
+                {(course.document || course.documentMm) && (
+                  <div className="flex items-start">
+                    <FileText className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {language === "mm"
+                          ? "လိုအပ်သော စာရွက်စာတမ်းများ"
+                          : "Required Documents"}
+                      </p>
+                      <p className="text-sm text-muted-foreground" dir="auto">
+                        {language === "mm" && course.documentMm
+                          ? course.documentMm
+                          : course.document}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Day Availability Section */}
                 <div className="mt-6 pt-4 border-t border-gray-200">
@@ -652,7 +834,15 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
                     {t("course.availableDays")}
                   </h3>
                   <DayIndicator
-                    days={["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]}
+                    days={[
+                      t("course.days.sun"),
+                      t("course.days.mon"),
+                      t("course.days.tue"),
+                      t("course.days.wed"),
+                      t("course.days.thu"),
+                      t("course.days.fri"),
+                      t("course.days.sat"),
+                    ]}
                     availableDays={course.availableDays}
                     size="medium"
                   />
@@ -664,6 +854,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
             </Card>
           </div>
         </div>
+
         {/* Course Details Accordion */}
         <div className="mb-10">
           <Accordion type="multiple" className="w-full">
@@ -682,7 +873,11 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pb-4">
-                  <p className="text-muted-foreground">{course.description}</p>
+                  <p className="text-muted-foreground" dir="auto">
+                    {language === "mm" && course.descriptionMm
+                      ? course.descriptionMm
+                      : course.description}
+                  </p>
                 </AccordionContent>
               </AccordionItem>
             )}
@@ -703,8 +898,17 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
                 </AccordionTrigger>
                 <AccordionContent className="pb-4">
                   <ul className="list-disc pl-5 space-y-2">
-                    {course.outcomes.map((outcome, index) => (
-                      <li key={index} className="text-muted-foreground">
+                    {(language === "mm" &&
+                    course.outcomesMm &&
+                    course.outcomesMm.length > 0
+                      ? course.outcomesMm
+                      : course.outcomes
+                    ).map((outcome, index) => (
+                      <li
+                        key={index}
+                        className="text-muted-foreground"
+                        dir="auto"
+                      >
                         {outcome}
                       </li>
                     ))}
@@ -728,8 +932,10 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pb-4">
-                  <p className="text-muted-foreground">
-                    {course.scheduleDetails}
+                  <p className="text-muted-foreground" dir="auto">
+                    {language === "mm" && course.scheduleDetailsMm
+                      ? course.scheduleDetailsMm
+                      : course.scheduleDetails}
                   </p>
                 </AccordionContent>
               </AccordionItem>
@@ -752,8 +958,17 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
                   </AccordionTrigger>
                   <AccordionContent className="pb-4">
                     <ul className="list-disc pl-5 space-y-2">
-                      {course.selectionCriteria.map((criteria, index) => (
-                        <li key={index} className="text-muted-foreground">
+                      {(language === "mm" &&
+                      course.selectionCriteriaMm &&
+                      course.selectionCriteriaMm.length > 0
+                        ? course.selectionCriteriaMm
+                        : course.selectionCriteria
+                      ).map((criteria, index) => (
+                        <li
+                          key={index}
+                          className="text-muted-foreground"
+                          dir="auto"
+                        >
                           {criteria}
                         </li>
                       ))}
@@ -783,8 +998,16 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
                         key={index}
                         className="border-b pb-4 last:border-b-0"
                       >
-                        <h3 className="font-semibold mb-2">{item.question}</h3>
-                        <p className="text-muted-foreground">{item.answer}</p>
+                        <h3 className="font-semibold mb-2" dir="auto">
+                          {language === "mm" && item.questionMm
+                            ? item.questionMm
+                            : item.question}
+                        </h3>
+                        <p className="text-muted-foreground" dir="auto">
+                          {language === "mm" && item.answerMm
+                            ? item.answerMm
+                            : item.answer}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -793,6 +1016,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
             )}
           </Accordion>
         </div>
+
         {/* Organization Info */}
         {course.organizationInfo && (
           <section className="mb-10">
@@ -830,26 +1054,39 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
                         rel="noopener noreferrer"
                         className="text-primary hover:underline"
                       >
-                        {course.organizationInfo.name} Facebook Page
+                        {t("course.facebook")}
                       </a>
                     </div>
                   )}
 
                   <div className="flex items-center">
                     <MapPin className="h-5 w-5 mr-3 text-primary flex-shrink-0" />
-                    <span>{course.organizationInfo.address}</span>
+                    <span>
+                      {course.organizationInfo.address}
+                      {course.organizationInfo.district &&
+                        `, ${course.organizationInfo.district}`}
+                      {course.organizationInfo.province &&
+                        `, ${course.organizationInfo.province}`}
+                    </span>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </section>
         )}
+
         {/* Bottom CTA */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-16 p-6 bg-muted rounded-lg">
           <div>
-            <h3 className="text-xl font-bold">{t("course.readyToJoin")}</h3>
+            <h3 className="text-xl font-bold">
+              {language === "mm"
+                ? "ဤသင်တန်းကို စိတ်ဝင်စားပါသလား?"
+                : "Interested in this course?"}
+            </h3>
             <p className="text-muted-foreground">
-              {t("course.applyDescription")}
+              {language === "mm"
+                ? "လျှောက်ထားရန် သို့မဟုတ် ပိုမိုလေ့လာရန် အဖွဲ့အစည်းကို တိုက်ရိုက်ဆက်သွယ်ပါ"
+                : "Contact the organization directly to apply or learn more"}
             </p>
           </div>
           <Button

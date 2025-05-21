@@ -1,10 +1,9 @@
-
 // src/app/api/admin/allowlist/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { authOptions } from "@/lib/auth/auth";
+
 import { Role } from "@prisma/client";
 
 // Input validation schema
@@ -115,13 +114,10 @@ export async function DELETE(request: NextRequest) {
 
     // Get the ID from the query parameters
     const url = new URL(request.url);
-    const id = url.searchParams.get('id');
+    const id = url.searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json(
-        { error: "Missing admin ID" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing admin ID" }, { status: 400 });
     }
 
     // Check if it's the last admin in the system
@@ -142,10 +138,7 @@ export async function DELETE(request: NextRequest) {
     });
 
     if (!admin) {
-      return NextResponse.json(
-        { error: "Admin not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Admin not found" }, { status: 404 });
     }
 
     // Delete the allowlist entry

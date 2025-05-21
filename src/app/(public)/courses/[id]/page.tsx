@@ -25,6 +25,8 @@ import {
   PhoneCall,
   Mail,
   Facebook,
+  FileText,
+  Users,
 } from "lucide-react";
 import ImageCarousel from "@/components/common/ImageCarousel";
 import DayIndicator from "@/components/common/DayIndicator";
@@ -34,28 +36,41 @@ import Link from "next/link";
 interface CourseDetail {
   id: string;
   title: string;
-  titleMm?: string; // Myanmar title
+  titleMm?: string;
   subtitle: string;
-  subtitleMm?: string; // Myanmar subtitle
+  subtitleMm?: string;
   location: string;
-  locationMm?: string; // Myanmar location
-  startDate: string;
-  startDateMm?: string; // Myanmar start date
-  duration: string;
-  durationMm?: string; // Myanmar duration
+  locationMm?: string;
+  // Changed from string to Date objects
+  startDate: string; // We'll still display as string, but API returns Date
+  startDateMm?: string;
+  endDate: string; // New field
+  endDateMm?: string; // New field
+  // Changed from string to number
+  duration: number;
+  durationMm?: number;
   schedule: string;
-  scheduleMm?: string; // Myanmar schedule
-  fee?: string;
-  feeMm?: string; // Myanmar fee
+  scheduleMm?: string;
+  // New fee fields
+  feeAmount?: number;
+  feeAmountMm?: number;
+  // New age fields
+  ageMin?: number;
+  ageMinMm?: number;
+  ageMax?: number;
+  ageMaxMm?: number;
+  // New document fields
+  document?: string;
+  documentMm?: string;
   availableDays: boolean[];
   description?: string;
-  descriptionMm?: string; // Myanmar description
+  descriptionMm?: string;
   outcomes?: string[];
-  outcomesMm?: string[]; // Myanmar outcomes
+  outcomesMm?: string[];
   scheduleDetails?: string;
-  scheduleDetailsMm?: string; // Myanmar schedule details
+  scheduleDetailsMm?: string;
   selectionCriteria?: string[];
-  selectionCriteriaMm?: string[]; // Myanmar selection criteria
+  selectionCriteriaMm?: string[];
   badges: {
     text: string;
     color: string;
@@ -64,9 +79,9 @@ interface CourseDetail {
   images: string[];
   faq?: {
     question: string;
-    questionMm?: string; // Myanmar question
+    questionMm?: string;
     answer: string;
-    answerMm?: string; // Myanmar answer
+    answerMm?: string;
   }[];
   organizationInfo?: {
     name: string;
@@ -75,10 +90,10 @@ interface CourseDetail {
     email: string;
     address: string;
     facebookPage?: string;
-    mapLocation: {
-      lat: number;
-      lng: number;
-    };
+    district?: string;
+    province?: string;
+    latitude: number;
+    longitude: number;
   };
 }
 
@@ -92,13 +107,15 @@ export default function CourseDetailPage() {
 
   // Helper function to get localized content for string values
   const getLocalizedContent = (
-    enContent: string | null | undefined,
-    mmContent: string | null | undefined
+    enContent: string | number | null | undefined,
+    mmContent: string | number | null | undefined
   ): string => {
-    if (language === "mm" && mmContent) {
-      return mmContent;
+    if (language === "mm" && mmContent !== undefined && mmContent !== null) {
+      return mmContent.toString();
     }
-    return enContent || "";
+    return enContent !== undefined && enContent !== null
+      ? enContent.toString()
+      : "";
   };
 
   // Helper function for localized string arrays
@@ -110,6 +127,113 @@ export default function CourseDetailPage() {
       return mmArray;
     }
     return enArray || [];
+  };
+
+  // Format fee as currency string
+  const formatCurrency = (amount?: number): string => {
+    if (amount === undefined || amount === null) return "";
+
+    // If amount is 0, show as "Free"
+    if (amount === 0) return language === "mm" ? "အခမဲ့" : "Free";
+
+    // Otherwise format as currency
+    return new Intl.NumberFormat(language === "mm" ? "my-MM" : "en-US", {
+      style: "currency",
+      currency: "THB",
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  // Format duration string with appropriate units
+  const formatDuration = (durationInDays?: number): string => {
+    if (durationInDays === undefined || durationInDays === null) return "";
+
+    if (durationInDays < 7) {
+      // Less than a week, show as days
+      return `${durationInDays} ${
+        durationInDays === 1
+          ? language === "mm"
+            ? "ရက်"
+            : "day"
+          : language === "mm"
+          ? "ရက်"
+          : "days"
+      }`;
+    } else if (durationInDays < 30) {
+      // Less than a month, show as weeks
+      const weeks = Math.round(durationInDays / 7);
+      return `${weeks} ${
+        weeks === 1
+          ? language === "mm"
+            ? "ပတ်"
+            : "week"
+          : language === "mm"
+          ? "ပတ်"
+          : "weeks"
+      }`;
+    } else if (durationInDays < 365) {
+      // Less than a year, show as months
+      const months = Math.round(durationInDays / 30);
+      return `${months} ${
+        months === 1
+          ? language === "mm"
+            ? "လ"
+            : "month"
+          : language === "mm"
+          ? "လ"
+          : "months"
+      }`;
+    } else {
+      // Show as years and months
+      const years = Math.floor(durationInDays / 365);
+      const remainingDays = durationInDays % 365;
+      const months = Math.round(remainingDays / 30);
+
+      if (months === 0) {
+        return `${years} ${
+          years === 1
+            ? language === "mm"
+              ? "နှစ်"
+              : "year"
+            : language === "mm"
+            ? "နှစ်"
+            : "years"
+        }`;
+      } else {
+        return `${years} ${
+          years === 1
+            ? language === "mm"
+              ? "နှစ်"
+              : "year"
+            : language === "mm"
+            ? "နှစ်"
+            : "years"
+        } ${months} ${
+          months === 1
+            ? language === "mm"
+              ? "လ"
+              : "month"
+            : language === "mm"
+            ? "လ"
+            : "months"
+        }`;
+      }
+    }
+  };
+
+  // Format age range
+  const formatAgeRange = (min?: number, max?: number): string => {
+    if (min === undefined && max === undefined) return "";
+
+    if (min !== undefined && max !== undefined) {
+      return `${min}-${max} ${language === "mm" ? "နှစ်" : "years"}`;
+    } else if (min !== undefined) {
+      return `${min}+ ${language === "mm" ? "နှစ်" : "years"}`;
+    } else if (max !== undefined) {
+      return `0-${max} ${language === "mm" ? "နှစ်" : "years"}`;
+    }
+
+    return "";
   };
 
   useEffect(() => {
@@ -225,18 +349,23 @@ export default function CourseDetailPage() {
                   </div>
                 </div>
 
-                {/* Start Date */}
+                {/* Date Range (Start & End Date) */}
                 <div className="flex items-start">
                   <Calendar className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
                   <div>
                     <p className="text-sm font-medium text-foreground">
-                      {t("course.startDate")}
+                      {t("course.dates")}
                     </p>
                     <p className="text-sm text-muted-foreground" dir="auto">
                       {getLocalizedContent(
                         course.startDate,
                         course.startDateMm
                       )}
+                      {course.endDate &&
+                        ` - ${getLocalizedContent(
+                          course.endDate,
+                          course.endDateMm
+                        )}`}
                     </p>
                   </div>
                 </div>
@@ -249,7 +378,9 @@ export default function CourseDetailPage() {
                       {t("course.duration")}
                     </p>
                     <p className="text-sm text-muted-foreground" dir="auto">
-                      {getLocalizedContent(course.duration, course.durationMm)}
+                      {language === "mm"
+                        ? formatDuration(course.durationMm ?? course.duration)
+                        : formatDuration(course.duration)}
                     </p>
                   </div>
                 </div>
@@ -267,8 +398,48 @@ export default function CourseDetailPage() {
                   </div>
                 </div>
 
-                {/* Fee (if available) */}
-                {(course.fee || course.feeMm) && (
+                {/* Age Range - New field */}
+                {(course.ageMin !== undefined ||
+                  course.ageMax !== undefined) && (
+                  <div className="flex items-start">
+                    <Users className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {t("course.ageRange")}
+                      </p>
+                      <p className="text-sm text-muted-foreground" dir="auto">
+                        {language === "mm"
+                          ? formatAgeRange(
+                              course.ageMinMm ?? course.ageMin,
+                              course.ageMaxMm ?? course.ageMax
+                            )
+                          : formatAgeRange(course.ageMin, course.ageMax)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Required Documents - New field */}
+                {(course.document || course.documentMm) && (
+                  <div className="flex items-start">
+                    <FileText className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {t("course.requiredDocuments")}
+                      </p>
+                      <p className="text-sm text-muted-foreground" dir="auto">
+                        {getLocalizedContent(
+                          course.document,
+                          course.documentMm
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Fee - Updated to use new feeAmount field */}
+                {(course.feeAmount !== undefined ||
+                  course.feeAmountMm !== undefined) && (
                   <div className="flex items-start">
                     <div className="h-5 w-5 mr-2 mt-0.5 flex items-center justify-center text-muted-foreground">
                       ฿
@@ -278,7 +449,11 @@ export default function CourseDetailPage() {
                         {t("course.fee")}
                       </p>
                       <p className="text-sm text-muted-foreground" dir="auto">
-                        {getLocalizedContent(course.fee, course.feeMm)}
+                        {language === "mm"
+                          ? formatCurrency(
+                              course.feeAmountMm ?? course.feeAmount
+                            )
+                          : formatCurrency(course.feeAmount)}
                       </p>
                     </div>
                   </div>
@@ -326,7 +501,10 @@ export default function CourseDetailPage() {
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pb-4">
-                  <p className="text-muted-foreground" dir="auto">
+                  <p
+                    className="text-muted-foreground whitespace-pre-line"
+                    dir="auto"
+                  >
                     {getLocalizedContent(
                       course.description,
                       course.descriptionMm
@@ -384,7 +562,10 @@ export default function CourseDetailPage() {
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pb-4">
-                  <p className="text-muted-foreground" dir="auto">
+                  <p
+                    className="text-muted-foreground whitespace-pre-line"
+                    dir="auto"
+                  >
                     {getLocalizedContent(
                       course.scheduleDetails,
                       course.scheduleDetailsMm
@@ -454,7 +635,10 @@ export default function CourseDetailPage() {
                         <h3 className="font-semibold mb-2" dir="auto">
                           {getLocalizedContent(item.question, item.questionMm)}
                         </h3>
-                        <p className="text-muted-foreground" dir="auto">
+                        <p
+                          className="text-muted-foreground whitespace-pre-line"
+                          dir="auto"
+                        >
                           {getLocalizedContent(item.answer, item.answerMm)}
                         </p>
                       </div>
@@ -510,9 +694,21 @@ export default function CourseDetailPage() {
                     </div>
                   )}
 
-                  <div className="flex items-center">
-                    <MapPin className="h-5 w-5 mr-3 text-primary flex-shrink-0" />
-                    <span>{course.organizationInfo.address}</span>
+                  <div className="flex items-start">
+                    <MapPin className="h-5 w-5 mr-3 text-primary flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span>{course.organizationInfo.address}</span>
+                      {(course.organizationInfo.district ||
+                        course.organizationInfo.province) && (
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {course.organizationInfo.district &&
+                          course.organizationInfo.province
+                            ? `${course.organizationInfo.district}, ${course.organizationInfo.province}`
+                            : course.organizationInfo.district ||
+                              course.organizationInfo.province}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </CardContent>

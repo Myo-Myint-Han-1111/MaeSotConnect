@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 
-// Input validation schema
+// Updated validation schema to include new fields
 const organizationSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   description: z.string().min(10, "Description must be at least 10 characters"),
@@ -13,6 +13,8 @@ const organizationSchema = z.object({
   facebookPage: z.string().optional(),
   latitude: z.number(),
   longitude: z.number(),
+  district: z.string().optional(), // New field
+  province: z.string().optional(), // New field
 });
 
 export async function GET(
@@ -105,9 +107,11 @@ export async function PUT(
       facebookPage,
       latitude,
       longitude,
+      district, // New field
+      province, // New field
     } = parsedData.data;
 
-    // Update the organization
+    // Update the organization with new fields
     const updatedOrganization = await prisma.organization.update({
       where: { id },
       data: {
@@ -119,6 +123,8 @@ export async function PUT(
         facebookPage,
         latitude,
         longitude,
+        district, // Include new field
+        province, // Include new field
       },
     });
 
@@ -224,11 +230,13 @@ export async function POST(request: NextRequest) {
       facebookPage,
       latitude,
       longitude,
+      district, // New field
+      province, // New field
     } = parsedData.data;
 
     console.log("Creating organization with data:", parsedData.data);
 
-    // Create the organization
+    // Create the organization with new fields
     const organization = await prisma.organization.create({
       data: {
         name,
@@ -239,16 +247,19 @@ export async function POST(request: NextRequest) {
         facebookPage,
         latitude,
         longitude,
+        district, // Include new field
+        province, // Include new field
       },
     });
 
     console.log("Organization created successfully:", organization);
     return NextResponse.json(organization, { status: 201 });
   } catch (error) {
-    console.error("Error deleting organization:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error creating organization:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to delete organization", details: errorMessage },
+      { error: "Failed to create organization", details: errorMessage },
       { status: 500 }
     );
   }

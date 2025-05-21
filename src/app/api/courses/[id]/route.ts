@@ -5,22 +5,32 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { saveFile } from "@/lib/upload";
 
-// Input validation schema
+// Input validation schema updated to match the new Prisma schema
 const courseSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters"),
   titleMm: z.string().optional(),
   subtitle: z.string().min(2, "Subtitle must be at least 2 characters"),
   subtitleMm: z.string().optional(),
-  location: z.string().min(2, "Location must be at least 2 characters"),
-  locationMm: z.string().optional(),
-  startDate: z.string().min(2, "Start date must be at least 2 characters"),
-  startDateMm: z.string().optional(),
-  duration: z.string().min(2, "Duration must be at least 2 characters"),
-  durationMm: z.string().optional(),
+  location: z.string().optional(), // Keep for backward compatibility
+  locationMm: z.string().optional(), // Keep for backward compatibility
+  startDate: z.coerce.date(), // Use coerce.date() to handle string to Date conversion
+  startDateMm: z.coerce.date().optional(),
+  endDate: z.coerce.date(), // New field
+  endDateMm: z.coerce.date().optional(), // New field
+  duration: z.number().int().positive(), // Changed from string to integer
+  durationMm: z.number().int().positive().optional(),
   schedule: z.string().min(2, "Schedule must be at least 2 characters"),
   scheduleMm: z.string().optional(),
-  fee: z.string().optional(),
-  feeMm: z.string().optional(),
+  fee: z.string().optional(), // Keep for backward compatibility
+  feeMm: z.string().optional(), // Keep for backward compatibility
+  feeAmount: z.number().nonnegative(), // New field
+  feeAmountMm: z.number().nonnegative().optional(), // New field
+  ageMin: z.number().int().nonnegative(), // New field
+  ageMinMm: z.number().int().nonnegative().optional(), // New field
+  ageMax: z.number().int().positive(), // New field
+  ageMaxMm: z.number().int().positive().optional(), // New field
+  document: z.string(), // New field
+  documentMm: z.string().optional(), // New field
   availableDays: z.array(z.boolean()).length(7, "Must provide 7 days"),
   description: z.string().optional(),
   descriptionMm: z.string().optional(),
@@ -71,23 +81,38 @@ export async function GET(
       return NextResponse.json({ error: "Course not found" }, { status: 404 });
     }
 
-    // Format data to match the expected structure
+    // Format data to match the expected structure with new fields
     const formattedCourse = {
       id: course.id,
       title: course.title,
       titleMm: course.titleMm,
       subtitle: course.subtitle,
       subtitleMm: course.subtitleMm,
-      location: course.location,
-      locationMm: course.locationMm,
-      startDate: course.startDate,
-      startDateMm: course.startDateMm,
+      // Add empty location fields for backward compatibility
+      location: "",
+      locationMm: null,
+      // Convert DateTime objects to ISO strings
+      startDate: course.startDate.toISOString(),
+      startDateMm: course.startDateMm ? course.startDateMm.toISOString() : null,
+      endDate: course.endDate.toISOString(),
+      endDateMm: course.endDateMm ? course.endDateMm.toISOString() : null,
       duration: course.duration,
       durationMm: course.durationMm,
       schedule: course.schedule,
       scheduleMm: course.scheduleMm,
-      fee: course.fee,
-      feeMm: course.feeMm,
+      // Include both new fee fields and backward compatible fields
+      feeAmount: course.feeAmount,
+      feeAmountMm: course.feeAmountMm,
+      fee: course.feeAmount.toString(),
+      feeMm: course.feeAmountMm ? course.feeAmountMm.toString() : null,
+      // Include new age fields
+      ageMin: course.ageMin,
+      ageMinMm: course.ageMinMm,
+      ageMax: course.ageMax,
+      ageMaxMm: course.ageMaxMm,
+      // Include document fields
+      document: course.document,
+      documentMm: course.documentMm,
       availableDays: course.availableDays,
       description: course.description,
       descriptionMm: course.descriptionMm,
@@ -132,9 +157,6 @@ export async function GET(
     );
   }
 }
-
-// This focuses on the PUT handler in your api/courses/[id]/route.ts file
-// to fix image handling during course updates
 
 export async function PUT(
   request: NextRequest,
@@ -232,7 +254,7 @@ export async function PUT(
 
     // Update the course with all related entities in a transaction
     const course = await prisma.$transaction(async (tx) => {
-      // Update the course - NOW WITH MYANMAR FIELDS
+      // Update the course with the new fields
       const updatedCourse = await tx.course.update({
         where: { id },
         data: {
@@ -240,16 +262,22 @@ export async function PUT(
           titleMm: parsedData.titleMm,
           subtitle: parsedData.subtitle,
           subtitleMm: parsedData.subtitleMm,
-          location: parsedData.location,
-          locationMm: parsedData.locationMm,
           startDate: parsedData.startDate,
           startDateMm: parsedData.startDateMm,
+          endDate: parsedData.endDate,
+          endDateMm: parsedData.endDateMm,
           duration: parsedData.duration,
           durationMm: parsedData.durationMm,
           schedule: parsedData.schedule,
           scheduleMm: parsedData.scheduleMm,
-          fee: parsedData.fee,
-          feeMm: parsedData.feeMm,
+          feeAmount: parsedData.feeAmount,
+          feeAmountMm: parsedData.feeAmountMm,
+          ageMin: parsedData.ageMin,
+          ageMinMm: parsedData.ageMinMm,
+          ageMax: parsedData.ageMax,
+          ageMaxMm: parsedData.ageMaxMm,
+          document: parsedData.document,
+          documentMm: parsedData.documentMm,
           availableDays: parsedData.availableDays,
           description: parsedData.description,
           descriptionMm: parsedData.descriptionMm,
@@ -294,7 +322,7 @@ export async function PUT(
         });
       }
 
-      // Update FAQs - delete old ones and add new ones - NOW WITH MYANMAR FIELDS
+      // Update FAQs - delete old ones and add new ones
       await tx.fAQ.deleteMany({
         where: { courseId: id },
       });
@@ -316,7 +344,22 @@ export async function PUT(
       return updatedCourse;
     });
 
-    return NextResponse.json(course);
+    // Format the response to ensure dates and other fields are properly formatted
+    const formattedCourse = {
+      ...course,
+      startDate: course.startDate.toISOString(),
+      startDateMm: course.startDateMm ? course.startDateMm.toISOString() : null,
+      endDate: course.endDate.toISOString(),
+      endDateMm: course.endDateMm ? course.endDateMm.toISOString() : null,
+      // Add empty location fields for backward compatibility
+      location: "",
+      locationMm: null,
+      // Include both new fee fields and backward compatible fields
+      fee: course.feeAmount.toString(),
+      feeMm: course.feeAmountMm ? course.feeAmountMm.toString() : null,
+    };
+
+    return NextResponse.json(formattedCourse);
   } catch (error) {
     console.error("Error updating course:", error);
     return NextResponse.json(

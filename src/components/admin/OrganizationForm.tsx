@@ -1,3 +1,5 @@
+// src/components/admin/OrganizationForm.tsx
+
 "use client";
 
 import React, { useState } from "react";
@@ -25,6 +27,8 @@ interface OrganizationFormProps {
     facebookPage?: string;
     latitude: number;
     longitude: number;
+    district?: string; // Added new field
+    province?: string; // Added new field
   };
   mode: "create" | "edit";
 }
@@ -46,6 +50,8 @@ export default function OrganizationForm({
     facebookPage: initialData?.facebookPage || "",
     latitude: initialData?.latitude || 0,
     longitude: initialData?.longitude || 0,
+    district: initialData?.district || "", // Added new field
+    province: initialData?.province || "", // Added new field
   });
 
   const handleChange = (
@@ -54,10 +60,19 @@ export default function OrganizationForm({
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        name === "latitude" || name === "longitude"
-          ? parseFloat(value) || 0
-          : value,
+      [name]: value,
+    }));
+  };
+
+  // Specialized handler for number fields
+  const handleNumberChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    fieldName: string
+  ) => {
+    const value = e.target.value === "" ? 0 : parseFloat(e.target.value);
+    setFormData((prev) => ({
+      ...prev,
+      [fieldName]: value,
     }));
   };
 
@@ -67,6 +82,20 @@ export default function OrganizationForm({
     setError(null);
 
     try {
+      // Add more detailed logging
+      console.log("Form data before submission:", formData);
+      console.log("Latitude (type):", typeof formData.latitude);
+      console.log("Longitude (type):", typeof formData.longitude);
+
+      // Ensure latitude and longitude are numbers
+      const dataToSubmit = {
+        ...formData,
+        latitude: Number(formData.latitude),
+        longitude: Number(formData.longitude),
+      };
+
+      console.log("Data to submit:", dataToSubmit);
+
       const url =
         mode === "create"
           ? "/api/organizations"
@@ -79,17 +108,51 @@ export default function OrganizationForm({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSubmit),
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Something went wrong");
+        const errorData = await response.json();
+        console.error("Error response:", errorData);
+
+        // Better error handling for Zod validation errors
+        if (errorData.details && typeof errorData.details === "object") {
+          const fieldErrors: string[] = [];
+
+          // Extract field errors from the nested Zod format
+          for (const [field, error] of Object.entries(errorData.details)) {
+            // Type guard to check if it's an array with _errors property
+            if (
+              field === "_errors" &&
+              Array.isArray(error) &&
+              error.length > 0
+            ) {
+              fieldErrors.push(error.join(", "));
+            } else if (error !== null && typeof error === "object") {
+              // Create a more specific type for Zod errors
+              type ZodErrorObject = { _errors?: string[] };
+              const zodError = error as ZodErrorObject;
+
+              if (zodError._errors && Array.isArray(zodError._errors)) {
+                fieldErrors.push(`${field}: ${zodError._errors.join(", ")}`);
+              }
+            }
+          }
+
+          if (fieldErrors.length > 0) {
+            throw new Error(fieldErrors.join("; "));
+          }
+        }
+
+        throw new Error(
+          errorData.error || errorData.details || "Failed to save organization"
+        );
       }
 
       router.push("/admin/organizations");
       router.refresh();
     } catch (err) {
+      console.error("Error in organization submission:", err);
       setError(
         err instanceof Error ? err.message : "An unexpected error occurred"
       );
@@ -172,6 +235,31 @@ export default function OrganizationForm({
             />
           </div>
 
+          {/* New fields for district and province */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="district">District</Label>
+              <Input
+                id="district"
+                name="district"
+                value={formData.district}
+                onChange={handleChange}
+                placeholder="District (optional)"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="province">Province</Label>
+              <Input
+                id="province"
+                name="province"
+                value={formData.province}
+                onChange={handleChange}
+                placeholder="Province (optional)"
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="facebookPage">Facebook Page (Optional)</Label>
             <Input
@@ -188,10 +276,9 @@ export default function OrganizationForm({
               <Input
                 id="latitude"
                 name="latitude"
-                type="number"
-                step="any"
+                type="text" // Changed from number to text for better handling
                 value={formData.latitude}
-                onChange={handleChange}
+                onChange={(e) => handleNumberChange(e, "latitude")}
                 required
               />
             </div>
@@ -201,10 +288,9 @@ export default function OrganizationForm({
               <Input
                 id="longitude"
                 name="longitude"
-                type="number"
-                step="any"
+                type="text" // Changed from number to text for better handling
                 value={formData.longitude}
-                onChange={handleChange}
+                onChange={(e) => handleNumberChange(e, "longitude")}
                 required
               />
             </div>

@@ -8,25 +8,37 @@ import { convertToMyanmarNumber } from "@/lib/utils";
 import { getFontSizeClasses } from "@/lib/font-sizes";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
+// Updated interface to match new schema
 interface Course {
   id: string;
   title: string;
   titleMm: string | null;
   subtitle: string;
   subtitleMm: string | null;
-  location: string;
-  locationMm: string | null;
-  startDate: string;
+  // Updated: DateTime types for dates
+  startDate: string; // ISO string format for frontend
   startDateMm: string | null;
-  duration: string;
-  durationMm: string | null;
+  endDate: string; // New field
+  endDateMm: string | null; // New field
+  // Updated: numeric types for duration
+  duration: number;
+  durationMm: number | null;
   schedule: string;
   scheduleMm: string | null;
-  fee?: string;
-  feeMm: string | null;
+  // Updated: fee is now numeric
+  feeAmount?: number;
+  feeAmountMm?: number | null;
+  // New age range fields
+  ageMin: number;
+  ageMinMm: number | null;
+  ageMax: number;
+  ageMaxMm: number | null;
+  // New document fields
+  document: string;
+  documentMm: string | null;
+  availableDays: boolean[];
   description?: string;
   descriptionMm?: string | null;
   outcomes?: string[];
@@ -35,7 +47,6 @@ interface Course {
   scheduleDetailsMm?: string | null;
   selectionCriteria?: string[];
   selectionCriteriaMm?: string[];
-  availableDays: boolean[];
   organizationInfo?: {
     id: string;
     name: string;
@@ -46,6 +57,8 @@ interface Course {
     facebookPage?: string;
     latitude: number;
     longitude: number;
+    district?: string;
+    province?: string;
   } | null;
   images: {
     id: string;
@@ -104,6 +117,35 @@ export default function Home() {
     });
     return Array.from(badgeSet);
   }, [courses]);
+
+  // Format duration for display (convert from number to string)
+  const formatDuration = (duration: number): string => {
+    if (duration < 30) {
+      return `${duration} days`;
+    } else if (duration < 365) {
+      const months = Math.round(duration / 30);
+      return `${months} ${months === 1 ? "month" : "months"}`;
+    } else {
+      const years = Math.round((duration / 365) * 10) / 10;
+      return `${years} ${years === 1 ? "year" : "years"}`;
+    }
+  };
+
+  // Format date for display (convert from ISO string to localized format)
+  const formatDate = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString(language === "mm" ? "my-MM" : "en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  // Format fee for display
+  const formatFee = (amount: number | undefined): string => {
+    if (amount === undefined || amount === 0) return "Free";
+    return `฿${amount.toLocaleString()}`;
+  };
 
   // Enhanced search function for bilingual search
   const enhancedSearch = useCallback(
@@ -206,18 +248,28 @@ export default function Home() {
           course.subtitleMm?.toLowerCase().includes(searchTermLower) ||
           false ||
           // Location
-          course.location?.toLowerCase().includes(searchTermLower) ||
+          course.organizationInfo?.address
+            ?.toLowerCase()
+            .includes(searchTermLower) ||
           false ||
-          course.locationMm?.toLowerCase().includes(searchTermLower) ||
+          // District and province search (new fields)
+          course.organizationInfo?.district
+            ?.toLowerCase()
+            .includes(searchTermLower) ||
+          false ||
+          course.organizationInfo?.province
+            ?.toLowerCase()
+            .includes(searchTermLower) ||
           false ||
           // Schedule and duration
           course.schedule?.toLowerCase().includes(searchTermLower) ||
           false ||
           course.scheduleMm?.toLowerCase().includes(searchTermLower) ||
           false ||
-          course.duration?.toLowerCase().includes(searchTermLower) ||
+          // Document search (new field)
+          course.document?.toLowerCase().includes(searchTermLower) ||
           false ||
-          course.durationMm?.toLowerCase().includes(searchTermLower) ||
+          course.documentMm?.toLowerCase().includes(searchTermLower) ||
           false;
 
         // Description search
@@ -331,7 +383,10 @@ export default function Home() {
   if (loading) {
     return (
       <>
-        <div className="w-full hero-gradient pt-32 pb-24" data-language={language}>
+        <div
+          className="w-full hero-gradient pt-32 pb-24"
+          data-language={language}
+        >
           <div className="max-w-6xl mx-auto px-4">
             <div
               className={`${getFontSizeClasses(
@@ -366,10 +421,16 @@ export default function Home() {
   return (
     <>
       {/* Hero section with gradient background */}
-      <div className="w-full hero-gradient pt-32 pb-24" data-language={language}>
+      <div
+        className="w-full hero-gradient pt-32 pb-24"
+        data-language={language}
+      >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div
-            className={`${getFontSizeClasses("heading1", language)} text-white text-left pt-8`}
+            className={`${getFontSizeClasses(
+              "heading1",
+              language
+            )} text-white text-left pt-8`}
             data-language={language}
           >
             {t("home.welcome")}
@@ -492,16 +553,25 @@ export default function Home() {
                   titleMm={course.titleMm || null}
                   subtitle={course.subtitle}
                   subtitleMm={course.subtitleMm || null}
-                  location={course.location}
-                  locationMm={course.locationMm || null}
-                  startDate={course.startDate}
-                  startDateMm={course.startDateMm || null}
-                  duration={course.duration}
-                  durationMm={course.durationMm || null}
+                  // Map to updated schema fields with formatting
+                  location={course.organizationInfo?.address || ""}
+                  locationMm={null}
+                  startDate={formatDate(course.startDate)}
+                  startDateMm={
+                    course.startDateMm ? formatDate(course.startDateMm) : null
+                  }
+                  duration={formatDuration(course.duration)}
+                  durationMm={
+                    course.durationMm ? formatDuration(course.durationMm) : null
+                  }
                   schedule={course.schedule}
                   scheduleMm={course.scheduleMm || null}
-                  fee={course.fee}
-                  feeMm={course.feeMm || null}
+                  fee={
+                    course.feeAmount ? formatFee(course.feeAmount) : undefined
+                  }
+                  feeMm={
+                    course.feeAmountMm ? formatFee(course.feeAmountMm) : null
+                  }
                   availableDays={course.availableDays}
                   badges={course.badges}
                 />
@@ -537,42 +607,45 @@ export default function Home() {
           )}
         </div>
       </div>
-      
+
       {/* Footer with navigation links */}
       <footer className="bg-gray-100 py-8 mt-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <div className="mb-4 md:mb-0">
               <Link href="/" className="flex items-center space-x-2">
-                <span className="font-semibold text-gray-700">StudyinThailand.org</span>
+                <span className="font-semibold text-gray-700">
+                  StudyinThailand.org
+                </span>
               </Link>
             </div>
-            
+
             <nav className="flex flex-col md:flex-row gap-4 md:gap-8">
-              <Link 
-                href="/" 
+              <Link
+                href="/"
                 className="text-gray-600 hover:text-primary transition-colors text-sm"
               >
                 {t("nav.home")}
               </Link>
-              <Link 
-                href="/about" 
+              <Link
+                href="/about"
                 className="text-gray-600 hover:text-primary transition-colors text-sm"
               >
                 {t("nav.about")}
               </Link>
-              <Link 
-                href="/contact" 
+              <Link
+                href="/contact"
                 className="text-gray-600 hover:text-primary transition-colors text-sm"
               >
                 {t("nav.contact")}
               </Link>
             </nav>
           </div>
-          
+
           <div className="mt-6 pt-6 border-t border-gray-200">
             <p className="text-xs text-gray-500 text-center">
-              © {new Date().getFullYear()} StudyinThailand.org. All rights reserved.
+              © {new Date().getFullYear()} StudyinThailand.org. All rights
+              reserved.
             </p>
           </div>
         </div>

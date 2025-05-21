@@ -1,13 +1,14 @@
 "use client";
 
 import React from "react";
-import { MapPin, Calendar, Clock, BookOpen } from "lucide-react";
+import { MapPin, Calendar, Clock, BookOpen, DollarSign } from "lucide-react";
 
 interface CourseInfoDisplayProps {
   location: string;
   startDate: string;
   duration: string;
   schedule: string;
+  fee?: string;
   compact?: boolean; // For compact view in card vs detailed view
 }
 
@@ -16,6 +17,7 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
   startDate,
   duration,
   schedule,
+  fee,
   compact = false,
 }) => {
   // Choose styles based on compact mode
@@ -76,6 +78,21 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
           </p>
         </div>
       </div>
+
+      {/* Only show fee if provided */}
+      {fee && (
+        <div className={itemClass}>
+          <DollarSign className={iconClass} />
+          <div>
+            {!compact && (
+              <p className="text-sm font-medium text-foreground">Fee</p>
+            )}
+            <p className={compact ? "" : "text-sm text-muted-foreground"}>
+              {fee}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

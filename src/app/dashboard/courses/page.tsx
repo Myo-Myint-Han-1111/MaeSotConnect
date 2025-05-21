@@ -12,15 +12,25 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Pencil, Trash2, Plus, Search, BookOpen } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Plus,
+  Search,
+  BookOpen,
+  Building2,
+} from "lucide-react";
+import { ConfirmationDialog } from "@/components/common/ConfirmationDialog";
 
 interface Course {
   id: string;
   title: string;
   subtitle: string;
-  location: string;
-  startDate: string;
+  organization?: {
+    name: string;
+  };
   organizationId: string;
+  startDate: string;
   images: string[];
   badges: {
     text: string;
@@ -29,52 +39,84 @@ interface Course {
   }[];
 }
 
+interface Organization {
+  id: string;
+  name: string;
+}
+
 export default function CoursesPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
 
-  const isPlatformAdmin = session?.user?.role === "PLATFORM_ADMIN";
+  // Only platform admins can access this page
+  useEffect(() => {
+    if (session && session.user.role !== "PLATFORM_ADMIN") {
+      router.push("/auth/signin");
+    }
+  }, [session, router]);
 
   useEffect(() => {
-    async function fetchCourses() {
+    async function fetchData() {
       try {
-        // Get all courses or filtered by organization
-        const url = isPlatformAdmin
-          ? "/api/courses"
-          : `/api/organizations/${session?.user?.organizationId}/courses`;
-
-        const response = await fetch(url);
-        if (!response.ok) {
+        // Fetch all courses
+        const coursesResponse = await fetch("/api/courses");
+        if (!coursesResponse.ok) {
           throw new Error("Failed to fetch courses");
         }
-        const data = await response.json();
-        setCourses(data);
+        const coursesData = await coursesResponse.json();
+
+        // Fetch organizations for display
+        const orgsResponse = await fetch("/api/organizations");
+        if (!orgsResponse.ok) {
+          throw new Error("Failed to fetch organizations");
+        }
+        const orgsData = await orgsResponse.json();
+
+        // Add organization name to each course
+        const coursesWithOrgs = coursesData.map((course: Course) => {
+          const org = orgsData.find(
+            (o: Organization) => o.id === course.organizationId
+          );
+          return {
+            ...course,
+            organization: org ? { name: org.name } : undefined,
+          };
+        });
+
+        setCourses(coursesWithOrgs);
+        setOrganizations(orgsData);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "An unexpected error occurred"
         );
-        console.error("Error fetching courses:", err);
+        console.error("Error fetching data:", err);
       } finally {
         setLoading(false);
       }
     }
 
-    if (session) {
-      fetchCourses();
+    if (session && session.user.role === "PLATFORM_ADMIN") {
+      fetchData();
     }
-  }, [session, isPlatformAdmin]);
+  }, [session]);
 
-  const handleDeleteCourse = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this course?")) {
-      return;
-    }
+  const confirmDeleteCourse = (id: string) => {
+    setCourseToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteCourse = async () => {
+    if (!courseToDelete) return;
 
     try {
-      const response = await fetch(`/api/courses/${id}`, {
+      const response = await fetch(`/api/courses/${courseToDelete}`, {
         method: "DELETE",
       });
 
@@ -83,10 +125,11 @@ export default function CoursesPage() {
       }
 
       // Remove from local state
-      setCourses(courses.filter((course) => course.id !== id));
+      setCourses(courses.filter((course) => course.id !== courseToDelete));
+      setIsDeleteDialogOpen(false);
     } catch (error) {
       console.error("Error deleting course:", error);
-      alert("Failed to delete course");
+      setError("Failed to delete course. Please try again.");
     }
   };
 
@@ -95,7 +138,9 @@ export default function CoursesPage() {
     (course) =>
       course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       course.subtitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.location.toLowerCase().includes(searchTerm.toLowerCase())
+      (course.organization?.name || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -122,7 +167,7 @@ export default function CoursesPage() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search courses by title, subtitle, or location"
+            placeholder="Search courses by title, subtitle, or organization"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -181,6 +226,14 @@ export default function CoursesPage() {
               </CardHeader>
 
               <CardContent className="pb-4">
+                {/* Display organization info */}
+                {course.organization && (
+                  <div className="flex items-center text-sm text-muted-foreground mb-3">
+                    <Building2 className="h-4 w-4 mr-1" />
+                    <span>{course.organization.name}</span>
+                  </div>
+                )}
+
                 <div className="flex flex-wrap gap-2 mb-3">
                   {course.badges.map((badge, i) => (
                     <span
@@ -197,9 +250,6 @@ export default function CoursesPage() {
                 </div>
 
                 <div className="space-y-1 text-sm">
-                  <p>
-                    <strong>Location:</strong> {course.location}
-                  </p>
                   <p>
                     <strong>Start Date:</strong> {course.startDate}
                   </p>
@@ -230,7 +280,7 @@ export default function CoursesPage() {
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => handleDeleteCourse(course.id)}
+                    onClick={() => confirmDeleteCourse(course.id)}
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
                     Delete
@@ -241,6 +291,18 @@ export default function CoursesPage() {
           ))}
         </div>
       )}
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDeleteCourse}
+        title="Delete Course"
+        description="Are you sure you want to delete this course? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+      />
     </div>
   );
 }

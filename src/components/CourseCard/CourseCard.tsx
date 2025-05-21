@@ -2,8 +2,8 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent } from "../ui/card";
-// import { Button } from "../ui/button";
+import { Card, CardContent, CardFooter } from "../ui/card";
+import { Button } from "../ui/button";
 import { useLanguage } from "../../context/LanguageContext";
 import ImageCarousel from "../common/ImageCarousel";
 import DayIndicator from "../common/DayIndicator";
@@ -22,13 +22,7 @@ export interface CourseCardProps {
   titleMm: string | null;
   subtitle: string;
   subtitleMm: string | null;
-  badges: {
-    id: string;
-    text: string;
-    color: string;
-    backgroundColor: string;
-    courseId: string;
-  }[];
+  // Note: These are now formatted strings, not the raw database types
   location: string;
   locationMm: string | null;
   startDate: string;
@@ -40,6 +34,13 @@ export interface CourseCardProps {
   fee?: string;
   feeMm?: string | null;
   availableDays: boolean[];
+  badges: {
+    id: string;
+    text: string;
+    color: string;
+    backgroundColor: string;
+    courseId: string;
+  }[];
 }
 
 export const CourseCard: React.FC<CourseCardProps> = ({
@@ -58,6 +59,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   durationMm,
   schedule,
   scheduleMm,
+  fee,
+  feeMm,
   availableDays,
 }) => {
   const router = useRouter();
@@ -108,6 +111,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           startDate={getLocalizedContent(startDate, startDateMm)}
           duration={getLocalizedContent(duration, durationMm)}
           schedule={getLocalizedContent(schedule, scheduleMm)}
+          fee={fee ? getLocalizedContent(fee, feeMm || null) : undefined}
           compact={true}
         />
 
@@ -126,7 +130,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         />
       </CardContent>
 
-      {/* <CardFooter className="see-more-container">
+      <CardFooter className="see-more-container">
         <Button
           onClick={(e) => {
             e.stopPropagation();
@@ -136,7 +140,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         >
           {t("course.seemore")}
         </Button>
-      </CardFooter> */}
+      </CardFooter>
     </Card>
   );
 };

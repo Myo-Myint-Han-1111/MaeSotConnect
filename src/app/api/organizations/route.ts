@@ -1,10 +1,10 @@
+// src/app/api/organizations/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { authOptions } from "@/lib/auth/auth";
 
-// Input validation schema
+// Updated validation schema to include new fields
 const organizationSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   description: z.string().min(10, "Description must be at least 10 characters"),
@@ -12,8 +12,14 @@ const organizationSchema = z.object({
   email: z.string().email("Invalid email address"),
   address: z.string().min(5, "Address must be at least 5 characters"),
   facebookPage: z.string().optional(),
-  latitude: z.number(),
-  longitude: z.number(),
+  latitude: z
+    .number()
+    .refine((val) => !isNaN(val), "Latitude must be a valid number"),
+  longitude: z
+    .number()
+    .refine((val) => !isNaN(val), "Longitude must be a valid number"),
+  district: z.string().optional(), // New field
+  province: z.string().optional(), // New field
 });
 
 export async function GET(request: NextRequest) {
@@ -67,12 +73,57 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
+    console.log("Starting organization creation...");
     const body = await request.json();
-    const parsedData = organizationSchema.safeParse(body);
+    console.log("Organization creation request body:", body);
+
+    // Make sure latitude and longitude are numbers
+    const processedBody = {
+      ...body,
+      latitude:
+        typeof body.latitude === "string"
+          ? parseFloat(body.latitude)
+          : body.latitude,
+      longitude:
+        typeof body.longitude === "string"
+          ? parseFloat(body.longitude)
+          : body.longitude,
+    };
+
+    console.log("Processed body:", processedBody);
+    console.log("Latitude type:", typeof processedBody.latitude);
+    console.log("Longitude type:", typeof processedBody.longitude);
+
+    // Manually validate latitude and longitude are numbers and not NaN
+    if (
+      typeof processedBody.latitude !== "number" ||
+      isNaN(processedBody.latitude)
+    ) {
+      return NextResponse.json(
+        { error: "Latitude must be a valid number" },
+        { status: 400 }
+      );
+    }
+
+    if (
+      typeof processedBody.longitude !== "number" ||
+      isNaN(processedBody.longitude)
+    ) {
+      return NextResponse.json(
+        { error: "Longitude must be a valid number" },
+        { status: 400 }
+      );
+    }
+
+    const parsedData = organizationSchema.safeParse(processedBody);
 
     if (!parsedData.success) {
+      console.log("Validation errors:", parsedData.error.format());
       return NextResponse.json(
-        { error: parsedData.error.errors },
+        {
+          error: "Validation failed",
+          details: parsedData.error.format(),
+        },
         { status: 400 }
       );
     }
@@ -86,9 +137,13 @@ export async function POST(request: NextRequest) {
       facebookPage,
       latitude,
       longitude,
+      district, // New field
+      province, // New field
     } = parsedData.data;
 
-    // Create the organization
+    console.log("Creating organization with data:", parsedData.data);
+
+    // Create the organization with new fields
     const organization = await prisma.organization.create({
       data: {
         name,
@@ -99,14 +154,19 @@ export async function POST(request: NextRequest) {
         facebookPage,
         latitude,
         longitude,
+        district, // Include new field
+        province, // Include new field
       },
     });
 
+    console.log("Organization created successfully:", organization);
     return NextResponse.json(organization, { status: 201 });
   } catch (error) {
     console.error("Error creating organization:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to create organization" },
+      { error: "Failed to create organization", details: errorMessage },
       { status: 500 }
     );
   }

@@ -5,22 +5,41 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { saveFile } from "@/lib/upload";
 
-// Input validation schema
+// Update Zod schema to match the new Prisma schema
 const courseSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters"),
   titleMm: z.string().optional(),
   subtitle: z.string().min(2, "Subtitle must be at least 2 characters"),
   subtitleMm: z.string().optional(),
-  location: z.string().min(2, "Location must be at least 2 characters"),
+  // Location fields are removed in the schema but kept in the route for backward compatibility
+  location: z.string().optional(),
   locationMm: z.string().optional(),
-  startDate: z.string().min(2, "Start date must be at least 2 characters"),
-  startDateMm: z.string().optional(),
-  duration: z.string().min(2, "Duration must be at least 2 characters"),
-  durationMm: z.string().optional(),
+  // Modified date handling with explicit transformation
+  startDate: z.string().transform((val) => new Date(val)),
+  startDateMm: z
+    .string()
+    .optional()
+    .transform((val) => (val ? new Date(val) : undefined)),
+  endDate: z.string().transform((val) => new Date(val)),
+  endDateMm: z
+    .string()
+    .optional()
+    .transform((val) => (val ? new Date(val) : undefined)),
+  duration: z.number().int().positive(), // Changed from string to integer
+  durationMm: z.number().int().positive().optional(),
   schedule: z.string().min(2, "Schedule must be at least 2 characters"),
   scheduleMm: z.string().optional(),
+  feeAmount: z.number().nonnegative(), // New field - allow zero for free courses
+  feeAmountMm: z.number().nonnegative().optional(), // New field
+  // Fee fields kept for backward compatibility
   fee: z.string().optional(),
   feeMm: z.string().optional(),
+  ageMin: z.number().int().nonnegative(), // New field
+  ageMinMm: z.number().int().nonnegative().optional(), // New field
+  ageMax: z.number().int().positive(), // New field
+  ageMaxMm: z.number().int().positive().optional(), // New field
+  document: z.string(), // New field
+  documentMm: z.string().optional(), // New field
   availableDays: z.array(z.boolean()).length(7, "Must provide 7 days"),
   description: z.string().optional(),
   descriptionMm: z.string().optional(),
@@ -73,25 +92,34 @@ export async function GET(request: NextRequest) {
         titleMm: course.titleMm,
         subtitle: course.subtitle,
         subtitleMm: course.subtitleMm,
-        location: course.location,
-        locationMm: course.locationMm,
-        startDate: course.startDate,
-        startDateMm: course.startDateMm,
+        // Map date fields to strings for backward compatibility in the frontend
+        startDate: course.startDate.toISOString(),
+        startDateMm: course.startDateMm
+          ? course.startDateMm.toISOString()
+          : null,
+        endDate: course.endDate.toISOString(),
+        endDateMm: course.endDateMm ? course.endDateMm.toISOString() : null,
         duration: course.duration,
         durationMm: course.durationMm,
         schedule: course.schedule,
         scheduleMm: course.scheduleMm,
-        fee: course.fee,
-        feeMm: course.feeMm,
+        feeAmount: course.feeAmount,
+        feeAmountMm: course.feeAmountMm,
+        ageMin: course.ageMin,
+        ageMinMm: course.ageMinMm,
+        ageMax: course.ageMax,
+        ageMaxMm: course.ageMaxMm,
+        document: course.document,
+        documentMm: course.documentMm,
         availableDays: course.availableDays,
         description: course.description,
         descriptionMm: course.descriptionMm,
         outcomes: course.outcomes,
-        outcomesMm: course.outcomesMm,
+        outcomesMm: course.outcomesMm || [],
         scheduleDetails: course.scheduleDetails,
         scheduleDetailsMm: course.scheduleDetailsMm,
         selectionCriteria: course.selectionCriteria,
-        selectionCriteriaMm: course.selectionCriteriaMm,
+        selectionCriteriaMm: course.selectionCriteriaMm || [],
         organizationId: course.organizationId,
         images: course.images.map((img) => img.url),
         badges: course.badges.map((badge) => ({
@@ -124,25 +152,34 @@ export async function GET(request: NextRequest) {
         titleMm: course.titleMm,
         subtitle: course.subtitle,
         subtitleMm: course.subtitleMm,
-        location: course.location,
-        locationMm: course.locationMm,
-        startDate: course.startDate,
-        startDateMm: course.startDateMm,
+        // Map date fields to strings for backward compatibility in the frontend
+        startDate: course.startDate.toISOString(),
+        startDateMm: course.startDateMm
+          ? course.startDateMm.toISOString()
+          : null,
+        endDate: course.endDate.toISOString(),
+        endDateMm: course.endDateMm ? course.endDateMm.toISOString() : null,
         duration: course.duration,
         durationMm: course.durationMm,
         schedule: course.schedule,
         scheduleMm: course.scheduleMm,
-        fee: course.fee,
-        feeMm: course.feeMm,
+        feeAmount: course.feeAmount,
+        feeAmountMm: course.feeAmountMm,
+        ageMin: course.ageMin,
+        ageMinMm: course.ageMinMm,
+        ageMax: course.ageMax,
+        ageMaxMm: course.ageMaxMm,
+        document: course.document,
+        documentMm: course.documentMm,
         availableDays: course.availableDays,
         description: course.description,
         descriptionMm: course.descriptionMm,
         outcomes: course.outcomes,
-        outcomesMm: course.outcomesMm,
+        outcomesMm: course.outcomesMm || [],
         scheduleDetails: course.scheduleDetails,
         scheduleDetailsMm: course.scheduleDetailsMm,
         selectionCriteria: course.selectionCriteria,
-        selectionCriteriaMm: course.selectionCriteriaMm,
+        selectionCriteriaMm: course.selectionCriteriaMm || [],
         organizationId: course.organizationId,
         images: course.images.map((img) => img.url),
         badges: course.badges.map((badge) => ({
@@ -193,23 +230,31 @@ export async function POST(request: NextRequest) {
 
     // Parse and validate the JSON data
     const parsedData = JSON.parse(jsonData);
-    const validationResult = courseSchema.safeParse(parsedData);
+    console.log("Received data:", parsedData); // Debug log
 
     if (!parsedData.organizationId || parsedData.organizationId === "") {
       parsedData.organizationId = null;
     }
 
+    // Validate and transform with Zod
+    const validationResult = courseSchema.safeParse(parsedData);
+
     if (!validationResult.success) {
+      console.error("Validation errors:", validationResult.error.errors); // Debug log
       return NextResponse.json(
         { error: validationResult.error.errors },
         { status: 400 }
       );
     }
 
+    // Use the validated and transformed data
+    const validatedData = validationResult.data;
+    console.log("Validated data:", validatedData); // Debug log to see the transformed dates
+
     // Organization admins can only create courses for their own organization
     if (
       session.user.role === "ORGANIZATION_ADMIN" &&
-      session.user.organizationId !== parsedData.organizationId
+      session.user.organizationId !== validatedData.organizationId
     ) {
       return NextResponse.json(
         { error: "You can only create courses for your own organization" },
@@ -228,33 +273,39 @@ export async function POST(request: NextRequest) {
 
     // Create the course with all related entities in a transaction
     const course = await prisma.$transaction(async (tx) => {
-      // Create the course - NOW WITH MYANMAR FIELDS
+      // Create the course with the new field structure
       const newCourse = await tx.course.create({
         data: {
-          title: parsedData.title,
-          titleMm: parsedData.titleMm,
-          subtitle: parsedData.subtitle,
-          subtitleMm: parsedData.subtitleMm,
-          location: parsedData.location,
-          locationMm: parsedData.locationMm,
-          startDate: parsedData.startDate,
-          startDateMm: parsedData.startDateMm,
-          duration: parsedData.duration,
-          durationMm: parsedData.durationMm,
-          schedule: parsedData.schedule,
-          scheduleMm: parsedData.scheduleMm,
-          fee: parsedData.fee,
-          feeMm: parsedData.feeMm,
-          availableDays: parsedData.availableDays,
-          description: parsedData.description,
-          descriptionMm: parsedData.descriptionMm,
-          outcomes: parsedData.outcomes,
-          outcomesMm: parsedData.outcomesMm || [],
-          scheduleDetails: parsedData.scheduleDetails,
-          scheduleDetailsMm: parsedData.scheduleDetailsMm,
-          selectionCriteria: parsedData.selectionCriteria,
-          selectionCriteriaMm: parsedData.selectionCriteriaMm || [],
-          organizationId: parsedData.organizationId || null,
+          title: validatedData.title,
+          titleMm: validatedData.titleMm,
+          subtitle: validatedData.subtitle,
+          subtitleMm: validatedData.subtitleMm,
+          startDate: validatedData.startDate,
+          startDateMm: validatedData.startDateMm,
+          endDate: validatedData.endDate,
+          endDateMm: validatedData.endDateMm,
+          duration: validatedData.duration,
+          durationMm: validatedData.durationMm,
+          schedule: validatedData.schedule,
+          scheduleMm: validatedData.scheduleMm,
+          feeAmount: validatedData.feeAmount,
+          feeAmountMm: validatedData.feeAmountMm,
+          ageMin: validatedData.ageMin,
+          ageMinMm: validatedData.ageMinMm,
+          ageMax: validatedData.ageMax,
+          ageMaxMm: validatedData.ageMaxMm,
+          document: validatedData.document,
+          documentMm: validatedData.documentMm,
+          availableDays: validatedData.availableDays,
+          description: validatedData.description,
+          descriptionMm: validatedData.descriptionMm,
+          outcomes: validatedData.outcomes,
+          outcomesMm: validatedData.outcomesMm || [],
+          scheduleDetails: validatedData.scheduleDetails,
+          scheduleDetailsMm: validatedData.scheduleDetailsMm,
+          selectionCriteria: validatedData.selectionCriteria,
+          selectionCriteriaMm: validatedData.selectionCriteriaMm || [],
+          organizationId: validatedData.organizationId || null,
         },
       });
 
@@ -269,7 +320,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Create badges
-      for (const badge of parsedData.badges) {
+      for (const badge of validatedData.badges) {
         await tx.badge.create({
           data: {
             text: badge.text,
@@ -280,8 +331,8 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Create FAQs - NOW WITH MYANMAR FIELDS
-      for (const faq of parsedData.faq) {
+      // Create FAQs
+      for (const faq of validatedData.faq) {
         if (faq.question && faq.answer) {
           await tx.fAQ.create({
             data: {
@@ -298,11 +349,24 @@ export async function POST(request: NextRequest) {
       return newCourse;
     });
 
-    return NextResponse.json(course, { status: 201 });
+    // Format the response to ensure compatibility with the frontend
+    const formattedCourse = {
+      ...course,
+      startDate: course.startDate.toISOString(),
+      startDateMm: course.startDateMm ? course.startDateMm.toISOString() : null,
+      endDate: course.endDate.toISOString(),
+      endDateMm: course.endDateMm ? course.endDateMm.toISOString() : null,
+    };
+
+    return NextResponse.json(formattedCourse, { status: 201 });
   } catch (error) {
     console.error("Error creating course:", error);
+    // Provide more detailed error information
     return NextResponse.json(
-      { error: "Failed to create course" },
+      {
+        error: "Failed to create course",
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 }
     );
   }

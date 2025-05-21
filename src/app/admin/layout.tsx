@@ -4,16 +4,9 @@ import React, { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import {
-  User,
-  LogOut,
-  Building2,
-  BookOpen,
-  LayoutDashboard,
-  Users,
-} from "lucide-react";
+import { LogOut, Building2, BookOpen, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ConfirmationDialog } from "@/components/common/ConfirmationDialog"; // Add this import
+import { ConfirmationDialog } from "@/components/common/ConfirmationDialog";
 
 export default function AdminLayout({
   children,
@@ -32,8 +25,7 @@ export default function AdminLayout({
   // Add state for sign out confirmation dialog
   const [isSignOutDialogOpen, setIsSignOutDialogOpen] = useState(false);
 
-  const isPlatformAdmin = session?.user?.role === "PLATFORM_ADMIN";
-
+  // This effect will run when the component mounts
   // Add these functions for sign out confirmation
   const confirmSignOut = () => {
     setIsSignOutDialogOpen(true);
@@ -51,6 +43,12 @@ export default function AdminLayout({
     );
   }
 
+  // Only Platform Admins can access the dashboard
+  if (session?.user?.role !== "PLATFORM_ADMIN") {
+    router.push("/auth/signin");
+    return null;
+  }
+
   const sidebarLinks = [
     {
       label: "Dashboard",
@@ -58,44 +56,17 @@ export default function AdminLayout({
       icon: <LayoutDashboard className="h-5 w-5" />,
       active: pathname === "/dashboard",
     },
-    ...(isPlatformAdmin
-      ? [
-          {
-            label: "Organizations",
-            href: "/admin/organizations",
-            icon: <Building2 className="h-5 w-5" />,
-            active: pathname.startsWith("/admin/organizations"),
-          },
-          {
-            label: "Administrators",
-            href: "/admin/administrators",
-            icon: <Users className="h-5 w-5" />,
-            active: pathname.startsWith("/admin/administrators"),
-          },
-        ]
-      : []),
+    {
+      label: "Organizations",
+      href: "/admin/organizations",
+      icon: <Building2 className="h-5 w-5" />,
+      active: pathname.startsWith("/admin/organizations"),
+    },
     {
       label: "Courses",
       href: "/dashboard/courses",
       icon: <BookOpen className="h-5 w-5" />,
       active: pathname.startsWith("/dashboard/courses"),
-    },
-    ...(session?.user?.role === "ORGANIZATION_ADMIN" &&
-    session?.user?.organizationId
-      ? [
-          {
-            label: "Admins",
-            href: "/dashboard/admins",
-            icon: <Users className="h-5 w-5" />,
-            active: pathname.startsWith("/dashboard/admins"),
-          },
-        ]
-      : []),
-    {
-      label: "Account",
-      href: "/dashboard/account",
-      icon: <User className="h-5 w-5" />,
-      active: pathname.startsWith("/dashboard/account"),
     },
   ];
 
@@ -137,9 +108,7 @@ export default function AdminLayout({
       {/* Main content */}
       <div className="flex-1 pl-64">
         <header className="h-16 bg-white shadow-sm fixed w-full z-10 pl-64 flex items-center px-6 justify-between">
-          <h2 className="text-lg font-medium">
-            {isPlatformAdmin ? "Platform Admin" : "Organization Admin"}
-          </h2>
+          <h2 className="text-lg font-medium">Platform Admin</h2>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">
               {session?.user?.name}

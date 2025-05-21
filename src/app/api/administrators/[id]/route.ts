@@ -3,7 +3,6 @@ import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/auth/password";
-import { authOptions } from "@/lib/auth/auth";
 
 // Input validation schema for updates
 const updateAdministratorSchema = z.object({
@@ -39,7 +38,10 @@ export async function GET(
         select: { organizationId: true },
       });
 
-      if (!administrator || administrator.organizationId !== session.user.organizationId) {
+      if (
+        !administrator ||
+        administrator.organizationId !== session.user.organizationId
+      ) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
       }
     }
@@ -61,7 +63,10 @@ export async function GET(
     });
 
     if (!administrator) {
-      return NextResponse.json({ error: "Administrator not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Administrator not found" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json(administrator);
@@ -105,7 +110,10 @@ export async function PUT(
     });
 
     if (!existingAdministrator) {
-      return NextResponse.json({ error: "Administrator not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Administrator not found" },
+        { status: 404 }
+      );
     }
 
     const { name, email, password, role, organizationId } = parsedData.data;
@@ -157,7 +165,8 @@ export async function PUT(
 
     // Return the updated administrator without password
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: passwordField, ...administratorWithoutPassword } = updatedAdministrator;
+    const { password: passwordField, ...administratorWithoutPassword } =
+      updatedAdministrator;
     return NextResponse.json(administratorWithoutPassword);
   } catch (error) {
     console.error("Error updating administrator:", error);
@@ -189,7 +198,10 @@ export async function DELETE(
     });
 
     if (!existingAdministrator) {
-      return NextResponse.json({ error: "Administrator not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Administrator not found" },
+        { status: 404 }
+      );
     }
 
     // Prevent deleting yourself

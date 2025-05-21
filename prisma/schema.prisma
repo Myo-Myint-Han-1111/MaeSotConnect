@@ -64,16 +64,22 @@ model Course {
   titleMm             String?
   subtitle            String
   subtitleMm          String?
-  location            String
-  locationMm          String?
-  startDate           String
-  startDateMm         String?
-  duration            String
-  durationMm          String?
+  startDate           DateTime     // Changed from String to DateTime
+  startDateMm         DateTime?    // Changed from String? to DateTime?
+  endDate             DateTime     // New field
+  endDateMm           DateTime?    // New field
+  duration            Int          // Changed from String to Int (number)
+  durationMm          Int?         // Changed from String? to Int? (number)
   schedule            String
   scheduleMm          String?
-  fee                 String?
-  feeMm               String?
+  feeAmount           Float        // New field, using Float for decimal support
+  feeAmountMm         Float?       // New field, using Float for decimal support
+  ageMin              Int          // New field
+  ageMinMm            Int?         // New field
+  ageMax              Int          // New field
+  ageMaxMm            Int?         // New field
+  document            String       // New field
+  documentMm          String?      // New field
   availableDays       Boolean[]
   description         String?
   descriptionMm       String?
@@ -130,6 +136,9 @@ model Organization {
   longitude    Float
   courses      Course[]
   users        User[]
+  district     String?
+  province     String?
+  
 }
 
 model AdminAllowList {
