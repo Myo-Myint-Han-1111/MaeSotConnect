@@ -13,10 +13,17 @@ const courseSchema = z.object({
   subtitleMm: z.string().optional(),
   location: z.string().optional(), // Keep for backward compatibility
   locationMm: z.string().optional(), // Keep for backward compatibility
-  startDate: z.coerce.date(), // Use coerce.date() to handle string to Date conversion
-  startDateMm: z.coerce.date().optional(),
-  endDate: z.coerce.date(), // New field
-  endDateMm: z.coerce.date().optional(), // New field
+  // Explicitly transform date strings to Date objects
+  startDate: z.string().transform((val) => new Date(val)),
+  startDateMm: z
+    .string()
+    .optional()
+    .transform((val) => (val ? new Date(val) : undefined)),
+  endDate: z.string().transform((val) => new Date(val)),
+  endDateMm: z
+    .string()
+    .optional()
+    .transform((val) => (val ? new Date(val) : undefined)),
   duration: z.number().int().positive(), // Changed from string to integer
   durationMm: z.number().int().positive().optional(),
   schedule: z.string().min(2, "Schedule must be at least 2 characters"),
@@ -200,19 +207,27 @@ export async function PUT(
 
     // Parse and validate the JSON data
     const parsedData = JSON.parse(jsonData);
+    console.log("Received update data:", parsedData); // Debug log
+
+    // Validate with Zod and transform the data
     const validationResult = courseSchema.safeParse(parsedData);
 
     if (!validationResult.success) {
+      console.error("Validation errors:", validationResult.error.errors); // Debug log
       return NextResponse.json(
         { error: validationResult.error.errors },
         { status: 400 }
       );
     }
 
+    // Get the validated and transformed data
+    const validatedData = validationResult.data;
+    console.log("Validated update data:", validatedData); // Debug log
+
     // Organization admins can only update courses for their own organization
     if (
       session.user.role === "ORGANIZATION_ADMIN" &&
-      (session.user.organizationId !== parsedData.organizationId ||
+      (session.user.organizationId !== validatedData.organizationId ||
         session.user.organizationId !== existingCourse.organizationId)
     ) {
       return NextResponse.json(
@@ -258,36 +273,36 @@ export async function PUT(
       const updatedCourse = await tx.course.update({
         where: { id },
         data: {
-          title: parsedData.title,
-          titleMm: parsedData.titleMm,
-          subtitle: parsedData.subtitle,
-          subtitleMm: parsedData.subtitleMm,
-          startDate: parsedData.startDate,
-          startDateMm: parsedData.startDateMm,
-          endDate: parsedData.endDate,
-          endDateMm: parsedData.endDateMm,
-          duration: parsedData.duration,
-          durationMm: parsedData.durationMm,
-          schedule: parsedData.schedule,
-          scheduleMm: parsedData.scheduleMm,
-          feeAmount: parsedData.feeAmount,
-          feeAmountMm: parsedData.feeAmountMm,
-          ageMin: parsedData.ageMin,
-          ageMinMm: parsedData.ageMinMm,
-          ageMax: parsedData.ageMax,
-          ageMaxMm: parsedData.ageMaxMm,
-          document: parsedData.document,
-          documentMm: parsedData.documentMm,
-          availableDays: parsedData.availableDays,
-          description: parsedData.description,
-          descriptionMm: parsedData.descriptionMm,
-          outcomes: parsedData.outcomes,
-          outcomesMm: parsedData.outcomesMm || [],
-          scheduleDetails: parsedData.scheduleDetails,
-          scheduleDetailsMm: parsedData.scheduleDetailsMm,
-          selectionCriteria: parsedData.selectionCriteria,
-          selectionCriteriaMm: parsedData.selectionCriteriaMm || [],
-          organizationId: parsedData.organizationId,
+          title: validatedData.title,
+          titleMm: validatedData.titleMm,
+          subtitle: validatedData.subtitle,
+          subtitleMm: validatedData.subtitleMm,
+          startDate: validatedData.startDate,
+          startDateMm: validatedData.startDateMm,
+          endDate: validatedData.endDate,
+          endDateMm: validatedData.endDateMm,
+          duration: validatedData.duration,
+          durationMm: validatedData.durationMm,
+          schedule: validatedData.schedule,
+          scheduleMm: validatedData.scheduleMm,
+          feeAmount: validatedData.feeAmount,
+          feeAmountMm: validatedData.feeAmountMm,
+          ageMin: validatedData.ageMin,
+          ageMinMm: validatedData.ageMinMm,
+          ageMax: validatedData.ageMax,
+          ageMaxMm: validatedData.ageMaxMm,
+          document: validatedData.document,
+          documentMm: validatedData.documentMm,
+          availableDays: validatedData.availableDays,
+          description: validatedData.description,
+          descriptionMm: validatedData.descriptionMm,
+          outcomes: validatedData.outcomes,
+          outcomesMm: validatedData.outcomesMm || [],
+          scheduleDetails: validatedData.scheduleDetails,
+          scheduleDetailsMm: validatedData.scheduleDetailsMm,
+          selectionCriteria: validatedData.selectionCriteria,
+          selectionCriteriaMm: validatedData.selectionCriteriaMm || [],
+          organizationId: validatedData.organizationId,
         },
       });
 
@@ -311,7 +326,7 @@ export async function PUT(
         where: { courseId: id },
       });
 
-      for (const badge of parsedData.badges) {
+      for (const badge of validatedData.badges) {
         await tx.badge.create({
           data: {
             text: badge.text,
@@ -327,7 +342,7 @@ export async function PUT(
         where: { courseId: id },
       });
 
-      for (const faq of parsedData.faq) {
+      for (const faq of validatedData.faq) {
         if (faq.question && faq.answer) {
           await tx.fAQ.create({
             data: {
@@ -363,7 +378,10 @@ export async function PUT(
   } catch (error) {
     console.error("Error updating course:", error);
     return NextResponse.json(
-      { error: "Failed to update course" },
+      {
+        error: "Failed to update course",
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 }
     );
   }
