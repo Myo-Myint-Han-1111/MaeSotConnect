@@ -38,15 +38,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   return (
     <ToastContext.Provider value={{ showToast }}>
-      {children}
-      <Toast
-        open={open}
-        onClose={() => setOpen(false)}
-        title={title}
-        description={description}
-        variant={variant}
-        duration={duration}
-      />
+      {/* Wrap children and Toast in a React Fragment to avoid key warnings */}
+      <>
+        {children}
+        <Toast
+          open={open}
+          onClose={() => setOpen(false)}
+          title={title}
+          description={description}
+          variant={variant}
+          duration={duration}
+        />
+      </>
     </ToastContext.Provider>
   );
 }

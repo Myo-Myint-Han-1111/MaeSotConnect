@@ -44,8 +44,7 @@ export const translations = {
 
     // Home page
     "home.welcome": "What do you want to learn?",
-    "home.subtitle":
-      "Learn the skills. Create your path.",
+    "home.subtitle": "Learn the skills. Create your path.",
     "home.search.placeholder":
       "Search courses by name, location, or category...",
     "home.filter.category": "Filter by category:",
@@ -91,6 +90,9 @@ export const translations = {
     "course.location.map": "Location",
     "course.notfound": "Course not found",
     "about.organization": "About Organization",
+    "course.ageRange": "Age Range",
+    "course.requiredDocuments": "Required Documents",
+    "course.dates": "Dates",
 
     // Specific course titles
     "course.thai.title": "Thai Language Course",
@@ -149,8 +151,7 @@ export const translations = {
 
     // Home page
     "home.welcome": "မင်းဘာသင်ချင်လဲ",
-    "home.subtitle":
-      "အတက်ပညာကိုသင်ယူလေ့လာပါ။ သင်လမ်းကြောင်းကိုဖန်တီးပါ။",
+    "home.subtitle": "အတက်ပညာကိုသင်ယူလေ့လာပါ။ သင်လမ်းကြောင်းကိုဖန်တီးပါ။",
     "home.search.placeholder":
       "သင်တန်းအမည်၊ တည်နေရာ သို့မဟုတ် အမျိုးအစားဖြင့် ရှာဖွေပါ...",
     "home.filter.category": "အမျိုးအစားဖြင့် စစ်ထုတ်ရန်:",
@@ -164,15 +165,15 @@ export const translations = {
 
     // Course card
     "course.view.details": "အသေးစိတ်ကြည့်ရန်",
-    "course.availability": "ရရှိနိုင်သောရက်များ",
+    "course.availability": "တက်ရောက်နိုင်သောရက်များ",
     "course.seemore": "အသေးစိတ်ကြည့်ရန်",
-    "course.days.sun": "တနင်္ဂနွေ",
-    "course.days.mon": "တနင်္လာ",
-    "course.days.tue": "အင်္ဂါ",
-    "course.days.wed": "ဗုဒ္ဓဟူး",
-    "course.days.thu": "ကြာသပတေး",
-    "course.days.fri": "သောကြာ",
-    "course.days.sat": "စနေ",
+    // "course.days.sun": "တနင်္ဂနွေ",
+    // "course.days.mon": "တနင်္လာ",
+    // "course.days.tue": "အင်္ဂါ",
+    // "course.days.wed": "ဗုဒ္ဓဟူး",
+    // "course.days.thu": "ကြာသပတေး",
+    // "course.days.fri": "သောကြာ",
+    // "course.days.sat": "စနေ",
 
     // Course detail
     "course.back": "ပြန်သွားရန်",
@@ -184,7 +185,7 @@ export const translations = {
     "course.startDate": "စတင်မည့်ရက်စွဲ",
     "course.duration": "ကြာချိန်",
     "course.schedule": "အချိန်ဇယား",
-    "course.availableDays": "ရရှိနိုင်သောရက်များ",
+    "course.availableDays": "တက်ရောက်နိုင်သောရက်များ",
     "course.about": "ဤသင်တန်းအကြောင်း",
     "course.outcomes": "လေ့လာသင်ယူမှုရလဒ်များ",
     "course.detailedSchedule": "အသေးစိတ်အချိန်ဇယား",
@@ -197,6 +198,9 @@ export const translations = {
     "course.facebook": "ကျွန်ုပ်တို့၏ Facebook စာမျက်နှာကို ကြည့်ရှုပါ",
     "course.notfound": "သင်တန်းကို ရှာမတွေ့ပါ",
     "about.organization": "အဖွဲ့အကြောင်း",
+    "course.ageRange": "အသက်အရွယ်",
+    "course.requiredDocuments": "လိုအပ်သော စာရွက်စာတမ်းများ",
+    "course.dates": "ရက်စွဲများ",
 
     // Specific course titles
     "course.thai.title": "ထိုင်းဘာသာစကားသင်တန်း",

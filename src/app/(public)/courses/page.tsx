@@ -632,7 +632,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
 
   // Back Button to Landing Page
   return (
-    <div className="content mt-20">
+    <div className="content mt-24">
       <div className="max-w-6xl mx-auto px-4">
         {/* Non-sticky back button that stays at the top */}
         <div className="relative z-10 bg-background py-2 mb-4">

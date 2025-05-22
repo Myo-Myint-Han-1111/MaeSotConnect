@@ -1,4 +1,5 @@
-// src/app/api/courses/[id]/route.ts
+// src/app/api/courses/[id]/route.ts - Fixed version with your existing code
+
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
@@ -7,38 +8,27 @@ import { saveFile } from "@/lib/upload";
 
 // Input validation schema updated to match the new Prisma schema
 const courseSchema = z.object({
-  title: z.string().min(2, "Title must be at least 2 characters"),
+  title: z.string().min(2),
   titleMm: z.string().optional(),
-  subtitle: z.string().min(2, "Subtitle must be at least 2 characters"),
+  subtitle: z.string().min(2),
   subtitleMm: z.string().optional(),
-  location: z.string().optional(), // Keep for backward compatibility
-  locationMm: z.string().optional(), // Keep for backward compatibility
-  // Explicitly transform date strings to Date objects
-  startDate: z.string().transform((val) => new Date(val)),
-  startDateMm: z
-    .string()
-    .optional()
-    .transform((val) => (val ? new Date(val) : undefined)),
-  endDate: z.string().transform((val) => new Date(val)),
-  endDateMm: z
-    .string()
-    .optional()
-    .transform((val) => (val ? new Date(val) : undefined)),
-  duration: z.number().int().positive(), // Changed from string to integer
+  startDate: z.coerce.date(),
+  startDateMm: z.coerce.date().optional(),
+  endDate: z.coerce.date(),
+  endDateMm: z.coerce.date().optional(),
+  duration: z.number().int().positive(),
   durationMm: z.number().int().positive().optional(),
-  schedule: z.string().min(2, "Schedule must be at least 2 characters"),
+  schedule: z.string().min(2),
   scheduleMm: z.string().optional(),
-  fee: z.string().optional(), // Keep for backward compatibility
-  feeMm: z.string().optional(), // Keep for backward compatibility
-  feeAmount: z.number().nonnegative(), // New field
-  feeAmountMm: z.number().nonnegative().optional(), // New field
-  ageMin: z.number().int().nonnegative(), // New field
-  ageMinMm: z.number().int().nonnegative().optional(), // New field
-  ageMax: z.number().int().positive(), // New field
-  ageMaxMm: z.number().int().positive().optional(), // New field
-  document: z.string(), // New field
-  documentMm: z.string().optional(), // New field
-  availableDays: z.array(z.boolean()).length(7, "Must provide 7 days"),
+  feeAmount: z.number().int().nonnegative(),
+  feeAmountMm: z.number().int().nonnegative().optional(),
+  ageMin: z.number().int().nonnegative(),
+  ageMinMm: z.number().int().nonnegative().optional(),
+  ageMax: z.number().int().positive(),
+  ageMaxMm: z.number().int().positive().optional(),
+  document: z.string(),
+  documentMm: z.string().optional(),
+  availableDays: z.array(z.boolean()).length(7),
   description: z.string().optional(),
   descriptionMm: z.string().optional(),
   outcomes: z.array(z.string()),
@@ -64,6 +54,23 @@ const courseSchema = z.object({
     })
   ),
 });
+
+// Helper function to safely filter string arrays
+const filterStringArray = (arr: unknown): string[] => {
+  if (!Array.isArray(arr)) return [];
+  return arr.filter(
+    (item: unknown): item is string =>
+      typeof item === "string" && item.trim().length > 0
+  );
+};
+
+// Helper function to safely convert to integer
+const safeInteger = (value: unknown, defaultValue: number = 0): number => {
+  if (value === null || value === undefined || value === "")
+    return defaultValue;
+  const num = Number(value);
+  return isNaN(num) ? defaultValue : Math.round(num);
+};
 
 export async function GET(
   request: NextRequest,
@@ -205,24 +212,65 @@ export async function PUT(
       return NextResponse.json({ error: "Invalid form data" }, { status: 400 });
     }
 
-    // Parse and validate the JSON data
+    // Parse the JSON data
     const parsedData = JSON.parse(jsonData);
-    console.log("Received update data:", parsedData); // Debug log
 
-    // Validate with Zod and transform the data
-    const validationResult = courseSchema.safeParse(parsedData);
+    // Clean and convert all data types properly with type safety
+    const cleanedData = {
+      ...parsedData,
+      // Convert numbers properly with safe integer conversion
+      feeAmount: safeInteger(parsedData.feeAmount, 0),
+      feeAmountMm:
+        parsedData.feeAmountMm !== undefined && parsedData.feeAmountMm !== null
+          ? safeInteger(parsedData.feeAmountMm, 0)
+          : undefined,
+      duration: safeInteger(parsedData.duration, 1),
+      durationMm:
+        parsedData.durationMm !== undefined && parsedData.durationMm !== null
+          ? safeInteger(parsedData.durationMm, 1)
+          : undefined,
+      ageMin: safeInteger(parsedData.ageMin, 0),
+      ageMax: safeInteger(parsedData.ageMax, 100),
+      ageMinMm:
+        parsedData.ageMinMm !== undefined && parsedData.ageMinMm !== null
+          ? safeInteger(parsedData.ageMinMm, 0)
+          : undefined,
+      ageMaxMm:
+        parsedData.ageMaxMm !== undefined && parsedData.ageMaxMm !== null
+          ? safeInteger(parsedData.ageMaxMm, 100)
+          : undefined,
+
+      // Clean arrays with type safety
+      availableDays: Array.isArray(parsedData.availableDays)
+        ? parsedData.availableDays.map(Boolean) // Ensure all values are proper booleans
+        : [false, false, false, false, false, false, false],
+      outcomes: filterStringArray(parsedData.outcomes),
+      outcomesMm: filterStringArray(parsedData.outcomesMm),
+      selectionCriteria: filterStringArray(parsedData.selectionCriteria),
+      selectionCriteriaMm: filterStringArray(parsedData.selectionCriteriaMm),
+
+      // Clean string fields
+      titleMm: parsedData.titleMm || undefined,
+      subtitleMm: parsedData.subtitleMm || undefined,
+      scheduleMm: parsedData.scheduleMm || undefined,
+      description: parsedData.description || undefined,
+      descriptionMm: parsedData.descriptionMm || undefined,
+      scheduleDetails: parsedData.scheduleDetails || undefined,
+      scheduleDetailsMm: parsedData.scheduleDetailsMm || undefined,
+      documentMm: parsedData.documentMm || undefined,
+    };
+
+    const validationResult = courseSchema.safeParse(cleanedData);
 
     if (!validationResult.success) {
-      console.error("Validation errors:", validationResult.error.errors); // Debug log
+      console.error("Validation errors:", validationResult.error.errors);
       return NextResponse.json(
         { error: validationResult.error.errors },
         { status: 400 }
       );
     }
 
-    // Get the validated and transformed data
     const validatedData = validationResult.data;
-    console.log("Validated update data:", validatedData); // Debug log
 
     // Organization admins can only update courses for their own organization
     if (
@@ -263,49 +311,45 @@ export async function PUT(
     // Combine existing and new image URLs
     const allImageUrls = [...existingImageUrls, ...newImageUrls];
 
-    console.log("Existing images:", existingImageUrls);
-    console.log("New images:", newImageUrls);
-    console.log("All images:", allImageUrls);
+    // CRITICAL FIX: Update course OUTSIDE of transaction first to avoid the bind parameter error
+    const updatedCourse = await prisma.course.update({
+      where: { id },
+      data: {
+        title: validatedData.title,
+        titleMm: validatedData.titleMm || null,
+        subtitle: validatedData.subtitle,
+        subtitleMm: validatedData.subtitleMm || null,
+        startDate: validatedData.startDate,
+        startDateMm: validatedData.startDateMm || null,
+        endDate: validatedData.endDate,
+        endDateMm: validatedData.endDateMm || null,
+        duration: validatedData.duration,
+        durationMm: validatedData.durationMm || null,
+        schedule: validatedData.schedule,
+        scheduleMm: validatedData.scheduleMm || null,
+        feeAmount: validatedData.feeAmount,
+        feeAmountMm: validatedData.feeAmountMm || null,
+        ageMin: validatedData.ageMin,
+        ageMinMm: validatedData.ageMinMm || null,
+        ageMax: validatedData.ageMax,
+        ageMaxMm: validatedData.ageMaxMm || null,
+        document: validatedData.document,
+        documentMm: validatedData.documentMm || null,
+        availableDays: validatedData.availableDays,
+        description: validatedData.description || null,
+        descriptionMm: validatedData.descriptionMm || null,
+        outcomes: validatedData.outcomes,
+        outcomesMm: validatedData.outcomesMm || [],
+        scheduleDetails: validatedData.scheduleDetails || null,
+        scheduleDetailsMm: validatedData.scheduleDetailsMm || null,
+        selectionCriteria: validatedData.selectionCriteria,
+        selectionCriteriaMm: validatedData.selectionCriteriaMm || [],
+        organizationId: validatedData.organizationId,
+      },
+    });
 
-    // Update the course with all related entities in a transaction
-    const course = await prisma.$transaction(async (tx) => {
-      // Update the course with the new fields
-      const updatedCourse = await tx.course.update({
-        where: { id },
-        data: {
-          title: validatedData.title,
-          titleMm: validatedData.titleMm,
-          subtitle: validatedData.subtitle,
-          subtitleMm: validatedData.subtitleMm,
-          startDate: validatedData.startDate,
-          startDateMm: validatedData.startDateMm,
-          endDate: validatedData.endDate,
-          endDateMm: validatedData.endDateMm,
-          duration: validatedData.duration,
-          durationMm: validatedData.durationMm,
-          schedule: validatedData.schedule,
-          scheduleMm: validatedData.scheduleMm,
-          feeAmount: validatedData.feeAmount,
-          feeAmountMm: validatedData.feeAmountMm,
-          ageMin: validatedData.ageMin,
-          ageMinMm: validatedData.ageMinMm,
-          ageMax: validatedData.ageMax,
-          ageMaxMm: validatedData.ageMaxMm,
-          document: validatedData.document,
-          documentMm: validatedData.documentMm,
-          availableDays: validatedData.availableDays,
-          description: validatedData.description,
-          descriptionMm: validatedData.descriptionMm,
-          outcomes: validatedData.outcomes,
-          outcomesMm: validatedData.outcomesMm || [],
-          scheduleDetails: validatedData.scheduleDetails,
-          scheduleDetailsMm: validatedData.scheduleDetailsMm,
-          selectionCriteria: validatedData.selectionCriteria,
-          selectionCriteriaMm: validatedData.selectionCriteriaMm || [],
-          organizationId: validatedData.organizationId,
-        },
-      });
-
+    // Now update related entities in a separate transaction
+    await prisma.$transaction(async (tx) => {
       // Delete all existing images and then create new entries for all images
       await tx.image.deleteMany({
         where: { courseId: id },
@@ -316,7 +360,7 @@ export async function PUT(
         await tx.image.create({
           data: {
             url: imageUrl,
-            courseId: updatedCourse.id,
+            courseId: id,
           },
         });
       }
@@ -332,7 +376,7 @@ export async function PUT(
             text: badge.text,
             color: badge.color,
             backgroundColor: badge.backgroundColor,
-            courseId: updatedCourse.id,
+            courseId: id,
           },
         });
       }
@@ -347,41 +391,42 @@ export async function PUT(
           await tx.fAQ.create({
             data: {
               question: faq.question,
-              questionMm: faq.questionMm,
+              questionMm: faq.questionMm || null,
               answer: faq.answer,
-              answerMm: faq.answerMm,
-              courseId: updatedCourse.id,
+              answerMm: faq.answerMm || null,
+              courseId: id,
             },
           });
         }
       }
-
-      return updatedCourse;
     });
 
     // Format the response to ensure dates and other fields are properly formatted
     const formattedCourse = {
-      ...course,
-      startDate: course.startDate.toISOString(),
-      startDateMm: course.startDateMm ? course.startDateMm.toISOString() : null,
-      endDate: course.endDate.toISOString(),
-      endDateMm: course.endDateMm ? course.endDateMm.toISOString() : null,
+      ...updatedCourse,
+      startDate: updatedCourse.startDate.toISOString(),
+      startDateMm: updatedCourse.startDateMm
+        ? updatedCourse.startDateMm.toISOString()
+        : null,
+      endDate: updatedCourse.endDate.toISOString(),
+      endDateMm: updatedCourse.endDateMm
+        ? updatedCourse.endDateMm.toISOString()
+        : null,
       // Add empty location fields for backward compatibility
       location: "",
       locationMm: null,
       // Include both new fee fields and backward compatible fields
-      fee: course.feeAmount.toString(),
-      feeMm: course.feeAmountMm ? course.feeAmountMm.toString() : null,
+      fee: updatedCourse.feeAmount.toString(),
+      feeMm: updatedCourse.feeAmountMm
+        ? updatedCourse.feeAmountMm.toString()
+        : null,
     };
 
     return NextResponse.json(formattedCourse);
   } catch (error) {
     console.error("Error updating course:", error);
     return NextResponse.json(
-      {
-        error: "Failed to update course",
-        details: error instanceof Error ? error.message : String(error),
-      },
+      { error: "Failed to update course" },
       { status: 500 }
     );
   }

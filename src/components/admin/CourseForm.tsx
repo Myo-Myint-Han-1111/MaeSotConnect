@@ -38,36 +38,36 @@ import {
 interface CourseFormData {
   id?: string;
   title: string;
-  titleMm: string; // Myanmar title
+  titleMm: string; // Keep this
   subtitle: string;
-  subtitleMm: string; // Myanmar subtitle
+  subtitleMm: string; // Keep this
   location: string;
-  locationMm: string; // Myanmar location
-  startDate: string; // Will convert to DateTime when submitting
-  startDateMm: string; // Will convert to DateTime when submitting
-  endDate: string; // New field - will convert to DateTime when submitting
-  endDateMm: string; // New field - will convert to DateTime when submitting
-  duration: number; // Changed from string to number
-  durationMm: number; // Changed from string to number
+  locationMm: string; // Keep this
+  startDate: string;
+  // startDateMm: string; // REMOVE THIS LINE
+  endDate: string;
+  // endDateMm: string; // REMOVE THIS LINE
+  duration: number;
+  // durationMm: number; // REMOVE THIS LINE
   schedule: string;
-  scheduleMm: string; // Myanmar schedule
-  feeAmount: number; // New field - numeric amount
-  feeAmountMm: number; // New field - numeric amount
-  ageMin: number; // New field - minimum age
-  ageMinMm: number; // New field - minimum age (Myanmar)
-  ageMax: number; // New field - maximum age
-  ageMaxMm: number; // New field - maximum age (Myanmar)
-  document: string; // New field - required document information
-  documentMm: string; // New field - required document information (Myanmar)
+  scheduleMm: string; // Keep this
+  feeAmount: number;
+  // feeAmountMm: number; // REMOVE THIS LINE
+  ageMin: number;
+  // ageMinMm: number; // REMOVE THIS LINE
+  ageMax: number;
+  // ageMaxMm: number; // REMOVE THIS LINE
+  document: string;
+  documentMm: string; // Keep this
   availableDays: boolean[];
   description: string;
-  descriptionMm: string; // Myanmar description
+  descriptionMm: string; // Keep this
   outcomes: string[];
-  outcomesMm: string[]; // Myanmar outcomes
+  outcomesMm: string[]; // Keep this
   scheduleDetails: string;
-  scheduleDetailsMm: string; // Myanmar schedule details
+  scheduleDetailsMm: string; // Keep this
   selectionCriteria: string[];
-  selectionCriteriaMm: string[]; // Myanmar selection criteria
+  selectionCriteriaMm: string[]; // Keep this
   organizationId?: string;
   images: File[];
   badges: {
@@ -77,9 +77,9 @@ interface CourseFormData {
   }[];
   faq: {
     question: string;
-    questionMm: string; // Myanmar question
+    questionMm: string; // Keep this
     answer: string;
-    answerMm: string; // Myanmar answer
+    answerMm: string; // Keep this
   }[];
 }
 
@@ -135,21 +135,21 @@ export default function CourseForm({
     location: initialData?.location ?? "",
     locationMm: initialData?.locationMm ?? "",
     startDate: initialData?.startDate ?? "",
-    startDateMm: initialData?.startDateMm ?? "",
-    endDate: initialData?.endDate ?? "", // New field
-    endDateMm: initialData?.endDateMm ?? "", // New field
-    duration: initialData?.duration ?? 0, // Changed from string to number
-    durationMm: initialData?.durationMm ?? 0, // Changed from string to number
+    // startDateMm: initialData?.startDateMm ?? "", // REMOVE THIS LINE
+    endDate: initialData?.endDate ?? "",
+    // endDateMm: initialData?.endDateMm ?? "", // REMOVE THIS LINE
+    duration: initialData?.duration ?? 0,
+    // durationMm: initialData?.durationMm ?? 0, // REMOVE THIS LINE
     schedule: initialData?.schedule ?? "",
     scheduleMm: initialData?.scheduleMm ?? "",
-    feeAmount: initialData?.feeAmount ?? 0, // New field
-    feeAmountMm: initialData?.feeAmountMm ?? 0, // New field
-    ageMin: initialData?.ageMin ?? 0, // New field
-    ageMinMm: initialData?.ageMinMm ?? 0, // New field
-    ageMax: initialData?.ageMax ?? 0, // New field
-    ageMaxMm: initialData?.ageMaxMm ?? 0, // New field
-    document: initialData?.document ?? "", // New field
-    documentMm: initialData?.documentMm ?? "", // New field
+    feeAmount: initialData?.feeAmount ?? 0,
+    // feeAmountMm: initialData?.feeAmountMm ?? 0, // REMOVE THIS LINE
+    ageMin: initialData?.ageMin ?? 0,
+    // ageMinMm: initialData?.ageMinMm ?? 0, // REMOVE THIS LINE
+    ageMax: initialData?.ageMax ?? 0,
+    // ageMaxMm: initialData?.ageMaxMm ?? 0, // REMOVE THIS LINE
+    document: initialData?.document ?? "",
+    documentMm: initialData?.documentMm ?? "",
     availableDays: initialData?.availableDays ?? [
       false,
       false,
@@ -215,6 +215,64 @@ export default function CourseForm({
     }
   }, [existingImages]);
 
+  useEffect(() => {
+    if (initialData) {
+      console.log("Syncing form data with initialData:", initialData);
+      setFormData({
+        title: initialData.title ?? "",
+        titleMm: initialData.titleMm ?? "",
+        subtitle: initialData.subtitle ?? "",
+        subtitleMm: initialData.subtitleMm ?? "",
+        location: initialData.location ?? "",
+        locationMm: initialData.locationMm ?? "",
+        startDate: initialData.startDate ?? "",
+        // startDateMm: initialData.startDateMm ?? "", // REMOVE THIS LINE
+        endDate: initialData.endDate ?? "",
+        // endDateMm: initialData.endDateMm ?? "", // REMOVE THIS LINE
+        duration: initialData.duration ?? 0,
+        // durationMm: initialData.durationMm ?? 0, // REMOVE THIS LINE
+        schedule: initialData.schedule ?? "",
+        scheduleMm: initialData.scheduleMm ?? "",
+        feeAmount: initialData.feeAmount ?? 0,
+        // feeAmountMm: initialData.feeAmountMm ?? 0, // REMOVE THIS LINE
+        ageMin: initialData.ageMin ?? 0,
+        // ageMinMm: initialData.ageMinMm ?? 0, // REMOVE THIS LINE
+        ageMax: initialData.ageMax ?? 0,
+        // ageMaxMm: initialData.ageMaxMm ?? 0, // REMOVE THIS LINE
+        document: initialData.document ?? "",
+        documentMm: initialData.documentMm ?? "",
+        availableDays: initialData.availableDays ?? [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+        ],
+        description: initialData.description ?? "",
+        descriptionMm: initialData.descriptionMm ?? "",
+        outcomes: initialData.outcomes ?? [""],
+        outcomesMm: initialData.outcomesMm ?? [""],
+        scheduleDetails: initialData.scheduleDetails ?? "",
+        scheduleDetailsMm: initialData.scheduleDetailsMm ?? "",
+        selectionCriteria: initialData.selectionCriteria ?? [""],
+        selectionCriteriaMm: initialData.selectionCriteriaMm ?? [""],
+        organizationId: organizationId ?? initialData.organizationId ?? "",
+        images: [],
+        badges: initialData.badges ?? [],
+        faq: initialData.faq ?? [
+          {
+            question: "",
+            questionMm: "",
+            answer: "",
+            answerMm: "",
+          },
+        ],
+      });
+    }
+  }, [initialData, organizationId]);
+
   const handleTextChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -229,7 +287,8 @@ export default function CourseForm({
     e: React.ChangeEvent<HTMLInputElement>,
     fieldName: string
   ) => {
-    const value = e.target.value === "" ? 0 : parseFloat(e.target.value);
+    // For integer fields, use parseInt instead of parseFloat
+    const value = e.target.value === "" ? 0 : parseInt(e.target.value, 10) || 0;
     setFormData((prev) => ({
       ...prev,
       [fieldName]: value,
@@ -654,7 +713,7 @@ export default function CourseForm({
                 </div>
               </div>
 
-              {/* Age Requirements - English and Myanmar (NEW) */}
+              {/* Age Requirements - REMOVE MYANMAR FIELDS */}
               <div className="space-y-2">
                 <Label htmlFor="ageMin">
                   <Users className="h-4 w-4 inline mr-1" />
@@ -663,7 +722,7 @@ export default function CourseForm({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <div className="text-xs text-muted-foreground mb-1">
-                      English - Minimum Age
+                      Minimum Age
                     </div>
                     <Input
                       id="ageMin"
@@ -677,23 +736,7 @@ export default function CourseForm({
                   </div>
                   <div>
                     <div className="text-xs text-muted-foreground mb-1">
-                      Myanmar - Minimum Age
-                    </div>
-                    <Input
-                      id="ageMinMm"
-                      name="ageMinMm"
-                      type="number"
-                      min="0"
-                      value={formData.ageMinMm}
-                      onChange={(e) => handleNumberChange(e, "ageMinMm")}
-                      dir="auto"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">
-                      English - Maximum Age
+                      Maximum Age
                     </div>
                     <Input
                       id="ageMax"
@@ -703,20 +746,6 @@ export default function CourseForm({
                       value={formData.ageMax}
                       onChange={(e) => handleNumberChange(e, "ageMax")}
                       required
-                    />
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">
-                      Myanmar - Maximum Age
-                    </div>
-                    <Input
-                      id="ageMaxMm"
-                      name="ageMaxMm"
-                      type="number"
-                      min="0"
-                      value={formData.ageMaxMm}
-                      onChange={(e) => handleNumberChange(e, "ageMaxMm")}
-                      dir="auto"
                     />
                   </div>
                 </div>
@@ -822,157 +851,76 @@ export default function CourseForm({
 
             {/* NEW TAB: Dates & Fees */}
             <TabsContent value="dates-fees" className="space-y-5">
-              {/* Start Date - English and Myanmar */}
+              {/* Start Date - REMOVE MYANMAR FIELD */}
               <div className="space-y-2">
                 <Label htmlFor="startDate">
                   <Calendar className="h-4 w-4 inline mr-1" />
                   Start Date
                 </Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">
-                      English
-                    </div>
-                    <Input
-                      id="startDate"
-                      name="startDate"
-                      type="date"
-                      value={formData.startDate ?? ""}
-                      onChange={handleTextChange}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">
-                      Myanmar
-                    </div>
-                    <Input
-                      id="startDateMm"
-                      name="startDateMm"
-                      type="date"
-                      value={formData.startDateMm ?? ""}
-                      onChange={handleTextChange}
-                    />
-                  </div>
-                </div>
+                <Input
+                  id="startDate"
+                  name="startDate"
+                  type="date"
+                  value={formData.startDate ?? ""}
+                  onChange={handleTextChange}
+                  required
+                />
               </div>
 
-              {/* End Date - English and Myanmar (NEW) */}
+              {/* End Date - REMOVE MYANMAR FIELD */}
               <div className="space-y-2">
                 <Label htmlFor="endDate">
                   <Calendar className="h-4 w-4 inline mr-1" />
                   End Date
                 </Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">
-                      English
-                    </div>
-                    <Input
-                      id="endDate"
-                      name="endDate"
-                      type="date"
-                      value={formData.endDate ?? ""}
-                      onChange={handleTextChange}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">
-                      Myanmar
-                    </div>
-                    <Input
-                      id="endDateMm"
-                      name="endDateMm"
-                      type="date"
-                      value={formData.endDateMm ?? ""}
-                      onChange={handleTextChange}
-                    />
-                  </div>
-                </div>
+                <Input
+                  id="endDate"
+                  name="endDate"
+                  type="date"
+                  value={formData.endDate ?? ""}
+                  onChange={handleTextChange}
+                  required
+                />
               </div>
 
-              {/* Duration - English and Myanmar (CHANGED to number) */}
+              {/* Duration - REMOVE MYANMAR FIELD */}
               <div className="space-y-2">
                 <Label htmlFor="duration">
                   <Clock className="h-4 w-4 inline mr-1" />
                   Duration (days)
                 </Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">
-                      English
-                    </div>
-                    <Input
-                      id="duration"
-                      name="duration"
-                      type="number"
-                      min="1"
-                      value={formData.duration}
-                      onChange={(e) => handleNumberChange(e, "duration")}
-                      required
-                      placeholder="Number of days"
-                    />
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">
-                      Myanmar
-                    </div>
-                    <Input
-                      id="durationMm"
-                      name="durationMm"
-                      type="number"
-                      min="1"
-                      value={formData.durationMm}
-                      onChange={(e) => handleNumberChange(e, "durationMm")}
-                      placeholder="Number of days (Myanmar)"
-                    />
-                  </div>
-                </div>
+                <Input
+                  id="duration"
+                  name="duration"
+                  type="number"
+                  min="1"
+                  value={formData.duration}
+                  onChange={(e) => handleNumberChange(e, "duration")}
+                  required
+                  placeholder="Number of days"
+                />
               </div>
 
-              {/* Fee Amount - English and Myanmar (NEW) */}
+              {/* Fee Amount - REMOVE MYANMAR FIELD */}
               <div className="space-y-2">
                 <Label htmlFor="feeAmount">
                   <DollarSign className="h-4 w-4 inline mr-1" />
                   Course Fee (THB)
                 </Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">
-                      English
-                    </div>
-                    <Input
-                      id="feeAmount"
-                      name="feeAmount"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.feeAmount}
-                      onChange={(e) => handleNumberChange(e, "feeAmount")}
-                      required
-                      placeholder="e.g. 500.00"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Enter 0 for free courses
-                    </p>
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">
-                      Myanmar
-                    </div>
-                    <Input
-                      id="feeAmountMm"
-                      name="feeAmountMm"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.feeAmountMm}
-                      onChange={(e) => handleNumberChange(e, "feeAmountMm")}
-                      placeholder="Myanmar fee amount..."
-                    />
-                  </div>
-                </div>
+                <Input
+                  id="feeAmount"
+                  name="feeAmount"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.feeAmount}
+                  onChange={(e) => handleNumberChange(e, "feeAmount")}
+                  required
+                  placeholder="e.g. 500.00"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Enter 0 for free courses
+                </p>
               </div>
             </TabsContent>
 

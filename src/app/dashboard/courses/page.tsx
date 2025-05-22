@@ -31,6 +31,8 @@ interface Course {
   };
   organizationId: string;
   startDate: string;
+  endDate?: string;
+  duration?: number;
   images: string[];
   badges: {
     text: string;
@@ -54,6 +56,25 @@ export default function CoursesPage() {
   const [error, setError] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
+
+  // Change the function to display full year:
+  const formatDateToDDMMYYYY = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return dateString;
+      }
+
+      const year = date.getFullYear().toString(); // Full year, no slicing
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
+      const day = date.getDate().toString().padStart(2, "0");
+
+      return `${day}/${month}/${year}`;
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return dateString;
+    }
+  };
 
   // Only platform admins can access this page
   useEffect(() => {
@@ -249,10 +270,23 @@ export default function CoursesPage() {
                   ))}
                 </div>
 
+                {/* Updated date display section with YY/MM/DD format */}
                 <div className="space-y-1 text-sm">
                   <p>
-                    <strong>Start Date:</strong> {course.startDate}
+                    <strong>Start:</strong>{" "}
+                    {formatDateToDDMMYYYY(course.startDate)}
                   </p>
+                  {course.endDate && (
+                    <p>
+                      <strong>End:</strong>{" "}
+                      {formatDateToDDMMYYYY(course.endDate)}
+                    </p>
+                  )}
+                  {course.duration && (
+                    <p>
+                      <strong>Duration:</strong> {course.duration} days
+                    </p>
+                  )}
                 </div>
               </CardContent>
 

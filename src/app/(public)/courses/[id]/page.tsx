@@ -105,17 +105,41 @@ export default function CourseDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Helper function to get localized content for string values
-  const getLocalizedContent = (
+  // Date formatting function to convert to DD/MM/YYYY format
+  const formatDateToDDMMYYYY = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return dateString; // Return original string if parsing fails
+      }
+
+      const year = date.getFullYear().toString(); // Get full year
+      const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Month is 0-indexed
+      const day = date.getDate().toString().padStart(2, "0");
+
+      return `${day}/${month}/${year}`;
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return dateString; // Return original string if any error occurs
+    }
+  };
+
+  // Helper function for localized date content with DD/MM/YYYY formatting
+  const getLocalizedDateContent = (
     enContent: string | number | null | undefined,
     mmContent: string | number | null | undefined
   ): string => {
-    if (language === "mm" && mmContent !== undefined && mmContent !== null) {
-      return mmContent.toString();
-    }
-    return enContent !== undefined && enContent !== null
-      ? enContent.toString()
-      : "";
+    const content =
+      language === "mm" && mmContent !== undefined && mmContent !== null
+        ? mmContent.toString()
+        : enContent !== undefined && enContent !== null
+        ? enContent.toString()
+        : "";
+
+    // Format the date to DD/MM/YYYY if content is not empty
+    return content ? formatDateToDDMMYYYY(content) : content;
   };
 
   // Helper function for localized string arrays
@@ -307,10 +331,10 @@ export default function CourseDetailPage() {
         {/* Title and Subtitle */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold">
-            {getLocalizedContent(course.title, course.titleMm)}
+            {getLocalizedDateContent(course.title, course.titleMm)}
           </h1>
           <p className="text-lg text-muted-foreground">
-            {getLocalizedContent(course.subtitle, course.subtitleMm)}
+            {getLocalizedDateContent(course.subtitle, course.subtitleMm)}
           </p>
         </div>
 
@@ -322,7 +346,7 @@ export default function CourseDetailPage() {
           <div className="lg:col-span-3">
             <ImageCarousel
               images={course.images}
-              altText={getLocalizedContent(course.title, course.titleMm)}
+              altText={getLocalizedDateContent(course.title, course.titleMm)}
               variant="fullsize"
               indicatorStyle="dots"
               aspectRatio="video"
@@ -344,12 +368,26 @@ export default function CourseDetailPage() {
                       {t("course.location")}
                     </p>
                     <p className="text-sm text-muted-foreground" dir="auto">
-                      {getLocalizedContent(course.location, course.locationMm)}
+                      {course?.organizationInfo ? (
+                        <>
+                          {course.organizationInfo.district && (
+                            <span> {course.organizationInfo.district}</span>
+                          )}
+                          {course.organizationInfo.province && (
+                            <span>, {course.organizationInfo.province}</span>
+                          )}
+                        </>
+                      ) : (
+                        getLocalizedDateContent(
+                          course?.location,
+                          course?.locationMm
+                        ) || "Location information not available"
+                      )}
                     </p>
                   </div>
                 </div>
 
-                {/* Date Range (Start & End Date) */}
+                {/* Date Range (Start & End Date) with DD/MM/YYYY format */}
                 <div className="flex items-start">
                   <Calendar className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
                   <div>
@@ -357,12 +395,12 @@ export default function CourseDetailPage() {
                       {t("course.dates")}
                     </p>
                     <p className="text-sm text-muted-foreground" dir="auto">
-                      {getLocalizedContent(
+                      {getLocalizedDateContent(
                         course.startDate,
                         course.startDateMm
                       )}
                       {course.endDate &&
-                        ` - ${getLocalizedContent(
+                        ` - ${getLocalizedDateContent(
                           course.endDate,
                           course.endDateMm
                         )}`}
@@ -393,7 +431,10 @@ export default function CourseDetailPage() {
                       {t("course.schedule")}
                     </p>
                     <p className="text-sm text-muted-foreground" dir="auto">
-                      {getLocalizedContent(course.schedule, course.scheduleMm)}
+                      {getLocalizedDateContent(
+                        course.schedule,
+                        course.scheduleMm
+                      )}
                     </p>
                   </div>
                 </div>
@@ -428,7 +469,7 @@ export default function CourseDetailPage() {
                         {t("course.requiredDocuments")}
                       </p>
                       <p className="text-sm text-muted-foreground" dir="auto">
-                        {getLocalizedContent(
+                        {getLocalizedDateContent(
                           course.document,
                           course.documentMm
                         )}
@@ -505,7 +546,7 @@ export default function CourseDetailPage() {
                     className="text-muted-foreground whitespace-pre-line"
                     dir="auto"
                   >
-                    {getLocalizedContent(
+                    {getLocalizedDateContent(
                       course.description,
                       course.descriptionMm
                     )}
@@ -566,7 +607,7 @@ export default function CourseDetailPage() {
                     className="text-muted-foreground whitespace-pre-line"
                     dir="auto"
                   >
-                    {getLocalizedContent(
+                    {getLocalizedDateContent(
                       course.scheduleDetails,
                       course.scheduleDetailsMm
                     )}
@@ -633,13 +674,16 @@ export default function CourseDetailPage() {
                         className="border-b pb-4 last:border-b-0"
                       >
                         <h3 className="font-semibold mb-2" dir="auto">
-                          {getLocalizedContent(item.question, item.questionMm)}
+                          {getLocalizedDateContent(
+                            item.question,
+                            item.questionMm
+                          )}
                         </h3>
                         <p
                           className="text-muted-foreground whitespace-pre-line"
                           dir="auto"
                         >
-                          {getLocalizedContent(item.answer, item.answerMm)}
+                          {getLocalizedDateContent(item.answer, item.answerMm)}
                         </p>
                       </div>
                     ))}
@@ -697,10 +741,9 @@ export default function CourseDetailPage() {
                   <div className="flex items-start">
                     <MapPin className="h-5 w-5 mr-3 text-primary flex-shrink-0 mt-0.5" />
                     <div>
-                      <span>{course.organizationInfo.address}</span>
                       {(course.organizationInfo.district ||
                         course.organizationInfo.province) && (
-                        <div className="text-sm text-muted-foreground mt-1">
+                        <div className="text-muted-foreground">
                           {course.organizationInfo.district &&
                           course.organizationInfo.province
                             ? `${course.organizationInfo.district}, ${course.organizationInfo.province}`

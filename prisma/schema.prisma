@@ -59,43 +59,44 @@ model VerificationToken {
 }
 
 model Course {
-  id                  String       @id @default(uuid())
-  title               String
-  titleMm             String?
-  subtitle            String
-  subtitleMm          String?
-  startDate           DateTime     // Changed from String to DateTime
-  startDateMm         DateTime?    // Changed from String? to DateTime?
-  endDate             DateTime     // New field
-  endDateMm           DateTime?    // New field
-  duration            Int          // Changed from String to Int (number)
-  durationMm          Int?         // Changed from String? to Int? (number)
-  schedule            String
-  scheduleMm          String?
-  feeAmount           Float        // New field, using Float for decimal support
-  feeAmountMm         Float?       // New field, using Float for decimal support
-  ageMin              Int          // New field
-  ageMinMm            Int?         // New field
-  ageMax              Int          // New field
-  ageMaxMm            Int?         // New field
-  document            String       // New field
-  documentMm          String?      // New field
-  availableDays       Boolean[]
-  description         String?
-  descriptionMm       String?
-  outcomes            String[]
-  outcomesMm          String[]
-  scheduleDetails     String?
-  scheduleDetailsMm   String?
-  selectionCriteria   String[]
-  selectionCriteriaMm String[]
-  organizationId      String?      
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime     @updatedAt
-  badges              Badge[]
-  organizationInfo    Organization? @relation(fields: [organizationId], references: [id])
-  faq                 FAQ[]
-  images              Image[]
+  id                    String    @id @default(cuid())
+  title                 String
+  titleMm               String?
+  subtitle              String
+  subtitleMm            String?
+  startDate             DateTime
+  startDateMm           DateTime?
+  endDate               DateTime
+  endDateMm             DateTime?
+  duration              Int
+  durationMm            Int?
+  schedule              String
+  scheduleMm            String?
+  feeAmount             Int       @default(0)
+  feeAmountMm           Int?
+  ageMin                Int
+  ageMinMm              Int?
+  ageMax                Int
+  ageMaxMm              Int?
+  document              String
+  documentMm            String?
+  availableDays         Boolean[]
+  description           String?
+  descriptionMm         String?
+  outcomes              String[]
+  outcomesMm            String[]
+  scheduleDetails       String?
+  scheduleDetailsMm     String?
+  selectionCriteria     String[]
+  selectionCriteriaMm   String[]
+  organizationId        String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  organizationInfo      Organization? @relation(fields: [organizationId], references: [id])
+  images                Image[]
+  badges                Badge[]
+  faq                   FAQ[]
 }
 
 model Image {

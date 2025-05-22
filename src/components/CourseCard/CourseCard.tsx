@@ -3,7 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardFooter } from "../ui/card";
-import { Button } from "../ui/button";
+// import { Button } from "../ui/button";
 import { useLanguage } from "../../context/LanguageContext";
 import ImageCarousel from "../common/ImageCarousel";
 import DayIndicator from "../common/DayIndicator";
@@ -131,7 +131,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
       </CardContent>
 
       <CardFooter className="see-more-container">
-        <Button
+        {/* <Button
           onClick={(e) => {
             e.stopPropagation();
             handleNavigation();
@@ -139,7 +139,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           className="see-more-button cursor-pointer"
         >
           {t("course.seemore")}
-        </Button>
+        </Button> */}
       </CardFooter>
     </Card>
   );

@@ -29,8 +29,8 @@ const courseSchema = z.object({
   durationMm: z.number().int().positive().optional(),
   schedule: z.string().min(2, "Schedule must be at least 2 characters"),
   scheduleMm: z.string().optional(),
-  feeAmount: z.number().nonnegative(), // New field - allow zero for free courses
-  feeAmountMm: z.number().nonnegative().optional(), // New field
+  feeAmount: z.number().int().nonnegative(), // Added .int()
+  feeAmountMm: z.number().int().nonnegative().optional(), // Added .int()
   // Fee fields kept for backward compatibility
   fee: z.string().optional(),
   feeMm: z.string().optional(),
@@ -202,6 +202,8 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// src/app/api/courses/route.ts - Updated POST function
+
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
@@ -230,31 +232,55 @@ export async function POST(request: NextRequest) {
 
     // Parse and validate the JSON data
     const parsedData = JSON.parse(jsonData);
-    console.log("Received data:", parsedData); // Debug log
+
+    // IMPORTANT: Convert fee amounts to integers if they're not already
+    if (parsedData.feeAmount !== undefined) {
+      parsedData.feeAmount = Math.round(Number(parsedData.feeAmount));
+    }
+    if (parsedData.feeAmountMm !== undefined) {
+      parsedData.feeAmountMm = Math.round(Number(parsedData.feeAmountMm));
+    }
+
+    // Ensure numeric fields are proper integers
+    if (parsedData.duration !== undefined) {
+      parsedData.duration = Math.round(Number(parsedData.duration));
+    }
+    if (parsedData.durationMm !== undefined) {
+      parsedData.durationMm = Math.round(Number(parsedData.durationMm));
+    }
+    if (parsedData.ageMin !== undefined) {
+      parsedData.ageMin = Math.round(Number(parsedData.ageMin));
+    }
+    if (parsedData.ageMax !== undefined) {
+      parsedData.ageMax = Math.round(Number(parsedData.ageMax));
+    }
+    if (parsedData.ageMinMm !== undefined) {
+      parsedData.ageMinMm = Math.round(Number(parsedData.ageMinMm));
+    }
+    if (parsedData.ageMaxMm !== undefined) {
+      parsedData.ageMaxMm = Math.round(Number(parsedData.ageMaxMm));
+    }
 
     if (!parsedData.organizationId || parsedData.organizationId === "") {
       parsedData.organizationId = null;
     }
 
-    // Validate and transform with Zod
     const validationResult = courseSchema.safeParse(parsedData);
 
     if (!validationResult.success) {
-      console.error("Validation errors:", validationResult.error.errors); // Debug log
+      console.error("Validation errors:", validationResult.error.errors);
       return NextResponse.json(
         { error: validationResult.error.errors },
         { status: 400 }
       );
     }
 
-    // Use the validated and transformed data
     const validatedData = validationResult.data;
-    console.log("Validated data:", validatedData); // Debug log to see the transformed dates
 
     // Organization admins can only create courses for their own organization
     if (
       session.user.role === "ORGANIZATION_ADMIN" &&
-      session.user.organizationId !== validatedData.organizationId
+      session.user.organizationId !== parsedData.organizationId
     ) {
       return NextResponse.json(
         { error: "You can only create courses for your own organization" },
@@ -277,32 +303,32 @@ export async function POST(request: NextRequest) {
       const newCourse = await tx.course.create({
         data: {
           title: validatedData.title,
-          titleMm: validatedData.titleMm,
+          titleMm: validatedData.titleMm || null,
           subtitle: validatedData.subtitle,
-          subtitleMm: validatedData.subtitleMm,
+          subtitleMm: validatedData.subtitleMm || null,
           startDate: validatedData.startDate,
-          startDateMm: validatedData.startDateMm,
+          startDateMm: validatedData.startDateMm || null,
           endDate: validatedData.endDate,
-          endDateMm: validatedData.endDateMm,
+          endDateMm: validatedData.endDateMm || null,
           duration: validatedData.duration,
-          durationMm: validatedData.durationMm,
+          durationMm: validatedData.durationMm || null,
           schedule: validatedData.schedule,
-          scheduleMm: validatedData.scheduleMm,
+          scheduleMm: validatedData.scheduleMm || null,
           feeAmount: validatedData.feeAmount,
-          feeAmountMm: validatedData.feeAmountMm,
+          feeAmountMm: validatedData.feeAmountMm || null,
           ageMin: validatedData.ageMin,
-          ageMinMm: validatedData.ageMinMm,
+          ageMinMm: validatedData.ageMinMm || null,
           ageMax: validatedData.ageMax,
-          ageMaxMm: validatedData.ageMaxMm,
+          ageMaxMm: validatedData.ageMaxMm || null,
           document: validatedData.document,
-          documentMm: validatedData.documentMm,
+          documentMm: validatedData.documentMm || null,
           availableDays: validatedData.availableDays,
-          description: validatedData.description,
-          descriptionMm: validatedData.descriptionMm,
+          description: validatedData.description || null,
+          descriptionMm: validatedData.descriptionMm || null,
           outcomes: validatedData.outcomes,
           outcomesMm: validatedData.outcomesMm || [],
-          scheduleDetails: validatedData.scheduleDetails,
-          scheduleDetailsMm: validatedData.scheduleDetailsMm,
+          scheduleDetails: validatedData.scheduleDetails || null,
+          scheduleDetailsMm: validatedData.scheduleDetailsMm || null,
           selectionCriteria: validatedData.selectionCriteria,
           selectionCriteriaMm: validatedData.selectionCriteriaMm || [],
           organizationId: validatedData.organizationId || null,
@@ -337,9 +363,9 @@ export async function POST(request: NextRequest) {
           await tx.fAQ.create({
             data: {
               question: faq.question,
-              questionMm: faq.questionMm,
+              questionMm: faq.questionMm || null,
               answer: faq.answer,
-              answerMm: faq.answerMm,
+              answerMm: faq.answerMm || null,
               courseId: newCourse.id,
             },
           });
@@ -361,12 +387,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(formattedCourse, { status: 201 });
   } catch (error) {
     console.error("Error creating course:", error);
-    // Provide more detailed error information
     return NextResponse.json(
-      {
-        error: "Failed to create course",
-        details: error instanceof Error ? error.message : String(error),
-      },
+      { error: "Failed to create course" },
       { status: 500 }
     );
   }
