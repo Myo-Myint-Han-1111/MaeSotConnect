@@ -311,11 +311,11 @@ export default function CourseDetailPage() {
     <div className="content mt-20">
       <div className="max-w-6xl mx-auto px-4">
         {/* Back Button */}
-        <div className="relative z-40 bg-background py-2 mb-4">
+        <div className="relative z-40 bg-background pt-6 py-2 mb-4">
           <Button
             variant="outline"
             size="sm"
-            className="border border-gray-300 bg-white hover:bg-gray-100 rounded-md shadow-sm"
+            className="border border-gray-300 bg-white hover:bg-gray-100 rounded-md"
             onClick={() => router.push("/")}
           >
             <ChevronLeft className="mr-2 h-4 w-4" />

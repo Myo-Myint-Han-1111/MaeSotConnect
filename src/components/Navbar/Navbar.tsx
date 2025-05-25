@@ -1,3 +1,4 @@
+// src/components/Navbar/Navbar.tsx - Test with relative positioning
 "use client";
 
 import React from "react";
@@ -19,14 +20,17 @@ interface BrandProps {
 
 interface NavbarProps {
   brand: BrandProps;
-  items: NavItem[]; // Still accepting items for use in the footer
+  items: NavItem[];
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ brand }) => {
   const { language, setLanguage } = useLanguage();
   const pathname = usePathname();
 
-  // Check if we're on a page that needs the alternate navbar style
+  // Check if we're on the home page
+  const isHomePage = pathname === "/";
+
+  // Check if we're on a page that needs the dark navbar style
   const isAlternateStyle =
     pathname.startsWith("/about") ||
     pathname.startsWith("/contact") ||
@@ -40,7 +44,7 @@ export const Navbar: React.FC<NavbarProps> = ({ brand }) => {
 
   return (
     <header
-      className={`absolute top-0 left-0 w-full z-50 ${
+      className={`relative w-full z-50 ${
         isAlternateStyle ? "bg-[#4257b2]" : "bg-transparent"
       }`}
     >

@@ -383,10 +383,10 @@ export default function Home() {
   if (loading) {
   return (
     <>
-      <div
-        className="w-full hero-gradient pt-32 pb-24"
-        data-language={language}
-      >
+    <div
+      className="absolute top-0 left-0 w-full hero-gradient pt-40 pb-24 -mt-16"
+      data-language={language}
+    >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="w-full">
             <div
@@ -424,7 +424,7 @@ export default function Home() {
     <>
       {/* Hero section with gradient background */}
       <div
-        className="absolute top-0 left-0 w-full hero-gradient pt-32 pb-24"
+        className="absolute top-0 left-0 w-full hero-gradient pt-40 pb-24 -mt-16"
         data-language={language}
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">

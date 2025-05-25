@@ -28,20 +28,19 @@
   margin-bottom: 0.5rem;
 }
 
-.card-details {
+/* .card-details {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
-}
+  gap: 0.5rem;
+} */
 
-.detail-item {
+/* .detail-item {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   font-size: 0.9rem;
   color: hsl(var(--muted-foreground));
-}
+} */
 
 .digital-screen {
   display: flex;
@@ -49,32 +48,12 @@
   height: 100%;
 }
 
-.status-bar {
-  height: 8px;
-  background: #9e9e9e;
-}
-
-.digital-calendar.available .status-bar {
-  background: #2b2a2a;
-}
-
-.day-display {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: bold;
-  color: #333;
-  background-color: #f8f8f8;
-}
-
-.see-more-container {
+/* .see-more-container {
   display: flex;
   justify-content: center;
-}
+} */
 
-.see-more-button {
+/* .see-more-button {
   width: 60%;
   padding: 0.5rem 1rem;
   background-color: hsl(var(--primary));
@@ -82,7 +61,7 @@
   border-radius: 0.5rem;
   font-weight: 500;
   text-align: center;
-}
+} */
 
 .carousel-container {
   position: relative;

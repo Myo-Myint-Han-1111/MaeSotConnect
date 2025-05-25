@@ -20,11 +20,11 @@ const ContactUs: React.FC = () => {
   return (
     <div className="content">
       {/* Back Button */}
-      <div className="relative z-10 bg-background pt-20 max-w-6xl mx-auto px-4">
+      <div className="relative z-10 bg-background pt-6 max-w-6xl mx-auto px-4">
         <Button
           variant="outline"
           size="sm"
-          className="border border-gray-300 bg-white hover:bg-gray-100 rounded-md shadow-sm"
+          className="border border-gray-300 bg-white hover:bg-gray-100 rounded-md"
           onClick={() => router.push("/")}
         >
           <ChevronLeft className="mr-2 h-4 w-4" />

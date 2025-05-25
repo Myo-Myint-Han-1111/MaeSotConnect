@@ -123,7 +123,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           // applyByDate={applyByDate ? getLocalizedContent(applyByDate, applyByDateMm) : undefined}
         />
         
-        <div className="ml-6">
+        {/* <div className="ml-6">
           <DayIndicator
             days={[
               t("course.days.sun"),
@@ -137,11 +137,11 @@ export const CourseCard: React.FC<CourseCardProps> = ({
             availableDays={availableDays}
             size="small"
           />
-        </div>
+        </div> */}
       </CardContent>
 
-      <CardFooter className="see-more-container">
-        {/* <Button
+      {/* <CardFooter className="see-more-container">
+        {<Button
           onClick={(e) => {
             e.stopPropagation();
             handleNavigation();
@@ -149,8 +149,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           className="see-more-button cursor-pointer"
         >
           {t("course.seemore")}
-        </Button> */}
-      </CardFooter>
+        </Button>}
+      </CardFooter> */}
     </Card>
   );
 };
