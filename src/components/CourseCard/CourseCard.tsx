@@ -41,6 +41,9 @@ export interface CourseCardProps {
     backgroundColor: string;
     courseId: string;
   }[];
+  // TODO: Ko Myo - Add these fields when applyByDate is added to database
+  // applyByDate?: string;
+  // applyByDateMm?: string | null;
 }
 
 export const CourseCard: React.FC<CourseCardProps> = ({
@@ -62,6 +65,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   fee,
   feeMm,
   availableDays,
+  // applyByDate, // TODO: Ko Myo - Uncomment when added to database
+  // applyByDateMm, // TODO: Ko Myo - Uncomment when added to database
 }) => {
   const router = useRouter();
   const { t, language } = useLanguage();
@@ -113,21 +118,26 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           schedule={getLocalizedContent(schedule, scheduleMm)}
           fee={fee ? getLocalizedContent(fee, feeMm || null) : undefined}
           compact={true}
+          showDescriptions={true} // Added this new prop
+          // TODO: Ko Myo - Add this line when applyByDate is implemented
+          // applyByDate={applyByDate ? getLocalizedContent(applyByDate, applyByDateMm) : undefined}
         />
-
-        <DayIndicator
-          days={[
-            t("course.days.sun"),
-            t("course.days.mon"),
-            t("course.days.tue"),
-            t("course.days.wed"),
-            t("course.days.thu"),
-            t("course.days.fri"),
-            t("course.days.sat"),
-          ]}
-          availableDays={availableDays}
-          size="small"
-        />
+        
+        <div className="ml-6">
+          <DayIndicator
+            days={[
+              t("course.days.sun"),
+              t("course.days.mon"),
+              t("course.days.tue"),
+              t("course.days.wed"),
+              t("course.days.thu"),
+              t("course.days.fri"),
+              t("course.days.sat"),
+            ]}
+            availableDays={availableDays}
+            size="small"
+          />
+        </div>
       </CardContent>
 
       <CardFooter className="see-more-container">

@@ -144,3 +144,30 @@
     margin-top: -1.5rem;
   }
 }
+
+/* Course grid masonry */
+.course-grid-flex {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-start; /* This creates the "tiling" effect you want */
+}
+
+.course-card-flex {
+  flex: 0 0 100%; /* Full width on mobile */
+  max-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .course-card-flex {
+    flex: 0 0 calc(50% - 0.75rem); /* 2 columns on tablet */
+    max-width: calc(50% - 0.75rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .course-card-flex {
+    flex: 0 0 calc(33.333% - 1rem); /* 3 columns on desktop */
+    max-width: calc(33.333% - 1rem);
+  }
+}

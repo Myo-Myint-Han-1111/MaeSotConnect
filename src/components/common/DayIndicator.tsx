@@ -5,66 +5,124 @@ import React from "react";
 interface DayIndicatorProps {
   days: string[]; // Array of day names (Sun, Mon, etc.)
   availableDays: boolean[]; // Array of boolean values indicating availability
-  size?: "small" | "medium" | "large"; // Optional size prop for different contexts
+  size?: "small" | "medium" | "large";
+  interactive?: boolean; // Whether days can be clicked (for admin forms)
+  onDayToggle?: (index: number) => void; // Callback for day selection
 }
 
 const DayIndicator: React.FC<DayIndicatorProps> = ({
   days,
   availableDays,
   size = "medium",
+  interactive = false,
+  onDayToggle,
 }) => {
-  // Size-based styling
-  const getCalendarSize = () => {
+  // Calendar block sizing with minimal aesthetic
+  const getSizeConfig = () => {
     switch (size) {
       case "small":
-        return { width: "26px", height: "36px", fontSize: "9px" };
+        return {
+          container: "gap-1",
+          calendarBlock: "w-8 h-6", // 28x36px
+          headerHeight: "h-2.5", // 1/3 of total height (12px of 36px)
+          dayText: "text-xs font-semibold",
+          borderRadius: "rounded",
+        };
       case "large":
-        return { width: "38px", height: "52px", fontSize: "12px" };
+        return {
+          container: "gap-2",
+          calendarBlock: "w-16 h-16", // 48x64px
+          headerHeight: "h-5", // 1/3 of total height (20px of 64px)
+          dayText: "text-base font-bold",
+          borderRadius: "rounded",
+        };
       case "medium":
       default:
-        return { width: "32px", height: "45px", fontSize: "11px" };
+        return {
+          container: "gap-1.5",
+          calendarBlock: "w-9 h-9", // 36x48px
+          headerHeight: "h-3", // 1/3 of total height (16px of 48px)
+          dayText: "text-sm font-medium",
+          borderRadius: "rounded",
+        };
     }
   };
 
-  const { width, height, fontSize } = getCalendarSize();
+  const { container, calendarBlock, headerHeight, dayText, borderRadius } = getSizeConfig();
+
+  const handleDayClick = (index: number) => {
+    if (interactive && onDayToggle) {
+      onDayToggle(index);
+    }
+  };
 
   return (
-    <div className="flex justify-between gap-1 py-1 mt-auto sm:gap-2">
-      {days.map((day, index) => (
-        <div key={index} className="flex flex-col items-center">
-          <div
-            className={`rounded-sm overflow-hidden ${
-              availableDays[index]
-                ? "border-2 border-gray-800"
-                : "border border-gray-300 opacity-60"
-            }`}
-            style={{
-              width,
-              height,
-              background: "linear-gradient(145deg, #e6e6e6, #ffffff)",
-            }}
-          >
-            <div className="flex flex-col h-full">
-              <div
-                className={`${
-                  availableDays[index] ? "bg-gray-800" : "bg-gray-400"
-                }`}
-                style={{ height: "8px" }}
-              ></div>
-              <div
-                className={`flex-1 flex items-center justify-center font-bold ${
-                  availableDays[index]
-                    ? "text-black bg-white"
-                    : "text-gray-700 bg-gray-100"
-                }`}
-                style={{ fontSize }}
-              >
+    <div className="mt-2">
+      <div className={`flex ${container}`}>
+        {days.map((day, index) => {
+          const isAvailable = availableDays[index];
+          
+          const blockStyles = `
+            ${calendarBlock}
+            ${borderRadius}
+            flex flex-col
+            overflow-hidden
+            ${isAvailable 
+              ? "bg-gray-100" 
+              : "bg-gray-100"
+            }
+          `;
+
+          const headerStyles = `
+            ${headerHeight}
+            w-full
+            ${isAvailable ? "bg-gray-700" : "bg-gray-300"}
+          `;
+
+          const contentStyles = `
+            flex-1 
+            flex items-center justify-center
+            ${dayText}
+            ${isAvailable ? "text-gray-800" : "text-gray-400"}
+          `;
+
+          const interactiveStyles = interactive
+            ? "cursor-pointer hover:opacity-80 active:scale-95 transition-all duration-150"
+            : "";
+
+          const CalendarDay = () => (
+            <div className={`${blockStyles} ${interactiveStyles}`}>
+              {/* Minimal top bar */}
+              <div className={headerStyles} />
+              {/* Day text */}
+              <div className={contentStyles}>
                 {day}
               </div>
             </div>
-          </div>
-        </div>
-      ))}
+          );
+
+          if (interactive) {
+            return (
+              <button
+                key={index}
+                type="button"
+                onClick={() => handleDayClick(index)}
+                className="focus:outline-none focus:ring-1 focus:ring-gray-400"
+                aria-label={`${isAvailable ? 'Available' : 'Unavailable'} on ${day}`}
+                aria-pressed={isAvailable}
+              >
+                <CalendarDay />
+              </button>
+            );
+          }
+
+          return (
+            <div key={index}>
+              <CalendarDay />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };

@@ -41,25 +41,20 @@ interface CourseDetail {
   subtitleMm?: string;
   location: string;
   locationMm?: string;
-  // Changed from string to Date objects
-  startDate: string; // We'll still display as string, but API returns Date
+  startDate: string;
   startDateMm?: string;
-  endDate: string; // New field
-  endDateMm?: string; // New field
-  // Changed from string to number
+  endDate: string;
+  endDateMm?: string;
   duration: number;
   durationMm?: number;
   schedule: string;
   scheduleMm?: string;
-  // New fee fields
   feeAmount?: number;
   feeAmountMm?: number;
-  // New age fields
   ageMin?: number;
   ageMinMm?: number;
   ageMax?: number;
   ageMaxMm?: number;
-  // New document fields
   document?: string;
   documentMm?: string;
   availableDays: boolean[];
@@ -316,7 +311,7 @@ export default function CourseDetailPage() {
     <div className="content mt-20">
       <div className="max-w-6xl mx-auto px-4">
         {/* Back Button */}
-        <div className="relative z-10 bg-background py-2 mb-4">
+        <div className="relative z-40 bg-background py-2 mb-4">
           <Button
             variant="outline"
             size="sm"

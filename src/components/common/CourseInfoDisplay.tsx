@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { MapPin, Calendar, Clock, BookOpen, DollarSign } from "lucide-react";
+import { MapPin, Calendar, Clock, BookOpen, HandCoins, CalendarCheck } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 interface CourseInfoDisplayProps {
   location: string;
@@ -10,6 +11,9 @@ interface CourseInfoDisplayProps {
   schedule: string;
   fee?: string;
   compact?: boolean; // For compact view in card vs detailed view
+  showDescriptions?: boolean; // New prop to control descriptions
+  // TODO: Ko Myo - Add applyByDate field to database and props
+  // applyByDate?: string; 
 }
 
 const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
@@ -19,80 +23,132 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
   schedule,
   fee,
   compact = false,
+  showDescriptions = true, // Default to true for better UX
+  // applyByDate, // TODO: Ko Myo - Uncomment when added to database
 }) => {
+  const { t } = useLanguage();
+
+  // Direct color override (keeping your existing styling)
+  const grayColor = "hsl(215.4, 16.3%, 46.9%)";
+  
   // Choose styles based on compact mode
   const containerClass = compact ? "flex flex-col gap-2" : "space-y-4";
   const itemClass = compact
-    ? "flex items-center gap-2 text-sm text-muted-foreground"
+    ? "flex items-center gap-2 text-sm"
     : "flex items-start";
   const iconClass = compact
-    ? "w-4 h-4 text-primary"
-    : "h-5 w-5 mr-2 mt-0.5 text-muted-foreground";
+    ? "w-4 h-4 flex-shrink-0"
+    : "h-5 w-5 mr-2 mt-0.5";
 
   return (
     <div className={containerClass}>
-      <div className={itemClass}>
-        <MapPin className={iconClass} />
-        <div>
+      {/* Location */}
+      <div className={itemClass} style={{ color: grayColor }}>
+        <MapPin className={iconClass} style={{ color: grayColor }} />
+        <div className="flex-1 min-w-0">
           {!compact && (
             <p className="text-sm font-medium text-foreground">Location</p>
           )}
-          <p className={compact ? "" : "text-sm text-muted-foreground"}>
+          <p className={compact ? "truncate" : "text-sm"} style={{ color: grayColor }}>
             {location}
           </p>
         </div>
       </div>
 
-      <div className={itemClass}>
-        <Calendar className={iconClass} />
-        <div>
+      {/* Start Date - With "Starts" description */}
+      <div className={itemClass} style={{ color: grayColor }}>
+        <Calendar className={iconClass} style={{ color: grayColor }} />
+        <div className="flex-1 min-w-0">
           {!compact && (
             <p className="text-sm font-medium text-foreground">Start Date</p>
           )}
-          <p className={compact ? "" : "text-sm text-muted-foreground"}>
+          {compact && showDescriptions && (
+            <span className="text-xs mr-2 flex-shrink-0" style={{ color: grayColor }}>
+              {t("course.info.starts")}:
+            </span>
+          )}
+          <p className={compact ? "truncate" : "text-sm"} style={{ color: grayColor }}>
             {startDate}
           </p>
         </div>
       </div>
 
-      <div className={itemClass}>
-        <Clock className={iconClass} />
-        <div>
+      {/* TODO: Ko Myo - Add Apply By Date field to database and uncomment below */}
+      {/* Apply By Date - When implemented */}
+      {/* {applyByDate && (
+        <div className={itemClass} style={{ color: grayColor }}>
+          <CalendarCheck className={iconClass} style={{ color: grayColor }} />
+          <div className="flex-1 min-w-0">
+            {!compact && (
+              <p className="text-sm font-medium text-foreground">Apply By</p>
+            )}
+            {compact && showDescriptions && (
+              <span className="text-xs mr-2 flex-shrink-0" style={{ color: grayColor }}>
+                {t("course.info.applyBy")}:
+              </span>
+            )}
+            <p className={compact ? "truncate" : "text-sm"} style={{ color: grayColor }}>
+              {applyByDate}
+            </p>
+          </div>
+        </div>
+      )} */}
+
+      {/* Duration - With description */}
+      <div className={itemClass} style={{ color: grayColor }}>
+        <Clock className={iconClass} style={{ color: grayColor }} />
+        <div className="flex-1 min-w-0">
           {!compact && (
             <p className="text-sm font-medium text-foreground">Duration</p>
           )}
-          <p className={compact ? "" : "text-sm text-muted-foreground"}>
+          {compact && showDescriptions && (
+            <span className="text-xs mr-2 flex-shrink-0" style={{ color: grayColor }}>
+              {t("course.info.duration")}:
+            </span>
+          )}
+          <p className={compact ? "truncate" : "text-sm"} style={{ color: grayColor }}>
             {duration}
           </p>
         </div>
       </div>
 
-      <div className={itemClass}>
-        <BookOpen className={iconClass} />
-        <div>
-          {!compact && (
-            <p className="text-sm font-medium text-foreground">Schedule</p>
-          )}
-          <p className={compact ? "" : "text-sm text-muted-foreground"}>
-            {schedule}
-          </p>
-        </div>
-      </div>
-
-      {/* Only show fee if provided */}
+      {/* Fee - With description if provided */}
       {fee && (
-        <div className={itemClass}>
-          <DollarSign className={iconClass} />
-          <div>
+        <div className={itemClass} style={{ color: grayColor }}>
+          <HandCoins className={iconClass} style={{ color: grayColor }} />
+          <div className="flex-1 min-w-0">
             {!compact && (
               <p className="text-sm font-medium text-foreground">Fee</p>
             )}
-            <p className={compact ? "" : "text-sm text-muted-foreground"}>
+            {compact && showDescriptions && (
+              <span className="text-xs mr-2 flex-shrink-0" style={{ color: grayColor }}>
+                {t("course.info.fee")}:
+              </span>
+            )}
+            <p className={compact ? "truncate" : "text-sm"} style={{ color: grayColor }}>
               {fee}
             </p>
           </div>
         </div>
       )}
+
+      {/* Schedule - With description */}
+      <div className={itemClass} style={{ color: grayColor }}>
+        <BookOpen className={iconClass} style={{ color: grayColor }} />
+        <div className="flex-1 min-w-0">
+          {!compact && (
+            <p className="text-sm font-medium text-foreground">Schedule</p>
+          )}
+          {compact && showDescriptions && (
+            <span className="text-xs mr-2 flex-shrink-0" style={{ color: grayColor }}>
+              {t("course.info.schedule")}:
+            </span>
+          )}
+          <p className={compact ? "truncate" : "text-sm"} style={{ color: grayColor }}>
+            {schedule}
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

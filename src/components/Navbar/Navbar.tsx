@@ -40,7 +40,7 @@ export const Navbar: React.FC<NavbarProps> = ({ brand }) => {
 
   return (
     <header
-      className={`absolute top-0 left-0 w-full z-30 ${
+      className={`absolute top-0 left-0 w-full z-50 ${
         isAlternateStyle ? "bg-[#4257b2]" : "bg-transparent"
       }`}
     >

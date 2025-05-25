@@ -381,18 +381,19 @@ export default function Home() {
 
   // Show loading state
   if (loading) {
-    return (
-      <>
-        <div
-          className="w-full hero-gradient pt-32 pb-24"
-          data-language={language}
-        >
-          <div className="max-w-6xl mx-auto px-4">
+  return (
+    <>
+      <div
+        className="w-full hero-gradient pt-32 pb-24"
+        data-language={language}
+      >
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="w-full">
             <div
               className={`${getFontSizeClasses(
                 "heading1",
                 language
-              )} text-white text-center pt-8`}
+              )} text-white text-left pt-8 w-full`}
               data-language={language}
             >
               {t("home.welcome")}
@@ -401,28 +402,29 @@ export default function Home() {
               className={`${getFontSizeClasses(
                 "bodyLarge",
                 language
-              )} text-white max-w-2xl mx-auto mt-4 text-center`}
+              )} text-white max-w-2xl mt-4 text-left w-full`}
               data-language={language}
             >
               {t("home.subtitle")}
             </p>
           </div>
         </div>
+      </div>
 
-        <div className="content -mt-6">
-          <div className="flex items-center justify-center py-20">
-            <div className="h-16 w-16 border-t-4 border-primary border-solid rounded-full animate-spin"></div>
-          </div>
+      <div className="content -mt-6">
+        <div className="flex items-center justify-center py-20">
+          <div className="h-16 w-16 border-t-4 border-primary border-solid rounded-full animate-spin"></div>
         </div>
-      </>
-    );
-  }
+      </div>
+    </>
+  );
+}
 
   return (
     <>
       {/* Hero section with gradient background */}
       <div
-        className="w-full hero-gradient pt-32 pb-24"
+        className="absolute top-0 left-0 w-full hero-gradient pt-32 pb-24"
         data-language={language}
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -501,15 +503,19 @@ export default function Home() {
                     <button
                       key={badge}
                       onClick={() => toggleFilter(badge)}
-                      className={`px-3 pt-1 pb-1.5 rounded-full text-xs font-medium transition-all ${
+                      className={`px-3 pt-1 pb-1.5 rounded-full text-xs font-medium transition-all hover:opacity-70 ${
                         isActive
-                          ? "ring-2 ring-offset-2 ring-blue-500"
-                          : "opacity-70 hover:opacity-100"
+                          ? "ring-2 ring-offset-2 ring-gray-900"
+                          : "bg-gray-200 text-gray-600"
                       }`}
-                      style={{
-                        backgroundColor: badgeStyle.backgroundColor,
-                        color: badgeStyle.color,
-                      }}
+                      style={
+                        isActive
+                          ? {
+                              backgroundColor: badgeStyle.backgroundColor,
+                              color: badgeStyle.color,
+                            }
+                          : undefined
+                      }
                     >
                       {translateBadge(badge)}
                     </button>
@@ -543,42 +549,42 @@ export default function Home() {
 
           {/* Course cards grid */}
           {filteredCourses.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+            <div className="course-grid-flex mt-4">
               {filteredCourses.map((course) => (
-                <CourseCard
-                  key={course.id}
-                  id={course.id}
-                  images={course.images}
-                  title={course.title}
-                  titleMm={course.titleMm || null}
-                  subtitle={course.subtitle}
-                  subtitleMm={course.subtitleMm || null}
-                  // Map to updated schema fields with formatting
-                  location={course.organizationInfo?.address || ""}
-                  locationMm={null}
-                  startDate={formatDate(course.startDate)}
-                  startDateMm={
-                    course.startDateMm ? formatDate(course.startDateMm) : null
-                  }
-                  duration={formatDuration(course.duration)}
-                  durationMm={
-                    course.durationMm ? formatDuration(course.durationMm) : null
-                  }
-                  schedule={course.schedule}
-                  scheduleMm={course.scheduleMm || null}
-                  fee={
-                    course.feeAmount ? formatFee(course.feeAmount) : undefined
-                  }
-                  feeMm={
-                    course.feeAmountMm ? formatFee(course.feeAmountMm) : null
-                  }
-                  availableDays={course.availableDays}
-                  badges={course.badges}
-                />
+                <div key={course.id} className="course-card-flex">
+                  <CourseCard
+                    id={course.id}
+                    images={course.images}
+                    title={course.title}
+                    titleMm={course.titleMm || null}
+                    subtitle={course.subtitle}
+                    subtitleMm={course.subtitleMm || null}
+                    location={course.organizationInfo?.address || ""}
+                    locationMm={null}
+                    startDate={formatDate(course.startDate)}
+                    startDateMm={
+                      course.startDateMm ? formatDate(course.startDateMm) : null
+                    }
+                    duration={formatDuration(course.duration)}
+                    durationMm={
+                      course.durationMm ? formatDuration(course.durationMm) : null
+                    }
+                    schedule={course.schedule}
+                    scheduleMm={course.scheduleMm || null}
+                    fee={
+                      course.feeAmount ? formatFee(course.feeAmount) : undefined
+                    }
+                    feeMm={
+                      course.feeAmountMm ? formatFee(course.feeAmountMm) : null
+                    }
+                    availableDays={course.availableDays}
+                    badges={course.badges}
+                  />
+                </div>
               ))}
             </div>
           ) : (
-            // For No courses Found
+            // No courses found section remains the same
             <div className="flex flex-col items-center justify-center py-16">
               <div className="no-results-icon">🔎</div>
               <h3

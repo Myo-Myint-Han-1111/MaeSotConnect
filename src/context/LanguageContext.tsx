@@ -68,6 +68,16 @@ export const translations = {
     "course.days.fri": "Fri",
     "course.days.sat": "Sat",
 
+    // Course info display short descriptions
+    "course.info.starts": "Starts",
+    "course.info.duration": "Duration", 
+    "course.info.schedule": "Schedule",
+    "course.info.fee": "Fee",
+    "course.info.applyBy": "Apply by", // TODO: Ko Myo - For future use when applyByDate is added
+    
+    // Future full labels (for non-compact mode)
+    "course.applyBy": "Apply By", // TODO: Ko Myo - For future use when applyByDate is added
+
     // Course detail
     "course.back": "Back",
     "course.details": "Course Details",
@@ -175,6 +185,16 @@ export const translations = {
     // "course.days.fri": "သောကြာ",
     // "course.days.sat": "စနေ",
 
+    // Course info display short descriptions  
+    "course.info.starts": "စတင်သည့်",
+    "course.info.duration": "ကြာချိန်",
+    "course.info.schedule": "အချိန်ဇယား", 
+    "course.info.fee": "ကြေး",
+    "course.info.applyBy": "လျှောက်ထားရမည့်", // TODO: Ko Myo - For future use when applyByDate is added
+    
+    // Future full labels (for non-compact mode)
+    "course.applyBy": "လျှောက်ထားရမည့်ရက်", // TODO: Ko Myo - For future use when applyByDate is added
+
     // Course detail
     "course.back": "ပြန်သွားရန်",
     "course.details": "သင်တန်းအသေးစိတ်",
@@ -267,10 +287,12 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 
   // Start with default "en" for SSR
   const [language, setLanguageState] = useState<Language>("en");
+  const [isHydrated, setIsHydrated] = useState(false);
 
   // Update language after component mounts (client-side only)
   useEffect(() => {
     setLanguageState(getInitialLanguage());
+    setIsHydrated(true);
   }, []);
 
   // Set language and save to localStorage
@@ -306,6 +328,18 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
     changeLanguage: setLanguage, // Alias for better readability
     t,
   };
+
+  // Don't render children until hydrated to prevent mismatch
+  if (!isHydrated) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="h-12 w-12 border-t-4 border-primary border-solid rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 text-sm">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <LanguageContext.Provider value={contextValue}>
