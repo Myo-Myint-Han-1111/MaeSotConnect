@@ -80,124 +80,12 @@ interface Course {
   }[];
 }
 
-// Enhanced search utilities with typo tolerance
-function levenshteinDistance(str1: string, str2: string): number {
-  const matrix = Array(str2.length + 1)
-    .fill(null)
-    .map(() => Array(str1.length + 1).fill(null));
-
-  for (let i = 0; i <= str1.length; i += 1) {
-    matrix[0][i] = i;
-  }
-
-  for (let j = 0; j <= str2.length; j += 1) {
-    matrix[j][0] = j;
-  }
-
-  for (let j = 1; j <= str2.length; j += 1) {
-    for (let i = 1; i <= str1.length; i += 1) {
-      const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
-      matrix[j][i] = Math.min(
-        matrix[j][i - 1] + 1, // deletion
-        matrix[j - 1][i] + 1, // insertion
-        matrix[j - 1][i - 1] + indicator // substitution
-      );
-    }
-  }
-
-  return matrix[str2.length][str1.length];
-}
-
-function calculateSimilarity(str1: string, str2: string): number {
-  const maxLength = Math.max(str1.length, str2.length);
-  if (maxLength === 0) return 1;
-
-  const distance = levenshteinDistance(str1.toLowerCase(), str2.toLowerCase());
-  return 1 - distance / maxLength;
-}
-
-// Common typo patterns
-const commonTypos: Record<string, string[]> = {
-  language: ["langauge", "languag", "languge", "lanuage"],
-  computer: ["compter", "computr", "comuter", "compuer"],
-  course: ["cours", "corse", "coures", "coursse"],
-  sewing: ["seing", "sewng", "sewig"],
-  english: ["englsh", "engish", "enlish"],
-  thai: ["tai", "thi", "thia"],
-  free: ["fre", "fee"],
-  beginner: ["beginer", "beginr", "begginer"],
-  technology: ["tecnology", "techology", "tehnology", "technlogy"],
-  vocational: ["vocatinal", "vocatonal", "voctional"],
-  internship: ["internshp", "intership", "internshipp"],
-};
-
-function matchesTypoPattern(searchWord: string, targetWord: string): boolean {
-  const lowerSearch = searchWord.toLowerCase();
-  const lowerTarget = targetWord.toLowerCase();
-
-  if (commonTypos[lowerTarget]?.includes(lowerSearch)) return true;
-
-  for (const [correct, typos] of Object.entries(commonTypos)) {
-    if (typos.includes(lowerSearch) && correct === lowerTarget) return true;
-  }
-
-  return false;
-}
-
-function generateSearchSuggestions(
-  searchTerm: string,
-  courses: Course[]
-): string[] {
-  if (!searchTerm.trim()) return [];
-
-  const allWords = new Set<string>();
-
-  courses.forEach((course) => {
-    const texts = [
-      course.title,
-      course.subtitle,
-      course.organizationInfo?.name,
-      course.description,
-      ...course.badges.map((b) => b.text),
-      ...(course.outcomes || []),
-      ...(course.selectionCriteria || []),
-    ].filter(Boolean);
-
-    texts.forEach((text) => {
-      if (text) {
-        text
-          .toString()
-          .toLowerCase()
-          .split(/\s+/)
-          .forEach((word) => {
-            if (word.length > 2) allWords.add(word);
-          });
-      }
-    });
-  });
-
-  const queryWords = searchTerm.toLowerCase().trim().split(/\s+/);
-  const suggestions = new Set<string>();
-
-  queryWords.forEach((queryWord) => {
-    Array.from(allWords).forEach((word) => {
-      const similarity = calculateSimilarity(queryWord, word);
-      if (similarity >= 0.6 && similarity < 1.0) {
-        suggestions.add(word);
-      }
-    });
-  });
-
-  return Array.from(suggestions).slice(0, 5);
-}
-
 export default function Home() {
   const { t, language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
 
   // Fetch courses from API
   useEffect(() => {
@@ -218,33 +106,6 @@ export default function Home() {
 
     fetchCourses();
   }, []);
-
-  // Enhanced search with debouncing for suggestions
-  const debouncedSearch = useMemo(() => {
-    const debounce = <T extends unknown[]>(
-      func: (...args: T) => void,
-      wait: number
-    ) => {
-      let timeout: NodeJS.Timeout;
-      return (...args: T) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func(...args), wait);
-      };
-    };
-
-    return debounce((term: string) => {
-      if (term.trim() && courses.length > 0) {
-        const suggestions = generateSearchSuggestions(term, courses);
-        setSearchSuggestions(suggestions);
-      } else {
-        setSearchSuggestions([]);
-      }
-    }, 300);
-  }, [courses]);
-
-  useEffect(() => {
-    debouncedSearch(searchTerm);
-  }, [searchTerm, debouncedSearch]);
 
   // Get all unique badge texts from courses for filter options
   const allBadges = useMemo(() => {
@@ -286,187 +147,209 @@ export default function Home() {
     return `฿${amount.toLocaleString()}`;
   };
 
-  // Enhanced flexible search function
-  const flexibleSearch = useCallback(
-    (
-      course: Course,
-      searchQuery: string,
-      language: string
-    ): { matches: boolean; score: number } => {
-      if (!searchQuery.trim()) return { matches: true, score: 1 };
+  // Enhanced search function for bilingual search
+  const enhancedSearch = useCallback(
+    (text: string | null, mmText: string | null, query: string): boolean => {
+      // If no search query, return true (match everything)
+      if (!query) return true;
 
-      const query = searchQuery.toLowerCase().trim();
-      const queryWords = query.split(/\s+/).filter((word) => word.length > 0);
+      // If text or mmText is empty, don't fail immediately - check the other one
+      if (!text && !mmText) return false;
 
-      let totalScore = 0;
-      let matchedWords = 0;
-      const minSimilarityThreshold = 0.6;
+      // Normalize text: convert to lowercase, remove extra spaces and special characters
+      const normalizeText = (str: string): string =>
+        str
+          .toLowerCase()
+          .replace(/[^\w\s]/gi, "") // Remove special characters
+          .replace(/\s+/g, " ") // Replace multiple spaces with single space
+          .trim();
 
-      // Fields to search with their weights
-      const searchFields = [
-        { content: course.title, weight: 3, contentMm: course.titleMm },
-        { content: course.subtitle, weight: 2.5, contentMm: course.subtitleMm },
-        { content: course.organizationInfo?.name, weight: 2, contentMm: null },
-        {
-          content: course.organizationInfo?.address,
-          weight: 1.5,
-          contentMm: null,
-        },
-        {
-          content: course.organizationInfo?.district,
-          weight: 1.5,
-          contentMm: null,
-        },
-        {
-          content: course.organizationInfo?.province,
-          weight: 1.5,
-          contentMm: null,
-        },
-        { content: course.schedule, weight: 1.8, contentMm: course.scheduleMm },
-        {
-          content: course.description,
-          weight: 1.5,
-          contentMm: course.descriptionMm,
-        },
-        { content: course.document, weight: 1.2, contentMm: course.documentMm },
-        {
-          content: course.scheduleDetails,
-          weight: 1.2,
-          contentMm: course.scheduleDetailsMm,
-        },
-        ...(course.outcomes?.map((outcome) => ({
-          content: outcome,
-          weight: 1.2,
-          contentMm: null,
-        })) || []),
-        ...(course.outcomesMm?.map((outcome) => ({
-          content: outcome,
-          weight: 1.2,
-          contentMm: null,
-        })) || []),
-        ...(course.selectionCriteria?.map((criteria) => ({
-          content: criteria,
-          weight: 1.1,
-          contentMm: null,
-        })) || []),
-        ...(course.selectionCriteriaMm?.map((criteria) => ({
-          content: criteria,
-          weight: 1.1,
-          contentMm: null,
-        })) || []),
-        ...(course.faq?.flatMap((faq) => [
-          { content: faq.question, weight: 1.3, contentMm: faq.questionMm },
-          { content: faq.answer, weight: 1.1, contentMm: faq.answerMm },
-        ]) || []),
-        ...course.badges.map((badge) => ({
-          content: badge.text,
-          weight: 1.5,
-          contentMm: null,
-        })),
-      ];
+      const normalizedQuery = normalizeText(query);
 
-      for (const field of searchFields) {
-        if (!field.content) continue;
+      // Check English text if available
+      if (text) {
+        const normalizedText = normalizeText(text);
 
-        const contentToSearch =
-          language === "mm" && field.contentMm
-            ? field.contentMm
-            : field.content;
-        const fieldText = contentToSearch.toString().toLowerCase();
-        const fieldWords = fieldText.split(/\s+/);
+        // Direct match (most relevant)
+        if (normalizedText.includes(normalizedQuery)) return true;
 
-        for (const queryWord of queryWords) {
-          let bestMatchScore = 0;
+        // Check for word boundary matches
+        const words = normalizedQuery.split(" ");
+        const textWords = normalizedText.split(" ");
 
-          if (fieldText.includes(queryWord)) {
-            bestMatchScore = 1.0;
-          } else {
-            for (const fieldWord of fieldWords) {
-              if (fieldWord.length < 3 && queryWord.length < 3) {
-                if (fieldWord === queryWord)
-                  bestMatchScore = Math.max(bestMatchScore, 1.0);
-                continue;
-              }
+        // Match if ALL query words are found in the text (in any order)
+        const allWordsMatch = words.every(
+          (word) =>
+            word.length > 0 &&
+            textWords.some((textWord) => textWord.includes(word))
+        );
 
-              if (matchesTypoPattern(queryWord, fieldWord)) {
-                bestMatchScore = Math.max(bestMatchScore, 0.9);
-                continue;
-              }
+        // Match if any COMPLETE word in the query matches a word in the text
+        const anyCompleteWordMatch = words.some(
+          (word) => word.length > 1 && textWords.includes(word)
+        );
 
-              const similarity = calculateSimilarity(queryWord, fieldWord);
-              if (similarity >= minSimilarityThreshold) {
-                bestMatchScore = Math.max(bestMatchScore, similarity);
-              }
-
-              if (
-                fieldWord.startsWith(queryWord) ||
-                queryWord.startsWith(fieldWord)
-              ) {
-                const partialScore =
-                  Math.min(queryWord.length, fieldWord.length) /
-                  Math.max(queryWord.length, fieldWord.length);
-                if (partialScore >= 0.5) {
-                  bestMatchScore = Math.max(bestMatchScore, partialScore * 0.8);
-                }
-              }
-            }
-          }
-
-          if (bestMatchScore >= minSimilarityThreshold) {
-            totalScore += bestMatchScore * field.weight;
-            matchedWords++;
-          }
-        }
+        if (allWordsMatch || anyCompleteWordMatch) return true;
       }
 
-      const finalScore = totalScore / (queryWords.length * 10);
-      const matches =
-        matchedWords / queryWords.length >= 0.7 || finalScore >= 0.15;
+      // Check Myanmar text if available
+      if (mmText) {
+        const normalizedMmText = normalizeText(mmText);
 
-      return { matches, score: finalScore };
+        // Direct match
+        if (normalizedMmText.includes(normalizedQuery)) return true;
+
+        // Word matches for Myanmar text
+        const words = normalizedQuery.split(" ");
+        const mmTextWords = normalizedMmText.split(" ");
+
+        const allMmWordsMatch = words.every(
+          (word) =>
+            word.length > 0 &&
+            mmTextWords.some((textWord) => textWord.includes(word))
+        );
+
+        const anyCompleteMmWordMatch = words.some(
+          (word) => word.length > 1 && mmTextWords.includes(word)
+        );
+
+        if (allMmWordsMatch || anyCompleteMmWordMatch) return true;
+      }
+
+      return false;
     },
     []
   );
 
-  // Enhanced filter courses with flexible search
+  // Filter courses based on search term and active filters
   const filteredCourses = useMemo(() => {
-    let results = courses;
+    return courses.filter((course) => {
+      // Search logic
+      let matchesSearch = true;
+      if (searchTerm !== "") {
+        // Convert search term to lowercase for case-insensitive search
+        const searchTermLower = searchTerm.toLowerCase();
 
-    // Apply flexible search if there's a search term
-    if (searchTerm.trim()) {
-      const searchResults = courses
-        .map((course) => ({
-          course,
-          searchResult: flexibleSearch(course, searchTerm, language),
-        }))
-        .filter(({ searchResult }) => searchResult.matches)
-        .sort((a, b) => b.searchResult.score - a.searchResult.score)
-        .map(({ course }) => course);
+        // Organization name search
+        const organizationMatch =
+          course.organizationInfo?.name
+            ?.toLowerCase()
+            .includes(searchTermLower) || false;
 
-      results = searchResults;
-    }
+        // Basic fields search
+        const basicFieldsMatch =
+          // Title and subtitle
+          course.title?.toLowerCase().includes(searchTermLower) ||
+          false ||
+          course.titleMm?.toLowerCase().includes(searchTermLower) ||
+          false ||
+          course.subtitle?.toLowerCase().includes(searchTermLower) ||
+          false ||
+          course.subtitleMm?.toLowerCase().includes(searchTermLower) ||
+          false ||
+          // Location
+          course.organizationInfo?.address
+            ?.toLowerCase()
+            .includes(searchTermLower) ||
+          false ||
+          // District and province search (new fields)
+          course.organizationInfo?.district
+            ?.toLowerCase()
+            .includes(searchTermLower) ||
+          false ||
+          course.organizationInfo?.province
+            ?.toLowerCase()
+            .includes(searchTermLower) ||
+          false ||
+          // Schedule and duration
+          course.schedule?.toLowerCase().includes(searchTermLower) ||
+          false ||
+          course.scheduleMm?.toLowerCase().includes(searchTermLower) ||
+          false ||
+          // Document search (new field)
+          course.document?.toLowerCase().includes(searchTermLower) ||
+          false ||
+          course.documentMm?.toLowerCase().includes(searchTermLower) ||
+          false;
 
-    // Apply badge filters
-    if (activeFilters.length > 0) {
-      results = results.filter((course) =>
-        activeFilters.every((filterBadge) =>
-          course.badges.some(
-            (courseBadge) =>
-              courseBadge.text.toLowerCase().trim() ===
-              filterBadge.toLowerCase().trim()
-          )
-        )
-      );
-    }
+        // Description search
+        const descriptionMatch =
+          course.description?.toLowerCase().includes(searchTermLower) ||
+          false ||
+          course.descriptionMm?.toLowerCase().includes(searchTermLower) ||
+          false;
 
-    return results;
-  }, [searchTerm, activeFilters, courses, language, flexibleSearch]);
+        // Outcomes search
+        const outcomesMatch =
+          course.outcomes?.some((outcome) =>
+            outcome.toLowerCase().includes(searchTermLower)
+          ) ||
+          course.outcomesMm?.some((outcome) =>
+            outcome.toLowerCase().includes(searchTermLower)
+          ) ||
+          false;
 
-  // Handle search suggestion clicks
-  const handleSuggestionClick = (suggestion: string) => {
-    setSearchTerm(suggestion);
-    setSearchSuggestions([]);
-  };
+        // Selection criteria search
+        const criteriaMatch =
+          course.selectionCriteria?.some((criteria) =>
+            criteria.toLowerCase().includes(searchTermLower)
+          ) ||
+          course.selectionCriteriaMm?.some((criteria) =>
+            criteria.toLowerCase().includes(searchTermLower)
+          ) ||
+          false;
+
+        // Schedule details search
+        const scheduleDetailsMatch =
+          course.scheduleDetails?.toLowerCase().includes(searchTermLower) ||
+          false ||
+          course.scheduleDetailsMm?.toLowerCase().includes(searchTermLower) ||
+          false;
+
+        // FAQ search
+        const faqMatch =
+          course.faq?.some(
+            (faqItem) =>
+              faqItem.question.toLowerCase().includes(searchTermLower) ||
+              faqItem.questionMm?.toLowerCase().includes(searchTermLower) ||
+              false ||
+              faqItem.answer.toLowerCase().includes(searchTermLower) ||
+              faqItem.answerMm?.toLowerCase().includes(searchTermLower) ||
+              false
+          ) || false;
+
+        // Badges search
+        const badgesMatch = course.badges.some((badge) =>
+          badge.text.toLowerCase().includes(searchTermLower)
+        );
+
+        // Combine all search results
+        matchesSearch =
+          organizationMatch ||
+          basicFieldsMatch ||
+          descriptionMatch ||
+          outcomesMatch ||
+          criteriaMatch ||
+          scheduleDetailsMatch ||
+          faqMatch ||
+          badgesMatch;
+      }
+
+      // Badge filter logic
+      let matchesFilters = true;
+      if (activeFilters.length > 0) {
+        matchesFilters = activeFilters.every((filterBadge) => {
+          const filterBadgeText = filterBadge.toLowerCase().trim();
+          return course.badges.some((courseBadge) => {
+            const courseBadgeText = courseBadge.text.toLowerCase().trim();
+            return courseBadgeText === filterBadgeText;
+          });
+        });
+      }
+
+      return matchesSearch && matchesFilters;
+    });
+  }, [searchTerm, activeFilters, courses]);
 
   // Toggle a filter badge
   const toggleFilter = (badge: string) => {
@@ -481,7 +364,6 @@ export default function Home() {
   const clearFilters = () => {
     setSearchTerm("");
     setActiveFilters([]);
-    setSearchSuggestions([]);
   };
 
   // Function to translate badge text
@@ -567,10 +449,10 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Enhanced search bar with suggestions */}
+      {/* Search bar positioned to intersect with hero section */}
       <div className="search-container -mt-6 mb-8 relative z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-xl bg-white rounded-lg shadow-lg p-1 relative">
+          <div className="max-w-xl bg-white rounded-lg shadow-lg p-1">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
@@ -586,34 +468,13 @@ export default function Home() {
               />
               {searchTerm && (
                 <button
-                  onClick={() => {
-                    setSearchTerm("");
-                    setSearchSuggestions([]);
-                  }}
+                  onClick={() => setSearchTerm("")}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   ✕
                 </button>
               )}
             </div>
-
-            {/* Search suggestions dropdown */}
-            {searchSuggestions.length > 0 && searchTerm.trim() && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                <div className="px-3 py-2 text-xs text-gray-500 border-b">
-                  {language === "mm" ? "အကြံပြုချက်များ:" : "Did you mean:"}
-                </div>
-                {searchSuggestions.map((suggestion, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleSuggestionClick(suggestion)}
-                    className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm text-gray-700 capitalize"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -674,27 +535,16 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Enhanced results count with search info */}
+          {/* Results count */}
           {filteredCourses.length > 0 && (
-            <div className="mb-6 ml-1">
-              <p className="text-left text-sm text-muted-foreground">
-                {language === "mm"
-                  ? convertToMyanmarNumber(filteredCourses.length)
-                  : filteredCourses.length}{" "}
-                {filteredCourses.length === 1
-                  ? t("home.course.found")
-                  : t("home.courses.found")}
-              </p>
-
-              {/* Show search info for typo-corrected searches */}
-              {searchTerm.trim() && filteredCourses.length > 0 && (
-                <p className="text-xs text-gray-500 mt-1">
-                  {language === "mm"
-                    ? `"${searchTerm}" အတွက် ရှာဖွေမှုများ (တူညီသော အဓိပ္ပါယ်များ အပါအဝင်)`
-                    : `Results for "${searchTerm}" (including similar matches)`}
-                </p>
-              )}
-            </div>
+            <p className="text-left text-sm text-muted-foreground mb-6 ml-1">
+              {language === "mm"
+                ? convertToMyanmarNumber(filteredCourses.length)
+                : filteredCourses.length}{" "}
+              {filteredCourses.length === 1
+                ? t("home.course.found")
+                : t("home.courses.found")}
+            </p>
           )}
 
           {/* Course cards grid */}
@@ -731,12 +581,13 @@ export default function Home() {
                     }
                     availableDays={course.availableDays}
                     badges={course.badges}
+                    organizationInfo={course.organizationInfo}
                   />
                 </div>
               ))}
             </div>
           ) : (
-            // Enhanced no results section with suggestions
+            // No courses found section remains the same
             <div className="flex flex-col items-center justify-center py-16">
               <div className="no-results-icon">🔎</div>
               <h3
@@ -751,37 +602,10 @@ export default function Home() {
                 className={`${getFontSizeClasses(
                   "bodyRegular",
                   language
-                )} text-muted-foreground max-w-md text-center mb-4`}
+                )} text-muted-foreground max-w-md`}
               >
-                {searchTerm.trim()
-                  ? language === "mm"
-                    ? `"${searchTerm}" အတွက် ရလဒ်များ မတွေ့ရှိပါ။ အခြား စကားလုံးများ သုံးကြည့်ပါ သို့မဟုတ် ရိုးရှင်းသော စကားလုံးများ သုံးကြည့်ပါ။`
-                    : `No results found for "${searchTerm}". Try different keywords or check spelling.`
-                  : t("home.no.results.desc")}
+                {t("home.no.results.desc")}
               </p>
-
-              {/* Show suggestions if available */}
-              {searchSuggestions.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-sm text-gray-600 mb-2">
-                    {language === "mm"
-                      ? "ဤစကားလုံးများကို ကြိုးစားကြည့်ပါ:"
-                      : "Try these suggestions:"}
-                  </p>
-                  <div className="flex flex-wrap gap-2 justify-center">
-                    {searchSuggestions.map((suggestion, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleSuggestionClick(suggestion)}
-                        className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200 transition-colors"
-                      >
-                        {suggestion}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               <button
                 onClick={clearFilters}
                 className="mt-6 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"

@@ -2,11 +2,11 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardFooter } from "../ui/card";
+import { Card, CardContent } from "../ui/card";
 // import { Button } from "../ui/button";
 import { useLanguage } from "../../context/LanguageContext";
 import ImageCarousel from "../common/ImageCarousel";
-import DayIndicator from "../common/DayIndicator";
+// import DayIndicator from "../common/DayIndicator";
 import BadgeDisplay from "../common/BadgeDisplay";
 import CourseInfoDisplay from "../common/CourseInfoDisplay";
 import "./CourseCard.css";
@@ -41,6 +41,19 @@ export interface CourseCardProps {
     backgroundColor: string;
     courseId: string;
   }[];
+  organizationInfo?: {
+    id: string;
+    name: string;
+    description: string;
+    phone: string;
+    email: string;
+    address: string;
+    facebookPage?: string;
+    latitude: number;
+    longitude: number;
+    district?: string;
+    province?: string;
+  } | null;
   // TODO: Ko Myo - Add these fields when applyByDate is added to database
   // applyByDate?: string;
   // applyByDateMm?: string | null;
@@ -51,8 +64,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   images,
   title,
   titleMm,
-  subtitle,
-  subtitleMm,
+  // subtitle,
+  // subtitleMm,
+
   badges,
   location,
   locationMm,
@@ -64,7 +78,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   scheduleMm,
   fee,
   feeMm,
-  availableDays,
+  organizationInfo,
+  // availableDays,
   // applyByDate, // TODO: Ko Myo - Uncomment when added to database
   // applyByDateMm, // TODO: Ko Myo - Uncomment when added to database
 }) => {
@@ -106,7 +121,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           {getLocalizedContent(title, titleMm)}
         </h3>
         <p className="card-subtitle" dir="auto">
-          {getLocalizedContent(subtitle, subtitleMm)}
+          {organizationInfo?.name}
         </p>
 
         <BadgeDisplay badges={badges} size="small" />
@@ -122,7 +137,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           // TODO: Ko Myo - Add this line when applyByDate is implemented
           // applyByDate={applyByDate ? getLocalizedContent(applyByDate, applyByDateMm) : undefined}
         />
-        
+
         {/* <div className="ml-6">
           <DayIndicator
             days={[

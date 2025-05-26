@@ -1,4 +1,4 @@
-// src/components/admin/CourseForm.tsx
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -26,7 +26,6 @@ import {
   X,
   Plus,
   Upload,
-  MapPin,
   Clock,
   BookOpen,
   FileText,
@@ -34,40 +33,42 @@ import {
   DollarSign,
   Users,
 } from "lucide-react";
+import LocationSelector from "./LocationSelector";
+
+interface LocationData {
+  location: string;
+  locationMm: string;
+  province: string;
+  district: string;
+}
 
 interface CourseFormData {
   id?: string;
   title: string;
-  titleMm: string; // Keep this
+  titleMm: string;
   subtitle: string;
-  subtitleMm: string; // Keep this
-  location: string;
-  locationMm: string; // Keep this
+  subtitleMm: string;
+  // Location data structure
+  locationData: LocationData;
   startDate: string;
-  // startDateMm: string; // REMOVE THIS LINE
   endDate: string;
-  // endDateMm: string; // REMOVE THIS LINE
   duration: number;
-  // durationMm: number; // REMOVE THIS LINE
   schedule: string;
-  scheduleMm: string; // Keep this
+  scheduleMm: string;
   feeAmount: number;
-  // feeAmountMm: number; // REMOVE THIS LINE
   ageMin: number;
-  // ageMinMm: number; // REMOVE THIS LINE
   ageMax: number;
-  // ageMaxMm: number; // REMOVE THIS LINE
   document: string;
-  documentMm: string; // Keep this
+  documentMm: string;
   availableDays: boolean[];
   description: string;
-  descriptionMm: string; // Keep this
+  descriptionMm: string;
   outcomes: string[];
-  outcomesMm: string[]; // Keep this
+  outcomesMm: string[];
   scheduleDetails: string;
-  scheduleDetailsMm: string; // Keep this
+  scheduleDetailsMm: string;
   selectionCriteria: string[];
-  selectionCriteriaMm: string[]; // Keep this
+  selectionCriteriaMm: string[];
   organizationId?: string;
   images: File[];
   badges: {
@@ -77,9 +78,9 @@ interface CourseFormData {
   }[];
   faq: {
     question: string;
-    questionMm: string; // Keep this
+    questionMm: string;
     answer: string;
-    answerMm: string; // Keep this
+    answerMm: string;
   }[];
 }
 
@@ -127,27 +128,43 @@ export default function CourseForm({
     useState<string[]>(existingImages);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
 
+  // Helper function to parse initial location data
+  const parseInitialLocationData = (
+    data?: Partial<CourseFormData>
+  ): LocationData => {
+    // If we have locationData structure, use it
+    if (data?.locationData) {
+      return data.locationData;
+    }
+
+    // Otherwise, try to construct from legacy location fields
+    // Type-safe approach to handle legacy data
+    const legacyData = data as Partial<
+      CourseFormData & { location?: string; locationMm?: string }
+    >;
+
+    return {
+      location: legacyData?.location || "",
+      locationMm: legacyData?.locationMm || "",
+      province: "", // These will need to be set manually if migrating from old data
+      district: "",
+    };
+  };
+
   const [formData, setFormData] = useState<CourseFormData>({
     title: initialData?.title ?? "",
     titleMm: initialData?.titleMm ?? "",
     subtitle: initialData?.subtitle ?? "",
     subtitleMm: initialData?.subtitleMm ?? "",
-    location: initialData?.location ?? "",
-    locationMm: initialData?.locationMm ?? "",
+    locationData: parseInitialLocationData(initialData),
     startDate: initialData?.startDate ?? "",
-    // startDateMm: initialData?.startDateMm ?? "", // REMOVE THIS LINE
     endDate: initialData?.endDate ?? "",
-    // endDateMm: initialData?.endDateMm ?? "", // REMOVE THIS LINE
     duration: initialData?.duration ?? 0,
-    // durationMm: initialData?.durationMm ?? 0, // REMOVE THIS LINE
     schedule: initialData?.schedule ?? "",
     scheduleMm: initialData?.scheduleMm ?? "",
     feeAmount: initialData?.feeAmount ?? 0,
-    // feeAmountMm: initialData?.feeAmountMm ?? 0, // REMOVE THIS LINE
     ageMin: initialData?.ageMin ?? 0,
-    // ageMinMm: initialData?.ageMinMm ?? 0, // REMOVE THIS LINE
     ageMax: initialData?.ageMax ?? 0,
-    // ageMaxMm: initialData?.ageMaxMm ?? 0, // REMOVE THIS LINE
     document: initialData?.document ?? "",
     documentMm: initialData?.documentMm ?? "",
     availableDays: initialData?.availableDays ?? [
@@ -223,22 +240,15 @@ export default function CourseForm({
         titleMm: initialData.titleMm ?? "",
         subtitle: initialData.subtitle ?? "",
         subtitleMm: initialData.subtitleMm ?? "",
-        location: initialData.location ?? "",
-        locationMm: initialData.locationMm ?? "",
+        locationData: parseInitialLocationData(initialData),
         startDate: initialData.startDate ?? "",
-        // startDateMm: initialData.startDateMm ?? "", // REMOVE THIS LINE
         endDate: initialData.endDate ?? "",
-        // endDateMm: initialData.endDateMm ?? "", // REMOVE THIS LINE
         duration: initialData.duration ?? 0,
-        // durationMm: initialData.durationMm ?? 0, // REMOVE THIS LINE
         schedule: initialData.schedule ?? "",
         scheduleMm: initialData.scheduleMm ?? "",
         feeAmount: initialData.feeAmount ?? 0,
-        // feeAmountMm: initialData.feeAmountMm ?? 0, // REMOVE THIS LINE
         ageMin: initialData.ageMin ?? 0,
-        // ageMinMm: initialData.ageMinMm ?? 0, // REMOVE THIS LINE
         ageMax: initialData.ageMax ?? 0,
-        // ageMaxMm: initialData.ageMaxMm ?? 0, // REMOVE THIS LINE
         document: initialData.document ?? "",
         documentMm: initialData.documentMm ?? "",
         availableDays: initialData.availableDays ?? [
@@ -287,11 +297,18 @@ export default function CourseForm({
     e: React.ChangeEvent<HTMLInputElement>,
     fieldName: string
   ) => {
-    // For integer fields, use parseInt instead of parseFloat
     const value = e.target.value === "" ? 0 : parseInt(e.target.value, 10) || 0;
     setFormData((prev) => ({
       ...prev,
       [fieldName]: value,
+    }));
+  };
+
+  // Handler for location data changes
+  const handleLocationChange = (locationData: LocationData) => {
+    setFormData((prev) => ({
+      ...prev,
+      locationData,
     }));
   };
 
@@ -316,7 +333,6 @@ export default function CourseForm({
     value: string
   ) => {
     setFormData((prev) => {
-      // Ensure array exists with fallback to empty array
       const newArray = [...(prev[arrayName] || [])];
       newArray[index] = value;
       return {
@@ -352,7 +368,7 @@ export default function CourseForm({
       newArray.splice(index, 1);
       return {
         ...prev,
-        [arrayName]: newArray.length ? newArray : [""], // Ensure at least one empty item
+        [arrayName]: newArray.length ? newArray : [""],
       };
     });
   };
@@ -365,7 +381,6 @@ export default function CourseForm({
     setFormData((prev) => {
       const newFaq = [...(prev.faq || [])];
 
-      // Ensure FAQ item exists at this index
       if (!newFaq[index]) {
         newFaq[index] = {
           question: "",
@@ -375,7 +390,6 @@ export default function CourseForm({
         };
       }
 
-      // Update the field
       newFaq[index] = {
         ...newFaq[index],
         [field]: value,
@@ -408,7 +422,6 @@ export default function CourseForm({
       const newFaq = [...(prev.faq || [])];
       newFaq.splice(index, 1);
 
-      // Ensure at least one FAQ item remains
       if (newFaq.length === 0) {
         newFaq.push({
           question: "",
@@ -490,10 +503,18 @@ export default function CourseForm({
 
     try {
       const formDataToSend = new FormData();
+
+      // Transform the data structure to match the API expectations
       const jsonData = {
         ...formData,
+        // Map locationData back to individual fields for API compatibility
+        location: formData.locationData.location,
+        locationMm: formData.locationData.locationMm,
+        province: formData.locationData.province,
+        district: formData.locationData.district,
         images: undefined,
       };
+
       formDataToSend.append("data", JSON.stringify(jsonData));
 
       // Append new images
@@ -592,7 +613,7 @@ export default function CourseForm({
             </TabsList>
 
             <TabsContent value="basic-info" className="space-y-4">
-              {/* Organization Select - Added for Platform Admin */}
+              {/* Organization Select */}
               <div className="space-y-2">
                 <Label htmlFor="organizationId">Organization</Label>
                 <Select
@@ -602,7 +623,7 @@ export default function CourseForm({
                   <SelectTrigger>
                     <SelectValue placeholder="Select an organization" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white max-h-[200px] overflow-y-auto">
                     {organizations.map((org) => (
                       <SelectItem key={org.id} value={org.id}>
                         {org.name}
@@ -679,41 +700,14 @@ export default function CourseForm({
                 </div>
               </div>
 
-              {/* Location - English and Myanmar */}
-              <div className="space-y-2">
-                <Label htmlFor="location">
-                  <MapPin className="h-4 w-4 inline mr-1" />
-                  Location
-                </Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">
-                      English
-                    </div>
-                    <Input
-                      id="location"
-                      name="location"
-                      value={formData.location ?? ""}
-                      onChange={handleTextChange}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">
-                      Myanmar
-                    </div>
-                    <Input
-                      id="locationMm"
-                      name="locationMm"
-                      value={formData.locationMm ?? ""}
-                      onChange={handleTextChange}
-                      dir="auto"
-                    />
-                  </div>
-                </div>
-              </div>
+              {/* Location Selector Component */}
+              <LocationSelector
+                value={formData.locationData}
+                onChange={handleLocationChange}
+                disabled={isLoading}
+              />
 
-              {/* Age Requirements - REMOVE MYANMAR FIELDS */}
+              {/* Age Requirements */}
               <div className="space-y-2">
                 <Label htmlFor="ageMin">
                   <Users className="h-4 w-4 inline mr-1" />
@@ -751,7 +745,7 @@ export default function CourseForm({
                 </div>
               </div>
 
-              {/* Required Documents - English and Myanmar (NEW) */}
+              {/* Required Documents - English and Myanmar */}
               <div className="space-y-2">
                 <Label htmlFor="document">
                   <FileText className="h-4 w-4 inline mr-1" />
@@ -849,9 +843,9 @@ export default function CourseForm({
               </div>
             </TabsContent>
 
-            {/* NEW TAB: Dates & Fees */}
+            {/* Dates & Fees Tab */}
             <TabsContent value="dates-fees" className="space-y-5">
-              {/* Start Date - REMOVE MYANMAR FIELD */}
+              {/* Start Date */}
               <div className="space-y-2">
                 <Label htmlFor="startDate">
                   <Calendar className="h-4 w-4 inline mr-1" />
@@ -867,7 +861,7 @@ export default function CourseForm({
                 />
               </div>
 
-              {/* End Date - REMOVE MYANMAR FIELD */}
+              {/* End Date */}
               <div className="space-y-2">
                 <Label htmlFor="endDate">
                   <Calendar className="h-4 w-4 inline mr-1" />
@@ -883,7 +877,7 @@ export default function CourseForm({
                 />
               </div>
 
-              {/* Duration - REMOVE MYANMAR FIELD */}
+              {/* Duration */}
               <div className="space-y-2">
                 <Label htmlFor="duration">
                   <Clock className="h-4 w-4 inline mr-1" />
@@ -901,7 +895,7 @@ export default function CourseForm({
                 />
               </div>
 
-              {/* Fee Amount - REMOVE MYANMAR FIELD */}
+              {/* Fee Amount */}
               <div className="space-y-2">
                 <Label htmlFor="feeAmount">
                   <DollarSign className="h-4 w-4 inline mr-1" />
@@ -924,6 +918,7 @@ export default function CourseForm({
               </div>
             </TabsContent>
 
+            {/* Content Tab */}
             <TabsContent value="content" className="space-y-5">
               {/* Description - English and Myanmar */}
               <div className="space-y-2">
