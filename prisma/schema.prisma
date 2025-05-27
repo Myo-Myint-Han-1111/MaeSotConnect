@@ -80,6 +80,10 @@ model Course {
   ageMaxMm              Int?
   document              String
   documentMm            String?
+  // NEW FIELDS ADDED HERE
+  province              String?
+  district              String?
+  // END NEW FIELDS
   availableDays         Boolean[]
   description           String?
   descriptionMm         String?
@@ -131,7 +135,7 @@ model Organization {
   description  String
   phone        String
   email        String
-  address      String
+  address      String?  // CHANGED FROM String TO String? (OPTIONAL)
   facebookPage String?
   latitude     Float
   longitude    Float

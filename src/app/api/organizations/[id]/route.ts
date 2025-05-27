@@ -9,12 +9,12 @@ const organizationSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters"),
   phone: z.string().min(5, "Phone must be at least 5 characters"),
   email: z.string().email("Invalid email address"),
-  address: z.string().min(5, "Address must be at least 5 characters"),
+  address: z.string().optional(), // CHANGED: Now optional
   facebookPage: z.string().optional(),
   latitude: z.number(),
   longitude: z.number(),
-  district: z.string().optional(), // New field
-  province: z.string().optional(), // New field
+  district: z.string().optional(),
+  province: z.string().optional(),
 });
 
 export async function GET(

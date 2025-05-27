@@ -10,16 +10,12 @@ const organizationSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters"),
   phone: z.string().min(5, "Phone must be at least 5 characters"),
   email: z.string().email("Invalid email address"),
-  address: z.string().min(5, "Address must be at least 5 characters"),
+  address: z.string().optional(), // CHANGED: Now optional
   facebookPage: z.string().optional(),
-  latitude: z
-    .number()
-    .refine((val) => !isNaN(val), "Latitude must be a valid number"),
-  longitude: z
-    .number()
-    .refine((val) => !isNaN(val), "Longitude must be a valid number"),
-  district: z.string().optional(), // New field
-  province: z.string().optional(), // New field
+  latitude: z.number(),
+  longitude: z.number(),
+  district: z.string().optional(),
+  province: z.string().optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -150,12 +146,12 @@ export async function POST(request: NextRequest) {
         description,
         phone,
         email,
-        address,
+        address, // Can now be undefined/null
         facebookPage,
         latitude,
         longitude,
-        district, // Include new field
-        province, // Include new field
+        district,
+        province,
       },
     });
 

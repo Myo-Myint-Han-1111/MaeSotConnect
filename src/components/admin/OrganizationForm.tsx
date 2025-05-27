@@ -64,18 +64,6 @@ export default function OrganizationForm({
     }));
   };
 
-  // Specialized handler for number fields
-  const handleNumberChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    fieldName: string
-  ) => {
-    const value = e.target.value === "" ? 0 : parseFloat(e.target.value);
-    setFormData((prev) => ({
-      ...prev,
-      [fieldName]: value,
-    }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -225,39 +213,15 @@ export default function OrganizationForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
+            <Label htmlFor="address">Address (Optional)</Label>
             <Input
               id="address"
               name="address"
               value={formData.address}
               onChange={handleChange}
-              required
+              // REMOVE required attribute
+              placeholder="Organization address (optional)"
             />
-          </div>
-
-          {/* New fields for district and province */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="district">District</Label>
-              <Input
-                id="district"
-                name="district"
-                value={formData.district}
-                onChange={handleChange}
-                placeholder="District (optional)"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="province">Province</Label>
-              <Input
-                id="province"
-                name="province"
-                value={formData.province}
-                onChange={handleChange}
-                placeholder="Province (optional)"
-              />
-            </div>
           </div>
 
           <div className="space-y-2">
@@ -268,32 +232,6 @@ export default function OrganizationForm({
               value={formData.facebookPage}
               onChange={handleChange}
             />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="latitude">Latitude</Label>
-              <Input
-                id="latitude"
-                name="latitude"
-                type="text" // Changed from number to text for better handling
-                value={formData.latitude}
-                onChange={(e) => handleNumberChange(e, "latitude")}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="longitude">Longitude</Label>
-              <Input
-                id="longitude"
-                name="longitude"
-                type="text" // Changed from number to text for better handling
-                value={formData.longitude}
-                onChange={(e) => handleNumberChange(e, "longitude")}
-                required
-              />
-            </div>
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">

@@ -713,8 +713,6 @@ const districts = [
 ];
 
 interface LocationData {
-  location: string;
-  locationMm: string;
   province: string;
   district: string;
 }
@@ -769,7 +767,6 @@ export default function LocationSelector({
       setSelectedProvinceCode(selectedProvince.provinceCode);
       // Clear district when province changes
       onChange({
-        ...value,
         province: provinceNameEn,
         district: "",
       });
@@ -778,18 +775,8 @@ export default function LocationSelector({
 
   const handleDistrictChange = (districtNameEn: string) => {
     onChange({
-      ...value,
+      province: value.province, // ADD this line
       district: districtNameEn,
-    });
-  };
-
-  const handleLocationChange = (
-    field: "location" | "locationMm",
-    fieldValue: string
-  ) => {
-    onChange({
-      ...value,
-      [field]: fieldValue,
     });
   };
 
@@ -800,37 +787,6 @@ export default function LocationSelector({
           <MapPin className="h-4 w-4 inline mr-1" />
           Location Details
         </Label>
-
-        {/* Address/Location Field */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <div className="text-xs text-muted-foreground mb-1">
-              Address/Location (English)
-            </div>
-            <Input
-              id="location"
-              value={value.location}
-              onChange={(e) => handleLocationChange("location", e.target.value)}
-              placeholder="e.g. 123 Main Street, Building Name"
-              disabled={disabled}
-            />
-          </div>
-          <div>
-            <div className="text-xs text-muted-foreground mb-1">
-              Address/Location (Myanmar)
-            </div>
-            <Input
-              id="locationMm"
-              value={value.locationMm}
-              onChange={(e) =>
-                handleLocationChange("locationMm", e.target.value)
-              }
-              placeholder="Myanmar translation..."
-              dir="auto"
-              disabled={disabled}
-            />
-          </div>
-        </div>
       </div>
 
       {/* Province Selection */}

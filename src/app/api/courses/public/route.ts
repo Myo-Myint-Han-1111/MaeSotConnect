@@ -19,6 +19,8 @@ export async function GET(request: NextRequest) {
         endDateMm: true, // New field
         duration: true,
         durationMm: true,
+        province: true, // New field
+        district: true, // New field
         schedule: true,
         scheduleMm: true,
         // fee/feeMm fields are replaced with feeAmount/feeAmountMm
@@ -90,9 +92,12 @@ export async function GET(request: NextRequest) {
       startDateMm: course.startDateMm ? course.startDateMm.toISOString() : null,
       endDate: course.endDate.toISOString(),
       endDateMm: course.endDateMm ? course.endDateMm.toISOString() : null,
-      // Add empty location fields for backward compatibility
-      location: "",
-      locationMm: null,
+      // Build location from organization address + course province/district
+      location:
+        [course.organizationInfo?.address, course.district, course.province]
+          .filter(Boolean)
+          .join(", ") || "",
+      locationMm: null, // Keep for backward compatibility
       // Add empty fee fields for backward compatibility
       fee: course.feeAmount ? course.feeAmount.toString() : "",
       feeMm: course.feeAmountMm ? course.feeAmountMm.toString() : null,

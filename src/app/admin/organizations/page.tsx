@@ -183,8 +183,6 @@ export default function OrganizationsPage() {
                   </p>
                   <p className="line-clamp-1">
                     <strong>Address:</strong> {org.address}
-                    {org.district && `, ${org.district}`}
-                    {org.province && `, ${org.province}`}
                   </p>
                 </div>
               </CardContent>

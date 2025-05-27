@@ -23,8 +23,7 @@ export interface CourseCardProps {
   subtitle: string;
   subtitleMm: string | null;
   // Note: These are now formatted strings, not the raw database types
-  location: string;
-  locationMm: string | null;
+
   startDate: string;
   startDateMm: string | null;
   duration: string;
@@ -68,8 +67,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   // subtitleMm,
 
   badges,
-  location,
-  locationMm,
+
   startDate,
   startDateMm,
   duration,
@@ -84,7 +82,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   // applyByDateMm, // TODO: Ko Myo - Uncomment when added to database
 }) => {
   const router = useRouter();
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
 
   const handleNavigation = () => {
     router.push(`/courses/${id}`);
@@ -127,7 +125,19 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         <BadgeDisplay badges={badges} size="small" />
 
         <CourseInfoDisplay
-          location={getLocalizedContent(location, locationMm)}
+          location={
+            organizationInfo
+              ? `${organizationInfo.address}${
+                  organizationInfo.district
+                    ? `, ${organizationInfo.district}`
+                    : ""
+                }${
+                  organizationInfo.province
+                    ? `, ${organizationInfo.province}`
+                    : ""
+                }`
+              : ""
+          }
           startDate={getLocalizedContent(startDate, startDateMm)}
           duration={getLocalizedContent(duration, durationMm)}
           schedule={getLocalizedContent(schedule, scheduleMm)}

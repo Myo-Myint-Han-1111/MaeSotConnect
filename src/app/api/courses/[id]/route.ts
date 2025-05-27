@@ -12,6 +12,8 @@ const courseSchema = z.object({
   titleMm: z.string().optional(),
   subtitle: z.string().min(2),
   subtitleMm: z.string().optional(),
+  province: z.string().optional(),
+  district: z.string().optional(),
   startDate: z.coerce.date(),
   startDateMm: z.coerce.date().optional(),
   endDate: z.coerce.date(),
@@ -20,7 +22,7 @@ const courseSchema = z.object({
   durationMm: z.number().int().positive().optional(),
   schedule: z.string().min(2),
   scheduleMm: z.string().optional(),
-  feeAmount: z.number().int().nonnegative(),
+  feeAmount: z.number().nonnegative(),
   feeAmountMm: z.number().int().nonnegative().optional(),
   ageMin: z.number().int().nonnegative(),
   ageMinMm: z.number().int().nonnegative().optional(),
@@ -102,28 +104,29 @@ export async function GET(
       titleMm: course.titleMm,
       subtitle: course.subtitle,
       subtitleMm: course.subtitleMm,
-      // Add empty location fields for backward compatibility
-      location: "",
-      locationMm: null,
+
+      // ADD new fields
+      province: course.province,
+      district: course.district,
       // Convert DateTime objects to ISO strings
       startDate: course.startDate.toISOString(),
-      startDateMm: course.startDateMm ? course.startDateMm.toISOString() : null,
+      startDateMm: null, // No longer exists
       endDate: course.endDate.toISOString(),
-      endDateMm: course.endDateMm ? course.endDateMm.toISOString() : null,
+      endDateMm: null, // No longer exists
       duration: course.duration,
-      durationMm: course.durationMm,
+      durationMm: null, // No longer exists
       schedule: course.schedule,
       scheduleMm: course.scheduleMm,
       // Include both new fee fields and backward compatible fields
       feeAmount: course.feeAmount,
-      feeAmountMm: course.feeAmountMm,
+      feeAmountMm: null, // No longer exists
       fee: course.feeAmount.toString(),
-      feeMm: course.feeAmountMm ? course.feeAmountMm.toString() : null,
-      // Include new age fields
+      feeMm: null, // No longer exists
+      // Include age fields
       ageMin: course.ageMin,
-      ageMinMm: course.ageMinMm,
+      ageMinMm: null, // No longer exists
       ageMax: course.ageMax,
-      ageMaxMm: course.ageMaxMm,
+      ageMaxMm: null, // No longer exists
       // Include document fields
       document: course.document,
       documentMm: course.documentMm,
@@ -311,7 +314,7 @@ export async function PUT(
     // Combine existing and new image URLs
     const allImageUrls = [...existingImageUrls, ...newImageUrls];
 
-    // CRITICAL FIX: Update course OUTSIDE of transaction first to avoid the bind parameter error
+    // Update the course with the new fields
     const updatedCourse = await prisma.course.update({
       where: { id },
       data: {
@@ -319,20 +322,23 @@ export async function PUT(
         titleMm: validatedData.titleMm || null,
         subtitle: validatedData.subtitle,
         subtitleMm: validatedData.subtitleMm || null,
+        // REMOVE location fields, ADD new ones
+        province: validatedData.province,
+        district: validatedData.district,
         startDate: validatedData.startDate,
-        startDateMm: validatedData.startDateMm || null,
+        // REMOVE startDateMm: validatedData.startDateMm || null,
         endDate: validatedData.endDate,
-        endDateMm: validatedData.endDateMm || null,
+        // REMOVE endDateMm: validatedData.endDateMm || null,
         duration: validatedData.duration,
-        durationMm: validatedData.durationMm || null,
+        // REMOVE durationMm: validatedData.durationMm || null,
         schedule: validatedData.schedule,
         scheduleMm: validatedData.scheduleMm || null,
         feeAmount: validatedData.feeAmount,
-        feeAmountMm: validatedData.feeAmountMm || null,
+        // REMOVE feeAmountMm: validatedData.feeAmountMm || null,
         ageMin: validatedData.ageMin,
-        ageMinMm: validatedData.ageMinMm || null,
+        // REMOVE ageMinMm: validatedData.ageMinMm || null,
         ageMax: validatedData.ageMax,
-        ageMaxMm: validatedData.ageMaxMm || null,
+        // REMOVE ageMaxMm: validatedData.ageMaxMm || null,
         document: validatedData.document,
         documentMm: validatedData.documentMm || null,
         availableDays: validatedData.availableDays,

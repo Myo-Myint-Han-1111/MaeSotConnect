@@ -29,7 +29,7 @@ export interface Organization {
   description: string;
   phone: string;
   email: string;
-  address: string;
+  address?: string | null;
   facebookPage?: string | null;
   latitude: number;
   longitude: number;
@@ -43,35 +43,38 @@ export interface Course {
   titleMm?: string | null;
   subtitle: string;
   subtitleMm?: string | null;
-  // Removed location and locationMm as they don't exist in the new schema
-  startDate: Date; // Changed type from string to Date
-  startDateMm?: Date | null; // Changed type from string to Date
-  endDate: Date; // Added new field
-  endDateMm?: Date | null; // Added new field
-  duration: number; // Changed type from string to number
-  durationMm?: number | null; // Changed type from string to number
+  startDate: Date;
+  startDateMm?: Date | null;
+  endDate: Date;
+  endDateMm?: Date | null;
+  duration: number;
+  durationMm?: number | null;
   schedule: string;
   scheduleMm?: string | null;
-  feeAmount: number; // New field replacing fee/feeMm
-  feeAmountMm?: number | null; // New field
-  ageMin: number; // Added new field
-  ageMinMm?: number | null; // Added new field
-  ageMax: number; // Added new field
-  ageMaxMm?: number | null; // Added new field
-  document: string; // Added new field
-  documentMm?: string | null; // Added new field
+  feeAmount: number;
+  feeAmountMm?: number | null;
+  ageMin: number;
+  ageMinMm?: number | null;
+  ageMax: number;
+  ageMaxMm?: number | null;
+  document: string;
+  documentMm?: string | null;
+  // NEW FIELDS ADDED
+  province?: string | null;
+  district?: string | null;
+  // END NEW FIELDS
   availableDays: boolean[];
   description?: string | null;
   descriptionMm?: string | null;
   outcomes: string[];
-  outcomesMm: string[]; // Now required (no ? operator)
+  outcomesMm: string[];
   scheduleDetails?: string | null;
   scheduleDetailsMm?: string | null;
   selectionCriteria: string[];
-  selectionCriteriaMm: string[]; // Now required (no ? operator)
+  selectionCriteriaMm: string[];
   organizationId?: string | null;
-  createdAt?: Date; // Added timestamp
-  updatedAt?: Date; // Added timestamp
+  createdAt?: Date;
+  updatedAt?: Date;
   images: {
     id: string;
     url: string;
@@ -83,12 +86,11 @@ export interface Course {
     backgroundColor: string;
   }[];
   faq?: {
-    // Added FAQ
     id: string;
     question: string;
     questionMm?: string | null;
     answer: string;
     answerMm?: string | null;
   }[];
-  organizationInfo?: Organization | null; // Explicitly including related organization
+  organizationInfo?: Organization | null;
 }

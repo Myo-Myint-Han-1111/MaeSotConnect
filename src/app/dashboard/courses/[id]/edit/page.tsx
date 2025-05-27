@@ -41,6 +41,8 @@ interface CourseResponse {
   titleMm?: string | null;
   subtitle: string;
   subtitleMm?: string | null;
+  province?: string | null;
+  district?: string | null;
   // API returns DateTime as ISO strings
   startDate: string;
   startDateMm?: string | null;
@@ -89,6 +91,8 @@ interface CourseFormData {
   titleMm: string;
   subtitle: string;
   subtitleMm: string;
+  province: string;
+  district: string;
   location: string; // Derived from organizationInfo.address
   locationMm: string;
   startDate: string; // ISO date string for HTML date input
@@ -166,6 +170,11 @@ export default function EditCoursePage() {
 
         const data: CourseResponse = await response.json();
 
+        // DEBUG: Log the API response to see what we're getting
+        console.log("API Response:", data);
+        console.log("Province:", data.province);
+        console.log("District:", data.district);
+
         // Store existing images separately
         setExistingImages(data.images || []);
 
@@ -177,36 +186,28 @@ export default function EditCoursePage() {
           subtitle: data.subtitle || "",
           subtitleMm: data.subtitleMm ?? "",
 
-          // Map organization address to location for backward compatibility
-          location: data.organizationInfo?.address || "",
-          locationMm: data.organizationInfo?.address || "", // You might want to add a locationMm field to organization
+          // Use direct province and district fields from Course model
+          province: data.province ?? "",
+          district: data.district ?? "",
 
           // Format dates for HTML date inputs (YYYY-MM-DD format)
           startDate: formatDateForInput(data.startDate),
-          startDateMm: data.startDateMm
-            ? formatDateForInput(data.startDateMm)
-            : "",
-          endDate: formatDateForInput(data.endDate), // New field
-          endDateMm: data.endDateMm ? formatDateForInput(data.endDateMm) : "", // New field
+          endDate: formatDateForInput(data.endDate),
 
           // Duration as numbers
           duration: data.duration || 0,
-          durationMm: data.durationMm ?? 0,
 
           schedule: data.schedule || "",
           scheduleMm: data.scheduleMm ?? "",
 
-          // New fee amount fields
+          // Fee amount fields
           feeAmount: data.feeAmount || 0,
-          feeAmountMm: data.feeAmountMm ?? 0,
 
-          // New age fields
+          // Age fields
           ageMin: data.ageMin || 0,
-          ageMinMm: data.ageMinMm ?? 0,
           ageMax: data.ageMax || 0,
-          ageMaxMm: data.ageMaxMm ?? 0,
 
-          // New document fields
+          // Document fields
           document: data.document || "",
           documentMm: data.documentMm ?? "",
 
@@ -253,6 +254,9 @@ export default function EditCoursePage() {
         }
 
         console.log("Processed course data for form:", processedData);
+        console.log("Province being set:", processedData.province);
+        console.log("District being set:", processedData.district);
+
         setCourse(processedData);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load course");

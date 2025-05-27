@@ -5,41 +5,38 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { saveFile } from "@/lib/upload";
 
-// Update Zod schema to match the new Prisma schema
+// Update the Zod schema:
 const courseSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters"),
   titleMm: z.string().optional(),
   subtitle: z.string().min(2, "Subtitle must be at least 2 characters"),
   subtitleMm: z.string().optional(),
-  // Location fields are removed in the schema but kept in the route for backward compatibility
-  location: z.string().optional(),
-  locationMm: z.string().optional(),
-  // Modified date handling with explicit transformation
-  startDate: z.string().transform((val) => new Date(val)),
+  startDate: z.string().min(1, "Start date is required").pipe(z.coerce.date()),
   startDateMm: z
     .string()
     .optional()
-    .transform((val) => (val ? new Date(val) : undefined)),
-  endDate: z.string().transform((val) => new Date(val)),
+    .nullable()
+    .transform((val) => (val ? new Date(val) : null)),
+  endDate: z.string().min(1, "End date is required").pipe(z.coerce.date()),
   endDateMm: z
     .string()
     .optional()
-    .transform((val) => (val ? new Date(val) : undefined)),
-  duration: z.number().int().positive(), // Changed from string to integer
-  durationMm: z.number().int().positive().optional(),
+    .nullable()
+    .transform((val) => (val ? new Date(val) : null)),
+  duration: z.number().int().positive(),
+  durationMm: z.number().int().positive().optional().nullable(),
   schedule: z.string().min(2, "Schedule must be at least 2 characters"),
   scheduleMm: z.string().optional(),
-  feeAmount: z.number().int().nonnegative(), // Added .int()
-  feeAmountMm: z.number().int().nonnegative().optional(), // Added .int()
-  // Fee fields kept for backward compatibility
-  fee: z.string().optional(),
-  feeMm: z.string().optional(),
-  ageMin: z.number().int().nonnegative(), // New field
-  ageMinMm: z.number().int().nonnegative().optional(), // New field
-  ageMax: z.number().int().positive(), // New field
-  ageMaxMm: z.number().int().positive().optional(), // New field
-  document: z.string(), // New field
-  documentMm: z.string().optional(), // New field
+  feeAmount: z.number().nonnegative(), // REMOVED .int()
+  feeAmountMm: z.number().nonnegative().optional().nullable(),
+  ageMin: z.number().int().nonnegative(),
+  ageMinMm: z.number().int().nonnegative().optional().nullable(),
+  ageMax: z.number().int().positive(),
+  ageMaxMm: z.number().int().positive().optional().nullable(),
+  document: z.string(),
+  documentMm: z.string().optional(),
+  province: z.string().optional(),
+  district: z.string().optional(),
   availableDays: z.array(z.boolean()).length(7, "Must provide 7 days"),
   description: z.string().optional(),
   descriptionMm: z.string().optional(),
@@ -114,6 +111,7 @@ export async function GET(request: NextRequest) {
         availableDays: course.availableDays,
         description: course.description,
         descriptionMm: course.descriptionMm,
+
         outcomes: course.outcomes,
         outcomesMm: course.outcomesMm || [],
         scheduleDetails: course.scheduleDetails,
@@ -235,12 +233,26 @@ export async function POST(request: NextRequest) {
 
     // IMPORTANT: Convert fee amounts to integers if they're not already
     if (parsedData.feeAmount !== undefined) {
-      parsedData.feeAmount = Math.round(Number(parsedData.feeAmount));
+      parsedData.feeAmount = Math.round(Number(parsedData.feeAmount) * 100);
     }
     if (parsedData.feeAmountMm !== undefined) {
-      parsedData.feeAmountMm = Math.round(Number(parsedData.feeAmountMm));
+      parsedData.feeAmountMm = Math.round(Number(parsedData.feeAmountMm) * 100);
     }
 
+    // VALIDATE DATES ARE NOT EMPTY
+    if (!parsedData.startDate || parsedData.startDate === "") {
+      return NextResponse.json(
+        { error: "Start date is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!parsedData.endDate || parsedData.endDate === "") {
+      return NextResponse.json(
+        { error: "End date is required" },
+        { status: 400 }
+      );
+    }
     // Ensure numeric fields are proper integers
     if (parsedData.duration !== undefined) {
       parsedData.duration = Math.round(Number(parsedData.duration));
@@ -322,6 +334,8 @@ export async function POST(request: NextRequest) {
           ageMaxMm: validatedData.ageMaxMm || null,
           document: validatedData.document,
           documentMm: validatedData.documentMm || null,
+          province: validatedData.province || null,
+          district: validatedData.district || null,
           availableDays: validatedData.availableDays,
           description: validatedData.description || null,
           descriptionMm: validatedData.descriptionMm || null,
@@ -334,7 +348,6 @@ export async function POST(request: NextRequest) {
           organizationId: validatedData.organizationId || null,
         },
       });
-
       // Create images
       for (const imageUrl of imageUrls) {
         await tx.image.create({

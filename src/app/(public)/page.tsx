@@ -559,8 +559,8 @@ export default function Home() {
                     titleMm={course.titleMm || null}
                     subtitle={course.subtitle}
                     subtitleMm={course.subtitleMm || null}
-                    location={course.organizationInfo?.address || ""}
-                    locationMm={null}
+                    
+                    
                     startDate={formatDate(course.startDate)}
                     startDateMm={
                       course.startDateMm ? formatDate(course.startDateMm) : null

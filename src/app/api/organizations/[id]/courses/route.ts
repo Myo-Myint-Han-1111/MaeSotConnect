@@ -54,8 +54,8 @@ export async function GET(
       schedule: course.schedule,
       scheduleMm: course.scheduleMm,
       // Format fee information
-      fee: `${course.feeAmount.toFixed(2)}`,
-      feeMm: course.feeAmountMm ? `${course.feeAmountMm.toFixed(2)}` : null,
+      fee: course.feeAmount.toString(),
+      feeMm: course.feeAmountMm ? course.feeAmountMm.toString() : null,
       // Age range
       ageMin: course.ageMin,
       ageMinMm: course.ageMinMm,
@@ -64,6 +64,8 @@ export async function GET(
       // Document requirements
       document: course.document,
       documentMm: course.documentMm,
+      province: course.province,
+      district: course.district,
       availableDays: course.availableDays,
       description: course.description,
       descriptionMm: course.descriptionMm,
