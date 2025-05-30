@@ -190,10 +190,9 @@ export const translations = {
     "course.info.duration": "ကြာချိန်",
     "course.info.schedule": "အချိန်ဇယား",
     "course.info.fee": "သင်တန်းကြေး",
-    "course.info.applyBy": "လျှောက်ထားရမည့်", // TODO: Ko Myo - For future use when applyByDate is added
-
-    // Future full labels (for non-compact mode)
-    "course.applyBy": "လျှောက်ထားရမည့်ရက်", // TODO: Ko Myo - For future use when applyByDate is added
+    "course.info.applyBy": "လျှောက်ထားရမည့်",
+    "course.applyBy": "လျှောက်ထားရမည့်ရက်",
+    "course.address": "သင်တန်းလိပ်စာ",
 
     // Course detail
     "course.back": "ပြန်သွားရန်",

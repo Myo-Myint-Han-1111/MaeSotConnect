@@ -26,6 +26,10 @@ export interface CourseCardProps {
 
   startDate: string;
   startDateMm: string | null;
+  address?: string | null;
+  applyByDate?: string | null;
+  applyByDateMm?: string | null;
+  logoImage?: string | null;
   duration: string;
   durationMm: string | null;
   schedule: string;
@@ -70,6 +74,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({
 
   startDate,
   startDateMm,
+  address,
+  applyByDate,
+  applyByDateMm,
   duration,
   durationMm,
   schedule,
@@ -126,7 +133,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({
 
         <CourseInfoDisplay
           location={
-            organizationInfo
+            address ||
+            (organizationInfo
               ? `${organizationInfo.address}${
                   organizationInfo.district
                     ? `, ${organizationInfo.district}`
@@ -136,9 +144,14 @@ export const CourseCard: React.FC<CourseCardProps> = ({
                     ? `, ${organizationInfo.province}`
                     : ""
                 }`
-              : ""
+              : "")
           }
           startDate={getLocalizedContent(startDate, startDateMm)}
+          applyByDate={
+            applyByDate
+              ? getLocalizedContent(applyByDate, applyByDateMm || null)
+              : undefined
+          }
           duration={getLocalizedContent(duration, durationMm)}
           schedule={getLocalizedContent(schedule, scheduleMm)}
           fee={fee ? getLocalizedContent(fee, feeMm || null) : undefined}

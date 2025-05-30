@@ -37,6 +37,18 @@ const courseSchema = z.object({
   documentMm: z.string().optional(),
   province: z.string().optional(),
   district: z.string().optional(),
+  address: z.string().optional(),
+  applyByDate: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((val) => (val ? new Date(val) : null)),
+  applyByDateMm: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((val) => (val ? new Date(val) : null)),
+  logoImage: z.string().optional().nullable(),
   availableDays: z.array(z.boolean()).length(7, "Must provide 7 days"),
   description: z.string().optional(),
   descriptionMm: z.string().optional(),
@@ -89,6 +101,14 @@ export async function GET(request: NextRequest) {
         titleMm: course.titleMm,
         subtitle: course.subtitle,
         subtitleMm: course.subtitleMm,
+        address: course.address,
+        applyByDate: course.applyByDate
+          ? course.applyByDate.toISOString()
+          : null,
+        applyByDateMm: course.applyByDateMm
+          ? course.applyByDateMm.toISOString()
+          : null,
+        logoImage: course.logoImage,
         // Map date fields to strings for backward compatibility in the frontend
         startDate: course.startDate.toISOString(),
         startDateMm: course.startDateMm
@@ -239,6 +259,12 @@ export async function POST(request: NextRequest) {
       parsedData.feeAmountMm = Math.round(Number(parsedData.feeAmountMm) * 100);
     }
 
+    // Process logo image separately
+    let logoImageUrl: string | null = null;
+    const logoImageFile = formData.get("logoImage");
+    if (logoImageFile && logoImageFile instanceof File) {
+      logoImageUrl = await saveFile(logoImageFile, undefined, "logo");
+    }
     // VALIDATE DATES ARE NOT EMPTY
     if (!parsedData.startDate || parsedData.startDate === "") {
       return NextResponse.json(
@@ -300,11 +326,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Process and save image files
+    // Process and save image files (regular course images) - EXCLUDE logo
     const imageUrls: string[] = [];
     for (const [key, value] of formData.entries()) {
-      if (key.startsWith("image_") && value instanceof File) {
-        const imageUrl = await saveFile(value);
+      if (
+        key.startsWith("image_") &&
+        key !== "logoImage" &&
+        value instanceof File
+      ) {
+        const imageUrl = await saveFile(value, undefined, "course");
         imageUrls.push(imageUrl);
       }
     }
@@ -336,6 +366,10 @@ export async function POST(request: NextRequest) {
           documentMm: validatedData.documentMm || null,
           province: validatedData.province || null,
           district: validatedData.district || null,
+          address: validatedData.address || null,
+          applyByDate: validatedData.applyByDate || null,
+          applyByDateMm: validatedData.applyByDateMm || null,
+          logoImage: logoImageUrl || validatedData.logoImage || null,
           availableDays: validatedData.availableDays,
           description: validatedData.description || null,
           descriptionMm: validatedData.descriptionMm || null,

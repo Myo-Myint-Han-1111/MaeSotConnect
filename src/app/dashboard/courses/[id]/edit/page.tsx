@@ -43,6 +43,10 @@ interface CourseResponse {
   subtitleMm?: string | null;
   province?: string | null;
   district?: string | null;
+  address?: string | null; // Add this line
+  applyByDate?: string | null; // Add this line
+  applyByDateMm?: string | null; // Add this line
+  logoImage?: string | null; // Add this line
   // API returns DateTime as ISO strings
   startDate: string;
   startDateMm?: string | null;
@@ -93,6 +97,10 @@ interface CourseFormData {
   subtitleMm: string;
   province: string;
   district: string;
+  address: string; // Add this line
+  applyByDate: string; // Add this line
+  applyByDateMm: string; // Add this line
+  logoImage: File | null; // Add this line
   location: string; // Derived from organizationInfo.address
   locationMm: string;
   startDate: string; // ISO date string for HTML date input
@@ -159,6 +167,7 @@ export default function EditCoursePage() {
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [existingLogoUrl, setExistingLogoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchCourse() {
@@ -189,6 +198,14 @@ export default function EditCoursePage() {
           // Use direct province and district fields from Course model
           province: data.province ?? "",
           district: data.district ?? "",
+          address: data.address ?? "",
+          applyByDate: data.applyByDate
+            ? formatDateForInput(data.applyByDate)
+            : "",
+          applyByDateMm: data.applyByDateMm
+            ? formatDateForInput(data.applyByDateMm)
+            : "",
+          logoImage: null,
 
           // Format dates for HTML date inputs (YYYY-MM-DD format)
           startDate: formatDateForInput(data.startDate),
@@ -252,6 +269,9 @@ export default function EditCoursePage() {
             },
           ];
         }
+        if (data.logoImage) {
+          setExistingLogoUrl(data.logoImage);
+        }
 
         console.log("Processed course data for form:", processedData);
         console.log("Province being set:", processedData.province);
@@ -311,6 +331,7 @@ export default function EditCoursePage() {
         mode="edit"
         initialData={course}
         existingImages={existingImages}
+        existingLogoUrl={existingLogoUrl}
       />
     </div>
   );

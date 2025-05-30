@@ -83,6 +83,11 @@ model Course {
   // NEW FIELDS ADDED HERE
   province              String?
   district              String?
+  // NEW FIELDS ADDED
+  address               String?   // Course-specific address
+  applyByDate           DateTime? // Application deadline
+  applyByDateMm         DateTime? // Myanmar version of application deadline
+  logoImage             String?   // Course logo image URL
   // END NEW FIELDS
   availableDays         Boolean[]
   description           String?
@@ -135,7 +140,7 @@ model Organization {
   description  String
   phone        String
   email        String
-  address      String?  // CHANGED FROM String TO String? (OPTIONAL)
+  address      String?
   facebookPage String?
   latitude     Float
   longitude    Float

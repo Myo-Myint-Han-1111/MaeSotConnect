@@ -14,6 +14,18 @@ const courseSchema = z.object({
   subtitleMm: z.string().optional(),
   province: z.string().optional(),
   district: z.string().optional(),
+  address: z.string().optional(),
+  applyByDate: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((val) => (val ? new Date(val) : null)),
+  applyByDateMm: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((val) => (val ? new Date(val) : null)),
+  logoImage: z.string().optional().nullable(),
   startDate: z.coerce.date(),
   startDateMm: z.coerce.date().optional(),
   endDate: z.coerce.date(),
@@ -108,6 +120,12 @@ export async function GET(
       // ADD new fields
       province: course.province,
       district: course.district,
+      address: course.address,
+      applyByDate: course.applyByDate ? course.applyByDate.toISOString() : null,
+      applyByDateMm: course.applyByDateMm
+        ? course.applyByDateMm.toISOString()
+        : null,
+      logoImage: course.logoImage,
       // Convert DateTime objects to ISO strings
       startDate: course.startDate.toISOString(),
       startDateMm: null, // No longer exists
@@ -214,7 +232,16 @@ export async function PUT(
     if (!jsonData || typeof jsonData !== "string") {
       return NextResponse.json({ error: "Invalid form data" }, { status: 400 });
     }
-
+    // Process logo image separately
+    let logoImageUrl: string | null = null;
+    const logoImageFile = formData.get("logoImage");
+    if (logoImageFile && logoImageFile instanceof File) {
+      logoImageUrl = await saveFile(
+        logoImageFile,
+        session.user.organizationId ?? undefined,
+        "logo"
+      );
+    }
     // Parse the JSON data
     const parsedData = JSON.parse(jsonData);
 
@@ -299,18 +326,22 @@ export async function PUT(
       }
     }
 
-    // Process and save new image files
+    // Process and save new image files (regular course images) - EXCLUDE logo
     const newImageUrls: string[] = [];
     for (const [key, value] of formData.entries()) {
-      if (key.startsWith("image_") && value instanceof File) {
+      if (
+        key.startsWith("image_") &&
+        key !== "logoImage" &&
+        value instanceof File
+      ) {
         const imageUrl = await saveFile(
           value,
-          session.user.organizationId ?? undefined
+          session.user.organizationId ?? undefined,
+          "course"
         );
         newImageUrls.push(imageUrl);
       }
     }
-
     // Combine existing and new image URLs
     const allImageUrls = [...existingImageUrls, ...newImageUrls];
 
@@ -322,6 +353,10 @@ export async function PUT(
         titleMm: validatedData.titleMm || null,
         subtitle: validatedData.subtitle,
         subtitleMm: validatedData.subtitleMm || null,
+        address: validatedData.address || null,
+        applyByDate: validatedData.applyByDate || null,
+        applyByDateMm: validatedData.applyByDateMm || null,
+        logoImage: logoImageUrl || validatedData.logoImage || null,
         // REMOVE location fields, ADD new ones
         province: validatedData.province,
         district: validatedData.district,

@@ -62,6 +62,10 @@ export interface Course {
   // NEW FIELDS ADDED
   province?: string | null;
   district?: string | null;
+  address?: string | null;
+  applyByDate?: string | null; // ISO string format
+  applyByDateMm?: string | null;
+  logoImage?: string | null;
   // END NEW FIELDS
   availableDays: boolean[];
   description?: string | null;

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -44,6 +45,11 @@ interface CourseFormData {
 
   province: string;
   district: string;
+
+  address: string;
+  applyByDate: string;
+  applyByDateMm: string;
+  logoImage: File | null;
   startDate: string;
   // startDateMm: string; // REMOVE THIS LINE
   endDate: string;
@@ -100,6 +106,7 @@ interface CourseFormProps {
   mode: "create" | "edit";
   organizationId?: string;
   existingImages?: string[];
+  existingLogoUrl?: string | null;
 }
 
 const badgeOptions: BadgeOption[] = [
@@ -118,6 +125,7 @@ export default function CourseForm({
   mode,
   organizationId,
   existingImages = [],
+  existingLogoUrl = null,
 }: CourseFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -127,6 +135,9 @@ export default function CourseForm({
   const [existingImageList, setExistingImageList] =
     useState<string[]>(existingImages);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [existingLogo, setExistingLogo] = useState<string | null>(
+    existingLogoUrl
+  );
 
   const [formData, setFormData] = useState<CourseFormData>({
     title: initialData?.title ?? "",
@@ -136,6 +147,11 @@ export default function CourseForm({
 
     province: initialData?.province ?? "",
     district: initialData?.district ?? "",
+
+    address: initialData?.address ?? "",
+    applyByDate: initialData?.applyByDate ?? "",
+    applyByDateMm: initialData?.applyByDateMm ?? "",
+    logoImage: null,
     startDate: initialData?.startDate ?? "",
     // startDateMm: initialData?.startDateMm ?? "", // REMOVE THIS LINE
     endDate: initialData?.endDate ?? "",
@@ -202,6 +218,21 @@ export default function CourseForm({
     );
   }, [formData.province, formData.district]);
 
+  // Sync existing logo when prop changes
+  useEffect(() => {
+    if (existingLogoUrl) {
+      console.log("Setting existing logo URL:", existingLogoUrl);
+      setExistingLogo(existingLogoUrl);
+    }
+  }, [existingLogoUrl]); // This is correct - props are valid dependencies
+
+  // Debug current form values
+  useEffect(() => {
+    console.log("Current form data - Address:", formData.address);
+    console.log("Current form data - ApplyByDate:", formData.applyByDate);
+    console.log("Current existing logo:", existingLogo);
+  }, [formData.address, formData.applyByDate, existingLogo]);
+
   // Fetch organizations when component mounts
   useEffect(() => {
     const fetchOrganizations = async () => {
@@ -239,6 +270,10 @@ export default function CourseForm({
         subtitleMm: initialData.subtitleMm ?? "",
 
         province: initialData.province ?? "",
+        address: initialData?.address ?? "",
+        applyByDate: initialData?.applyByDate ?? "",
+        applyByDateMm: initialData?.applyByDateMm ?? "",
+        logoImage: null,
         district: initialData.district ?? "",
         startDate: initialData.startDate ?? "",
         // startDateMm: initialData.startDateMm ?? "", // REMOVE THIS LINE
@@ -531,8 +566,21 @@ export default function CourseForm({
       const jsonData = {
         ...formData,
         images: undefined,
+        logoImage: undefined, // Remove logoImage from JSON data
       };
       formDataToSend.append("data", JSON.stringify(jsonData));
+
+      // Handle logo image separately
+      if (formData.logoImage) {
+        formDataToSend.append("logoImage", formData.logoImage);
+      } else if (existingLogo) {
+        // Pass existing logo URL to keep it
+        const updatedJsonData = {
+          ...jsonData,
+          logoImage: existingLogo, // Keep existing logo URL
+        };
+        formDataToSend.set("data", JSON.stringify(updatedJsonData));
+      }
 
       // Append new images
       formData.images.forEach((file, index) => {
@@ -555,17 +603,47 @@ export default function CourseForm({
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Something went wrong");
+        let errorMessage = "Something went wrong";
+        try {
+          const data = await response.json();
+          if (data.error) {
+            errorMessage = data.error;
+          } else if (Array.isArray(data) && data.length > 0) {
+            // Handle validation errors array
+            errorMessage = data.map((err) => err.message || err).join(", ");
+          } else if (data.message) {
+            errorMessage = data.message;
+          }
+        } catch (parseError) {
+          console.error("Error parsing response:", parseError);
+          errorMessage = `Server error (${response.status}): ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
       router.push("/dashboard/courses");
       router.refresh();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An unexpected error occurred"
-      );
       console.error("Error submitting course:", err);
+
+      let errorMessage = "An unexpected error occurred";
+
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === "string") {
+        errorMessage = err;
+      } else if (err && typeof err === "object") {
+        // Handle case where err might be a response object
+        if ("message" in err) {
+          errorMessage = String(err.message);
+        } else if ("error" in err) {
+          errorMessage = String(err.error);
+        } else {
+          errorMessage = "Server error - please check your input and try again";
+        }
+      }
+
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -715,6 +793,18 @@ export default function CourseForm({
                     />
                   </div>
                 </div>
+              </div>
+
+              {/* Course Address */}
+              <div className="space-y-2">
+                <Label htmlFor="address">Course Address (Optional)</Label>
+                <Input
+                  id="address"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleTextChange}
+                  placeholder="If different from organization address"
+                />
               </div>
 
               {/* Location - Updated to use LocationSelector */}
@@ -896,6 +986,25 @@ export default function CourseForm({
                   onChange={handleTextChange}
                   required
                 />
+              </div>
+
+              {/* Apply By Date */}
+              <div className="space-y-2">
+                <Label htmlFor="applyByDate">Application Deadline</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">
+                      English
+                    </div>
+                    <Input
+                      id="applyByDate"
+                      name="applyByDate"
+                      type="date"
+                      value={formData.applyByDate}
+                      onChange={handleTextChange}
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Duration - REMOVE MYANMAR FIELD */}
@@ -1312,6 +1421,60 @@ export default function CourseForm({
                       </Button>
                     );
                   })}
+                </div>
+
+                {/* Logo Image Upload */}
+                {/* Logo Image Upload */}
+                <div className="space-y-2">
+                  <Label htmlFor="logoImage">Course Logo</Label>
+
+                  {/* Show existing logo if it exists */}
+                  {existingLogo && (
+                    <div className="mb-4">
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Current Logo:
+                      </p>
+                      <div className="relative inline-block">
+                        <Image
+                          src={existingLogo}
+                          alt="Current course logo"
+                          width={128}
+                          height={128}
+                          className="object-cover rounded-md border"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-1 right-1"
+                          onClick={() => setExistingLogo(null)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  <Input
+                    id="logoImage"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        logoImage: e.target.files?.[0] || null,
+                      }));
+                      // Clear existing logo when new file is selected
+                      if (e.target.files?.[0]) {
+                        setExistingLogo(null);
+                      }
+                    }}
+                  />
+                  {existingLogo && (
+                    <p className="text-xs text-muted-foreground">
+                      Upload a new image to replace the current logo
+                    </p>
+                  )}
                 </div>
               </div>
             </TabsContent>
