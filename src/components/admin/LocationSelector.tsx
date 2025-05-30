@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+
 import {
   Select,
   SelectContent,
@@ -756,6 +756,9 @@ export default function LocationSelector({
       if (province) {
         setSelectedProvinceCode(province.provinceCode);
       }
+    } else {
+      // Reset if no province is selected
+      setSelectedProvinceCode(null);
     }
   }, [value.province]);
 

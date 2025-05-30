@@ -192,6 +192,16 @@ export default function CourseForm({
     return () => window.removeEventListener("resize", checkIfMobile);
   }, []);
 
+  // Add this useEffect to debug the form data
+  useEffect(() => {
+    console.log(
+      "Current form data - Province:",
+      formData.province,
+      "District:",
+      formData.district
+    );
+  }, [formData.province, formData.district]);
+
   // Fetch organizations when component mounts
   useEffect(() => {
     const fetchOrganizations = async () => {
@@ -220,6 +230,8 @@ export default function CourseForm({
   useEffect(() => {
     if (initialData) {
       console.log("Syncing form data with initialData:", initialData);
+      console.log("Initial province:", initialData.province);
+      console.log("Initial district:", initialData.district);
       setFormData({
         title: initialData.title ?? "",
         titleMm: initialData.titleMm ?? "",
@@ -713,6 +725,7 @@ export default function CourseForm({
                 }}
                 onChange={handleLocationChange}
                 disabled={isLoading}
+                key={`${formData.province}-${formData.district}`}
               />
 
               {/* Age Requirements - REMOVE MYANMAR FIELDS */}

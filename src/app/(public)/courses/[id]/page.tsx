@@ -41,6 +41,9 @@ interface CourseDetail {
   subtitleMm?: string;
   location: string;
   locationMm?: string;
+  // ADD the missing province and district fields
+  province?: string;
+  district?: string;
   startDate: string;
   startDateMm?: string;
   endDate: string;
@@ -363,21 +366,11 @@ export default function CourseDetailPage() {
                       {t("course.location")}
                     </p>
                     <p className="text-sm text-muted-foreground" dir="auto">
-                      {course?.organizationInfo ? (
-                        <>
-                          {course.organizationInfo.district && (
-                            <span> {course.organizationInfo.district}</span>
-                          )}
-                          {course.organizationInfo.province && (
-                            <span>, {course.organizationInfo.province}</span>
-                          )}
-                        </>
-                      ) : (
-                        getLocalizedDateContent(
-                          course?.location,
-                          course?.locationMm
-                        ) || "Location information not available"
-                      )}
+                      {course.province || course.district
+                        ? course.district && course.province
+                          ? `${course.district}, ${course.province}`
+                          : course.district || course.province
+                        : "Location information not available"}
                     </p>
                   </div>
                 </div>
@@ -736,16 +729,15 @@ export default function CourseDetailPage() {
                   <div className="flex items-start">
                     <MapPin className="h-5 w-5 mr-3 text-primary flex-shrink-0 mt-0.5" />
                     <div>
-                      {(course.organizationInfo.district ||
-                        course.organizationInfo.province) && (
-                        <div className="text-muted-foreground">
-                          {course.organizationInfo.district &&
-                          course.organizationInfo.province
+                      <div className="text-muted-foreground">
+                        {course.organizationInfo?.address ||
+                          (course.organizationInfo?.district &&
+                          course.organizationInfo?.province
                             ? `${course.organizationInfo.district}, ${course.organizationInfo.province}`
-                            : course.organizationInfo.district ||
-                              course.organizationInfo.province}
-                        </div>
-                      )}
+                            : course.organizationInfo?.district ||
+                              course.organizationInfo?.province ||
+                              "Location information not available")}
+                      </div>
                     </div>
                   </div>
                 </div>

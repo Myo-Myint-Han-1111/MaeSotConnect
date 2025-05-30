@@ -38,8 +38,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   return (
     <ToastContext.Provider value={{ showToast }}>
-      {/* Wrap children and Toast in a React Fragment to avoid key warnings */}
-      <>
+      <div>
         {children}
         <Toast
           open={open}
@@ -49,7 +48,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           variant={variant}
           duration={duration}
         />
-      </>
+      </div>
     </ToastContext.Provider>
   );
 }
