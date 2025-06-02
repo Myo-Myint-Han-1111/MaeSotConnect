@@ -48,7 +48,7 @@ const courseSchema = z.object({
     .optional()
     .nullable()
     .transform((val) => (val ? new Date(val) : null)),
-  logoImage: z.string().optional().nullable(),
+
   availableDays: z.array(z.boolean()).length(7, "Must provide 7 days"),
   description: z.string().optional(),
   descriptionMm: z.string().optional(),
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
         applyByDateMm: course.applyByDateMm
           ? course.applyByDateMm.toISOString()
           : null,
-        logoImage: course.logoImage,
+
         // Map date fields to strings for backward compatibility in the frontend
         startDate: course.startDate.toISOString(),
         startDateMm: course.startDateMm
@@ -253,18 +253,12 @@ export async function POST(request: NextRequest) {
 
     // IMPORTANT: Convert fee amounts to integers if they're not already
     if (parsedData.feeAmount !== undefined) {
-      parsedData.feeAmount = Math.round(Number(parsedData.feeAmount) * 100);
+      parsedData.feeAmount = Math.round(Number(parsedData.feeAmount));
     }
     if (parsedData.feeAmountMm !== undefined) {
-      parsedData.feeAmountMm = Math.round(Number(parsedData.feeAmountMm) * 100);
+      parsedData.feeAmountMm = Math.round(Number(parsedData.feeAmountMm));
     }
 
-    // Process logo image separately
-    let logoImageUrl: string | null = null;
-    const logoImageFile = formData.get("logoImage");
-    if (logoImageFile && logoImageFile instanceof File) {
-      logoImageUrl = await saveFile(logoImageFile, undefined, "logo");
-    }
     // VALIDATE DATES ARE NOT EMPTY
     if (!parsedData.startDate || parsedData.startDate === "") {
       return NextResponse.json(
@@ -369,7 +363,7 @@ export async function POST(request: NextRequest) {
           address: validatedData.address || null,
           applyByDate: validatedData.applyByDate || null,
           applyByDateMm: validatedData.applyByDateMm || null,
-          logoImage: logoImageUrl || validatedData.logoImage || null,
+
           availableDays: validatedData.availableDays,
           description: validatedData.description || null,
           descriptionMm: validatedData.descriptionMm || null,

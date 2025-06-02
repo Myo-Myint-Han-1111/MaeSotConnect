@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { saveFile } from "@/lib/upload"; // ADD THIS IMPORT
 
 // Updated validation schema to include new fields
 const organizationSchema = z.object({
@@ -10,15 +11,16 @@ const organizationSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters"),
   phone: z.string().min(5, "Phone must be at least 5 characters"),
   email: z.string().email("Invalid email address"),
-  address: z.string().optional(), // CHANGED: Now optional
+  address: z.string().optional(),
   facebookPage: z.string().optional(),
   latitude: z.number(),
   longitude: z.number(),
   district: z.string().optional(),
   province: z.string().optional(),
+  logoImage: z.string().optional(), // ADD THIS LINE
 });
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Get current session to check permissions
     const session = await auth();
@@ -70,8 +72,39 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("Starting organization creation...");
-    const body = await request.json();
-    console.log("Organization creation request body:", body);
+
+    // Check if request is FormData (has file) or JSON
+    const contentType = request.headers.get("content-type");
+    let body;
+    let logoImageUrl: string | null = null;
+
+    if (contentType?.includes("multipart/form-data")) {
+      // Handle file upload
+      const formData = await request.formData();
+      const jsonData = formData.get("data");
+
+      if (!jsonData || typeof jsonData !== "string") {
+        return NextResponse.json(
+          { error: "Invalid form data" },
+          { status: 400 }
+        );
+      }
+
+      body = JSON.parse(jsonData);
+      console.log("Organization creation request body (FormData):", body);
+
+      // Process logo image
+      const logoImageFile = formData.get("logoImage");
+      if (logoImageFile && logoImageFile instanceof File) {
+        console.log("Processing logo image upload...");
+        logoImageUrl = await saveFile(logoImageFile, undefined, "logo");
+        console.log("Logo image uploaded:", logoImageUrl);
+      }
+    } else {
+      // Handle JSON request (backward compatibility)
+      body = await request.json();
+      console.log("Organization creation request body (JSON):", body);
+    }
 
     // Make sure latitude and longitude are numbers
     const processedBody = {
@@ -133,25 +166,26 @@ export async function POST(request: NextRequest) {
       facebookPage,
       latitude,
       longitude,
-      district, // New field
-      province, // New field
+      district,
+      province,
     } = parsedData.data;
 
     console.log("Creating organization with data:", parsedData.data);
 
-    // Create the organization with new fields
+    // Create the organization with new fields including logoImage
     const organization = await prisma.organization.create({
       data: {
         name,
         description,
         phone,
         email,
-        address, // Can now be undefined/null
+        address,
         facebookPage,
         latitude,
         longitude,
         district,
         province,
+        logoImage: logoImageUrl || undefined, // ADD THIS LINE
       },
     });
 

@@ -149,6 +149,14 @@ export const translations = {
     "contact.location.title": "Our Location",
     "course.facebook": "Visit our Facebook page",
     "contact.location.maptext": "Map of our location in Mae Sot",
+
+    // Add these sort translations:
+    "sort.default": "Default Order",
+    "sort.placeholder": "Sort by...",
+    "sort.startDate.earliest": "Start Date (Earliest First)",
+    "sort.startDate.latest": "Start Date (Latest First)",
+    "sort.applyByDate.earliest": "Apply By Date (Earliest First)",
+    "sort.applyByDate.latest": "Apply By Date (Latest First)",
   },
 
   // Myanmar translations
@@ -266,6 +274,14 @@ export const translations = {
     "contact.facebook.text": "နောက်ဆုံးရ အချက်အလက်များအတွက် Follow လုပ်ပါ",
     "contact.location.title": "ကျွန်ုပ်တို့၏တည်နေရာ",
     "contact.location.maptext": "မဲဆောက်မြို့ရှိ ကျွန်ုပ်တို့တည်နေရာ မြေပုံ",
+
+    // Add these sort translations:
+    "sort.default": "ပုံမှန်အစီအစဉ်",
+    "sort.placeholder": "အစီအစဉ်ခွဲ...",
+    "sort.startDate.earliest": "စတင်ရက် (အစောဆုံးဦးစွာ)",
+    "sort.startDate.latest": "စတင်ရက် (နောက်ဆုံးဦးစွာ)",
+    "sort.applyByDate.earliest": "လျှောက်ထားရမည့်ရက် (အစောဆုံးဦးစွာ)",
+    "sort.applyByDate.latest": "လျှောက်ထားရမည့်ရက် (နောက်ဆုံးဦးစွာ)",
   },
 };
 

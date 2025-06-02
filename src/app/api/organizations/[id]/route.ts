@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { saveFile } from "@/lib/upload"; // ADD THIS IMPORT
 
 // Updated validation schema to include new fields
 const organizationSchema = z.object({
@@ -9,12 +10,13 @@ const organizationSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters"),
   phone: z.string().min(5, "Phone must be at least 5 characters"),
   email: z.string().email("Invalid email address"),
-  address: z.string().optional(), // CHANGED: Now optional
+  address: z.string().optional(),
   facebookPage: z.string().optional(),
   latitude: z.number(),
   longitude: z.number(),
   district: z.string().optional(),
   province: z.string().optional(),
+  logoImage: z.string().optional(), // ADD THIS LINE
 });
 
 export async function GET(
@@ -76,17 +78,7 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const body = await request.json();
-    const parsedData = organizationSchema.safeParse(body);
-
-    if (!parsedData.success) {
-      return NextResponse.json(
-        { error: parsedData.error.errors },
-        { status: 400 }
-      );
-    }
-
-    // Check if organization exists
+    // Check if organization exists first
     const existingOrganization = await prisma.organization.findUnique({
       where: { id },
     });
@@ -95,6 +87,61 @@ export async function PUT(
       return NextResponse.json(
         { error: "Organization not found" },
         { status: 404 }
+      );
+    }
+
+    // Check if request is FormData (has file) or JSON
+    const contentType = request.headers.get("content-type");
+    let body;
+    let logoImageUrl: string | null = null;
+
+    if (contentType?.includes("multipart/form-data")) {
+      // Handle file upload
+      const formData = await request.formData();
+      const jsonData = formData.get("data");
+
+      if (!jsonData || typeof jsonData !== "string") {
+        return NextResponse.json(
+          { error: "Invalid form data" },
+          { status: 400 }
+        );
+      }
+
+      body = JSON.parse(jsonData);
+      console.log("Organization update request body (FormData):", body);
+
+      // Process logo image
+      const logoImageFile = formData.get("logoImage");
+      if (logoImageFile && logoImageFile instanceof File) {
+        console.log("Processing logo image upload...");
+        logoImageUrl = await saveFile(logoImageFile, undefined, "logo");
+        console.log("Logo image uploaded:", logoImageUrl);
+      }
+    } else {
+      // Handle JSON request (backward compatibility)
+      body = await request.json();
+      console.log("Organization update request body (JSON):", body);
+    }
+
+    // Make sure latitude and longitude are numbers
+    const processedBody = {
+      ...body,
+      latitude:
+        typeof body.latitude === "string"
+          ? parseFloat(body.latitude)
+          : body.latitude,
+      longitude:
+        typeof body.longitude === "string"
+          ? parseFloat(body.longitude)
+          : body.longitude,
+    };
+
+    const parsedData = organizationSchema.safeParse(processedBody);
+
+    if (!parsedData.success) {
+      return NextResponse.json(
+        { error: parsedData.error.errors },
+        { status: 400 }
       );
     }
 
@@ -107,25 +154,47 @@ export async function PUT(
       facebookPage,
       latitude,
       longitude,
-      district, // New field
-      province, // New field
+      district,
+      province,
     } = parsedData.data;
+
+    // Prepare update data with proper typing
+    interface UpdateData {
+      name: string;
+      description: string;
+      phone: string;
+      email: string;
+      address?: string;
+      facebookPage?: string;
+      latitude: number;
+      longitude: number;
+      district?: string;
+      province?: string;
+      logoImage?: string;
+    }
+
+    const updateData: UpdateData = {
+      name,
+      description,
+      phone,
+      email,
+      address,
+      facebookPage,
+      latitude,
+      longitude,
+      district,
+      province,
+    };
+
+    // Only update logoImage if a new one was uploaded
+    if (logoImageUrl) {
+      updateData.logoImage = logoImageUrl;
+    }
 
     // Update the organization with new fields
     const updatedOrganization = await prisma.organization.update({
       where: { id },
-      data: {
-        name,
-        description,
-        phone,
-        email,
-        address,
-        facebookPage,
-        latitude,
-        longitude,
-        district, // Include new field
-        province, // Include new field
-      },
+      data: updateData,
     });
 
     return NextResponse.json(updatedOrganization);
@@ -169,7 +238,7 @@ export async function DELETE(
       );
     }
 
-    // Check if organization has any courses or users
+    // Check if organization has any courses or user
     if (
       existingOrganization.courses.length > 0 ||
       existingOrganization.users.length > 0
@@ -192,74 +261,6 @@ export async function DELETE(
     console.error("Error deleting organization:", error);
     return NextResponse.json(
       { error: "Failed to delete organization" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    // Get current session to check permissions
-    const session = await auth();
-
-    // Only platform admins can create organizations
-    if (!session || session.user.role !== "PLATFORM_ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    }
-
-    console.log("Starting organization creation...");
-    const body = await request.json();
-    console.log("Organization creation request body:", body);
-
-    const parsedData = organizationSchema.safeParse(body);
-
-    if (!parsedData.success) {
-      console.log("Validation errors:", parsedData.error.errors);
-      return NextResponse.json(
-        { error: parsedData.error.errors },
-        { status: 400 }
-      );
-    }
-
-    const {
-      name,
-      description,
-      phone,
-      email,
-      address,
-      facebookPage,
-      latitude,
-      longitude,
-      district, // New field
-      province, // New field
-    } = parsedData.data;
-
-    console.log("Creating organization with data:", parsedData.data);
-
-    // Create the organization with new fields
-    const organization = await prisma.organization.create({
-      data: {
-        name,
-        description,
-        phone,
-        email,
-        address,
-        facebookPage,
-        latitude,
-        longitude,
-        district, // Include new field
-        province, // Include new field
-      },
-    });
-
-    console.log("Organization created successfully:", organization);
-    return NextResponse.json(organization, { status: 201 });
-  } catch (error) {
-    console.error("Error creating organization:", error);
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json(
-      { error: "Failed to create organization", details: errorMessage },
       { status: 500 }
     );
   }

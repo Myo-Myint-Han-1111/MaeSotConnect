@@ -22,6 +22,7 @@ export interface CourseCardProps {
   titleMm: string | null;
   subtitle: string;
   subtitleMm: string | null;
+
   // Note: These are now formatted strings, not the raw database types
 
   startDate: string;
@@ -32,8 +33,8 @@ export interface CourseCardProps {
   logoImage?: string | null;
   duration: string;
   durationMm: string | null;
-  schedule: string;
-  scheduleMm: string | null;
+  // schedule: string;
+  // scheduleMm: string | null;
   fee?: string;
   feeMm?: string | null;
   availableDays: boolean[];
@@ -79,8 +80,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   applyByDateMm,
   duration,
   durationMm,
-  schedule,
-  scheduleMm,
+  // schedule,
+  // scheduleMm,
   fee,
   feeMm,
   organizationInfo,
@@ -153,12 +154,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({
               : undefined
           }
           duration={getLocalizedContent(duration, durationMm)}
-          schedule={getLocalizedContent(schedule, scheduleMm)}
           fee={fee ? getLocalizedContent(fee, feeMm || null) : undefined}
           compact={true}
-          showDescriptions={true} // Added this new prop
-          // TODO: Ko Myo - Add this line when applyByDate is implemented
-          // applyByDate={applyByDate ? getLocalizedContent(applyByDate, applyByDateMm) : undefined}
+          showDescriptions={true}
         />
 
         {/* <div className="ml-6">

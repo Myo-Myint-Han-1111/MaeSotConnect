@@ -139,23 +139,31 @@
   .hero-gradient {
     padding: 2rem 1rem 3rem;
   }
-  
+
   .search-container {
     margin-top: -1.5rem;
   }
 }
 
-/* Course grid masonry */
+/* Course grid masonry - ONLY add align-items: stretch */
 .course-grid-flex {
   display: flex;
   flex-wrap: wrap;
   gap: 1.5rem;
-  align-items: flex-start; /* This creates the "tiling" effect you want */
+  align-items: stretch; /* ADD THIS LINE ONLY - makes all cards same height */
 }
 
 .course-card-flex {
   flex: 0 0 100%; /* Full width on mobile */
   max-width: 100%;
+  display: flex; /* ADD THIS LINE */
+}
+
+/* Make the card itself fill the flex container height */
+.course-card-flex .course-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 @media (min-width: 768px) {

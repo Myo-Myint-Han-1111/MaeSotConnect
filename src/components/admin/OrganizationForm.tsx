@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { X } from "lucide-react"; // ADD THIS IMPORT
+import Image from "next/image"; // ADD THIS IMPORT
 
 interface OrganizationFormProps {
   initialData?: {
@@ -27,8 +29,9 @@ interface OrganizationFormProps {
     facebookPage?: string;
     latitude: number;
     longitude: number;
-    district?: string; // Added new field
-    province?: string; // Added new field
+    district?: string;
+    province?: string;
+    logoImage?: string;
   };
   mode: "create" | "edit";
 }
@@ -40,6 +43,10 @@ export default function OrganizationForm({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [logoImage, setLogoImage] = useState<File | null>(null);
+  const [existingLogo, setExistingLogo] = useState<string | null>(
+    initialData?.logoImage || null
+  );
 
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
@@ -50,8 +57,8 @@ export default function OrganizationForm({
     facebookPage: initialData?.facebookPage || "",
     latitude: initialData?.latitude || 0,
     longitude: initialData?.longitude || 0,
-    district: initialData?.district || "", // Added new field
-    province: initialData?.province || "", // Added new field
+    district: initialData?.district || "",
+    province: initialData?.province || "",
   });
 
   const handleChange = (
@@ -70,71 +77,120 @@ export default function OrganizationForm({
     setError(null);
 
     try {
-      // Add more detailed logging
       console.log("Form data before submission:", formData);
       console.log("Latitude (type):", typeof formData.latitude);
       console.log("Longitude (type):", typeof formData.longitude);
 
-      // Ensure latitude and longitude are numbers
-      const dataToSubmit = {
-        ...formData,
-        latitude: Number(formData.latitude),
-        longitude: Number(formData.longitude),
-      };
+      // Determine if we need to use FormData (for file upload) or JSON
+      const hasFileUpload = logoImage !== null;
 
-      console.log("Data to submit:", dataToSubmit);
+      if (hasFileUpload) {
+        // Use FormData for file upload
+        const formDataToSend = new FormData();
 
-      const url =
-        mode === "create"
-          ? "/api/organizations"
-          : `/api/organizations/${initialData?.id}`;
+        // Add organization data
+        const organizationData = {
+          name: formData.name,
+          description: formData.description,
+          phone: formData.phone,
+          email: formData.email,
+          address: formData.address,
+          facebookPage: formData.facebookPage,
+          latitude: Number(formData.latitude),
+          longitude: Number(formData.longitude),
+          district: formData.district,
+          province: formData.province,
+        };
 
-      const method = mode === "create" ? "POST" : "PUT";
+        formDataToSend.append("data", JSON.stringify(organizationData));
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(dataToSubmit),
-      });
+        // Add logo image
+        if (logoImage) {
+          formDataToSend.append("logoImage", logoImage);
+        }
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Error response:", errorData);
+        const url =
+          mode === "create"
+            ? "/api/organizations"
+            : `/api/organizations/${initialData?.id}`;
+        const method = mode === "create" ? "POST" : "PUT";
 
-        // Better error handling for Zod validation errors
-        if (errorData.details && typeof errorData.details === "object") {
-          const fieldErrors: string[] = [];
+        const response = await fetch(url, {
+          method,
+          body: formDataToSend, // Use FormData
+        });
 
-          // Extract field errors from the nested Zod format
-          for (const [field, error] of Object.entries(errorData.details)) {
-            // Type guard to check if it's an array with _errors property
-            if (
-              field === "_errors" &&
-              Array.isArray(error) &&
-              error.length > 0
-            ) {
-              fieldErrors.push(error.join(", "));
-            } else if (error !== null && typeof error === "object") {
-              // Create a more specific type for Zod errors
-              type ZodErrorObject = { _errors?: string[] };
-              const zodError = error as ZodErrorObject;
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(
+            errorData.error ||
+              errorData.details ||
+              "Failed to save organization"
+          );
+        }
+      } else {
+        // Use JSON for non-file requests (backward compatibility)
+        const dataToSubmit = {
+          ...formData,
+          latitude: Number(formData.latitude),
+          longitude: Number(formData.longitude),
+        };
 
-              if (zodError._errors && Array.isArray(zodError._errors)) {
-                fieldErrors.push(`${field}: ${zodError._errors.join(", ")}`);
+        console.log("Data to submit:", dataToSubmit);
+
+        const url =
+          mode === "create"
+            ? "/api/organizations"
+            : `/api/organizations/${initialData?.id}`;
+        const method = mode === "create" ? "POST" : "PUT";
+
+        const response = await fetch(url, {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dataToSubmit),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Error response:", errorData);
+
+          // Better error handling for Zod validation errors
+          if (errorData.details && typeof errorData.details === "object") {
+            const fieldErrors: string[] = [];
+
+            // Extract field errors from the nested Zod format
+            for (const [field, error] of Object.entries(errorData.details)) {
+              // Type guard to check if it's an array with _errors property
+              if (
+                field === "_errors" &&
+                Array.isArray(error) &&
+                error.length > 0
+              ) {
+                fieldErrors.push(error.join(", "));
+              } else if (error !== null && typeof error === "object") {
+                // Create a more specific type for Zod errors
+                type ZodErrorObject = { _errors?: string[] };
+                const zodError = error as ZodErrorObject;
+
+                if (zodError._errors && Array.isArray(zodError._errors)) {
+                  fieldErrors.push(`${field}: ${zodError._errors.join(", ")}`);
+                }
               }
+            }
+
+            if (fieldErrors.length > 0) {
+              throw new Error(fieldErrors.join("; "));
             }
           }
 
-          if (fieldErrors.length > 0) {
-            throw new Error(fieldErrors.join("; "));
-          }
+          throw new Error(
+            errorData.error ||
+              errorData.details ||
+              "Failed to save organization"
+          );
         }
-
-        throw new Error(
-          errorData.error || errorData.details || "Failed to save organization"
-        );
       }
 
       router.push("/admin/organizations");
@@ -219,7 +275,6 @@ export default function OrganizationForm({
               name="address"
               value={formData.address}
               onChange={handleChange}
-              // REMOVE required attribute
               placeholder="Organization address (optional)"
             />
           </div>
@@ -232,6 +287,75 @@ export default function OrganizationForm({
               value={formData.facebookPage}
               onChange={handleChange}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="logoImage">Organization Logo (Optional)</Label>
+
+            {existingLogo && !logoImage && (
+              <div className="mb-4">
+                <p className="text-sm text-muted-foreground mb-2">
+                  Current Logo:
+                </p>
+                <div className="relative inline-block">
+                  <Image
+                    src={existingLogo}
+                    alt="Current organization logo"
+                    width={128}
+                    height={128}
+                    className="object-cover rounded-md border"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-1 right-1"
+                    onClick={() => setExistingLogo(null)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {logoImage && (
+              <div className="mb-4">
+                <p className="text-sm text-muted-foreground mb-2">
+                  New Logo Preview:
+                </p>
+                <div className="relative inline-block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={URL.createObjectURL(logoImage)}
+                    alt="New organization logo"
+                    width={128}
+                    height={128}
+                    className="object-cover rounded-md border"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-1 right-1"
+                    onClick={() => setLogoImage(null)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <Input
+              id="logoImage"
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                setLogoImage(e.target.files?.[0] || null);
+              }}
+            />
+            <p className="text-xs text-muted-foreground">
+              PNG, JPG, or WebP format recommended
+            </p>
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">

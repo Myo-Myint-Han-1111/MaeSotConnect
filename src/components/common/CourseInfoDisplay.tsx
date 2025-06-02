@@ -5,7 +5,7 @@ import {
   MapPin,
   Calendar,
   Clock,
-  BookOpen,
+  // BookOpen,
   HandCoins,
   CalendarCheck,
 } from "lucide-react";
@@ -15,7 +15,7 @@ interface CourseInfoDisplayProps {
   location: string;
   startDate: string;
   duration: string;
-  schedule: string;
+  // schedule: string;
   applyByDate?: string;
   courseAddress?: string;
   fee?: string;
@@ -29,7 +29,7 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
   location,
   startDate,
   duration,
-  schedule,
+  // schedule,
   fee,
   compact = false,
   showDescriptions = true, // Default to true for better UX
@@ -208,7 +208,7 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
       )}
 
       {/* Schedule - With description */}
-      <div className={itemClass} style={{ color: grayColor }}>
+      {/* <div className={itemClass} style={{ color: grayColor }}>
         <BookOpen className={iconClass} style={{ color: grayColor }} />
         <div className="flex-1 min-w-0">
           {!compact && (
@@ -229,7 +229,7 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
             {schedule}
           </p>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

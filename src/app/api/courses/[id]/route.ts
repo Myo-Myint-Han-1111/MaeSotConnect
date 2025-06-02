@@ -6,49 +6,42 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { saveFile } from "@/lib/upload";
 
-// Input validation schema updated to match the new Prisma schema
+// Add this courseSchema after the imports
 const courseSchema = z.object({
   title: z.string().min(2),
-  titleMm: z.string().optional(),
+  titleMm: z.string().optional().nullable(),
   subtitle: z.string().min(2),
-  subtitleMm: z.string().optional(),
-  province: z.string().optional(),
-  district: z.string().optional(),
-  address: z.string().optional(),
+  subtitleMm: z.string().optional().nullable(),
+  province: z.string().optional().nullable(),
+  district: z.string().optional().nullable(),
+  address: z.string().optional().nullable(),
   applyByDate: z
     .string()
     .optional()
     .nullable()
-    .transform((val) => (val ? new Date(val) : null)),
+    .transform((val) => (val && val.trim() !== "" ? new Date(val) : null)),
   applyByDateMm: z
     .string()
     .optional()
     .nullable()
-    .transform((val) => (val ? new Date(val) : null)),
-  logoImage: z.string().optional().nullable(),
+    .transform((val) => (val && val.trim() !== "" ? new Date(val) : null)),
   startDate: z.coerce.date(),
-  startDateMm: z.coerce.date().optional(),
   endDate: z.coerce.date(),
-  endDateMm: z.coerce.date().optional(),
   duration: z.number().int().positive(),
-  durationMm: z.number().int().positive().optional(),
   schedule: z.string().min(2),
-  scheduleMm: z.string().optional(),
+  scheduleMm: z.string().optional().nullable(),
   feeAmount: z.number().nonnegative(),
-  feeAmountMm: z.number().int().nonnegative().optional(),
   ageMin: z.number().int().nonnegative(),
-  ageMinMm: z.number().int().nonnegative().optional(),
   ageMax: z.number().int().positive(),
-  ageMaxMm: z.number().int().positive().optional(),
   document: z.string(),
-  documentMm: z.string().optional(),
+  documentMm: z.string().optional().nullable(),
   availableDays: z.array(z.boolean()).length(7),
-  description: z.string().optional(),
-  descriptionMm: z.string().optional(),
+  description: z.string().optional().nullable(),
+  descriptionMm: z.string().optional().nullable(),
   outcomes: z.array(z.string()),
   outcomesMm: z.array(z.string()).optional(),
-  scheduleDetails: z.string().optional(),
-  scheduleDetailsMm: z.string().optional(),
+  scheduleDetails: z.string().optional().nullable(),
+  scheduleDetailsMm: z.string().optional().nullable(),
   selectionCriteria: z.array(z.string()),
   selectionCriteriaMm: z.array(z.string()).optional(),
   organizationId: z.string(),
@@ -62,9 +55,9 @@ const courseSchema = z.object({
   faq: z.array(
     z.object({
       question: z.string(),
-      questionMm: z.string().optional(),
+      questionMm: z.string().optional().nullable(),
       answer: z.string(),
-      answerMm: z.string().optional(),
+      answerMm: z.string().optional().nullable(),
     })
   ),
 });
@@ -125,7 +118,7 @@ export async function GET(
       applyByDateMm: course.applyByDateMm
         ? course.applyByDateMm.toISOString()
         : null,
-      logoImage: course.logoImage,
+
       // Convert DateTime objects to ISO strings
       startDate: course.startDate.toISOString(),
       startDateMm: null, // No longer exists
@@ -232,16 +225,7 @@ export async function PUT(
     if (!jsonData || typeof jsonData !== "string") {
       return NextResponse.json({ error: "Invalid form data" }, { status: 400 });
     }
-    // Process logo image separately
-    let logoImageUrl: string | null = null;
-    const logoImageFile = formData.get("logoImage");
-    if (logoImageFile && logoImageFile instanceof File) {
-      logoImageUrl = await saveFile(
-        logoImageFile,
-        session.user.organizationId ?? undefined,
-        "logo"
-      );
-    }
+
     // Parse the JSON data
     const parsedData = JSON.parse(jsonData);
 
@@ -250,44 +234,41 @@ export async function PUT(
       ...parsedData,
       // Convert numbers properly with safe integer conversion
       feeAmount: safeInteger(parsedData.feeAmount, 0),
-      feeAmountMm:
-        parsedData.feeAmountMm !== undefined && parsedData.feeAmountMm !== null
-          ? safeInteger(parsedData.feeAmountMm, 0)
-          : undefined,
       duration: safeInteger(parsedData.duration, 1),
-      durationMm:
-        parsedData.durationMm !== undefined && parsedData.durationMm !== null
-          ? safeInteger(parsedData.durationMm, 1)
-          : undefined,
       ageMin: safeInteger(parsedData.ageMin, 0),
       ageMax: safeInteger(parsedData.ageMax, 100),
-      ageMinMm:
-        parsedData.ageMinMm !== undefined && parsedData.ageMinMm !== null
-          ? safeInteger(parsedData.ageMinMm, 0)
-          : undefined,
-      ageMaxMm:
-        parsedData.ageMaxMm !== undefined && parsedData.ageMaxMm !== null
-          ? safeInteger(parsedData.ageMaxMm, 100)
-          : undefined,
 
       // Clean arrays with type safety
       availableDays: Array.isArray(parsedData.availableDays)
-        ? parsedData.availableDays.map(Boolean) // Ensure all values are proper booleans
+        ? parsedData.availableDays.map(Boolean)
         : [false, false, false, false, false, false, false],
       outcomes: filterStringArray(parsedData.outcomes),
       outcomesMm: filterStringArray(parsedData.outcomesMm),
       selectionCriteria: filterStringArray(parsedData.selectionCriteria),
       selectionCriteriaMm: filterStringArray(parsedData.selectionCriteriaMm),
 
-      // Clean string fields
-      titleMm: parsedData.titleMm || undefined,
-      subtitleMm: parsedData.subtitleMm || undefined,
-      scheduleMm: parsedData.scheduleMm || undefined,
-      description: parsedData.description || undefined,
-      descriptionMm: parsedData.descriptionMm || undefined,
-      scheduleDetails: parsedData.scheduleDetails || undefined,
-      scheduleDetailsMm: parsedData.scheduleDetailsMm || undefined,
-      documentMm: parsedData.documentMm || undefined,
+      // Clean string fields - convert null/undefined to null for optional fields
+      titleMm: parsedData.titleMm || null,
+      subtitleMm: parsedData.subtitleMm || null,
+      scheduleMm: parsedData.scheduleMm || null,
+      description: parsedData.description || null,
+      descriptionMm: parsedData.descriptionMm || null,
+      scheduleDetails: parsedData.scheduleDetails || null,
+      scheduleDetailsMm: parsedData.scheduleDetailsMm || null,
+      documentMm: parsedData.documentMm || null,
+      province: parsedData.province || null,
+      district: parsedData.district || null,
+      address: parsedData.address || null,
+
+      // Handle date fields properly
+      applyByDate:
+        parsedData.applyByDate && parsedData.applyByDate.trim() !== ""
+          ? parsedData.applyByDate
+          : null,
+      applyByDateMm:
+        parsedData.applyByDateMm && parsedData.applyByDateMm.trim() !== ""
+          ? parsedData.applyByDateMm
+          : null,
     };
 
     const validationResult = courseSchema.safeParse(cleanedData);
@@ -326,7 +307,7 @@ export async function PUT(
       }
     }
 
-    // Process and save new image files (regular course images) - EXCLUDE logo
+    // Process and save new image files
     const newImageUrls: string[] = [];
     for (const [key, value] of formData.entries()) {
       if (
@@ -342,124 +323,108 @@ export async function PUT(
         newImageUrls.push(imageUrl);
       }
     }
+
     // Combine existing and new image URLs
     const allImageUrls = [...existingImageUrls, ...newImageUrls];
 
-    // Update the course with the new fields
-    const updatedCourse = await prisma.course.update({
-      where: { id },
-      data: {
-        title: validatedData.title,
-        titleMm: validatedData.titleMm || null,
-        subtitle: validatedData.subtitle,
-        subtitleMm: validatedData.subtitleMm || null,
-        address: validatedData.address || null,
-        applyByDate: validatedData.applyByDate || null,
-        applyByDateMm: validatedData.applyByDateMm || null,
-        logoImage: logoImageUrl || validatedData.logoImage || null,
-        // REMOVE location fields, ADD new ones
-        province: validatedData.province,
-        district: validatedData.district,
-        startDate: validatedData.startDate,
-        // REMOVE startDateMm: validatedData.startDateMm || null,
-        endDate: validatedData.endDate,
-        // REMOVE endDateMm: validatedData.endDateMm || null,
-        duration: validatedData.duration,
-        // REMOVE durationMm: validatedData.durationMm || null,
-        schedule: validatedData.schedule,
-        scheduleMm: validatedData.scheduleMm || null,
-        feeAmount: validatedData.feeAmount,
-        // REMOVE feeAmountMm: validatedData.feeAmountMm || null,
-        ageMin: validatedData.ageMin,
-        // REMOVE ageMinMm: validatedData.ageMinMm || null,
-        ageMax: validatedData.ageMax,
-        // REMOVE ageMaxMm: validatedData.ageMaxMm || null,
-        document: validatedData.document,
-        documentMm: validatedData.documentMm || null,
-        availableDays: validatedData.availableDays,
-        description: validatedData.description || null,
-        descriptionMm: validatedData.descriptionMm || null,
-        outcomes: validatedData.outcomes,
-        outcomesMm: validatedData.outcomesMm || [],
-        scheduleDetails: validatedData.scheduleDetails || null,
-        scheduleDetailsMm: validatedData.scheduleDetailsMm || null,
-        selectionCriteria: validatedData.selectionCriteria,
-        selectionCriteriaMm: validatedData.selectionCriteriaMm || [],
-        organizationId: validatedData.organizationId,
-      },
-    });
-
-    // Now update related entities in a separate transaction
-    await prisma.$transaction(async (tx) => {
-      // Delete all existing images and then create new entries for all images
-      await tx.image.deleteMany({
-        where: { courseId: id },
-      });
-
-      // Create entries for all combined images (both kept existing and new)
-      for (const imageUrl of allImageUrls) {
-        await tx.image.create({
+    // Update course and related entities in a SINGLE transaction with increased timeout
+    const result = await prisma.$transaction(
+      async (tx) => {
+        // 1. Update the main course record
+        const updatedCourse = await tx.course.update({
+          where: { id },
           data: {
-            url: imageUrl,
-            courseId: id,
+            title: validatedData.title,
+            titleMm: validatedData.titleMm,
+            subtitle: validatedData.subtitle,
+            subtitleMm: validatedData.subtitleMm,
+            address: validatedData.address,
+            applyByDate: validatedData.applyByDate,
+            applyByDateMm: validatedData.applyByDateMm,
+            province: validatedData.province,
+            district: validatedData.district,
+            startDate: validatedData.startDate,
+            endDate: validatedData.endDate,
+            duration: validatedData.duration,
+            schedule: validatedData.schedule,
+            scheduleMm: validatedData.scheduleMm,
+            feeAmount: validatedData.feeAmount,
+            ageMin: validatedData.ageMin,
+            ageMax: validatedData.ageMax,
+            document: validatedData.document,
+            documentMm: validatedData.documentMm,
+            availableDays: validatedData.availableDays,
+            description: validatedData.description,
+            descriptionMm: validatedData.descriptionMm,
+            outcomes: validatedData.outcomes,
+            outcomesMm: validatedData.outcomesMm,
+            scheduleDetails: validatedData.scheduleDetails,
+            scheduleDetailsMm: validatedData.scheduleDetailsMm,
+            selectionCriteria: validatedData.selectionCriteria,
+            selectionCriteriaMm: validatedData.selectionCriteriaMm,
+            organizationId: validatedData.organizationId,
           },
         });
-      }
 
-      // Update badges - delete old ones and add new ones
-      await tx.badge.deleteMany({
-        where: { courseId: id },
-      });
+        // 2. Handle images
+        await tx.image.deleteMany({ where: { courseId: id } });
 
-      for (const badge of validatedData.badges) {
-        await tx.badge.create({
-          data: {
-            text: badge.text,
-            color: badge.color,
-            backgroundColor: badge.backgroundColor,
-            courseId: id,
-          },
-        });
-      }
+        if (allImageUrls.length > 0) {
+          await tx.image.createMany({
+            data: allImageUrls.map((url) => ({
+              url,
+              courseId: id,
+            })),
+          });
+        }
 
-      // Update FAQs - delete old ones and add new ones
-      await tx.fAQ.deleteMany({
-        where: { courseId: id },
-      });
+        // 3. Handle badges
+        await tx.badge.deleteMany({ where: { courseId: id } });
 
-      for (const faq of validatedData.faq) {
-        if (faq.question && faq.answer) {
-          await tx.fAQ.create({
-            data: {
+        if (validatedData.badges.length > 0) {
+          await tx.badge.createMany({
+            data: validatedData.badges.map((badge) => ({
+              text: badge.text,
+              color: badge.color,
+              backgroundColor: badge.backgroundColor,
+              courseId: id,
+            })),
+          });
+        }
+
+        // 4. Handle FAQs
+        await tx.fAQ.deleteMany({ where: { courseId: id } });
+
+        const validFaqs = validatedData.faq.filter(
+          (faq) => faq.question && faq.answer
+        );
+        if (validFaqs.length > 0) {
+          await tx.fAQ.createMany({
+            data: validFaqs.map((faq) => ({
               question: faq.question,
               questionMm: faq.questionMm || null,
               answer: faq.answer,
               answerMm: faq.answerMm || null,
               courseId: id,
-            },
+            })),
           });
         }
-      }
-    });
 
-    // Format the response to ensure dates and other fields are properly formatted
+        return updatedCourse;
+      },
+      {
+        timeout: 15000, // Increase timeout to 15 seconds
+      }
+    );
+
+    // Format the response to ensure dates are properly formatted
     const formattedCourse = {
-      ...updatedCourse,
-      startDate: updatedCourse.startDate.toISOString(),
-      startDateMm: updatedCourse.startDateMm
-        ? updatedCourse.startDateMm.toISOString()
-        : null,
-      endDate: updatedCourse.endDate.toISOString(),
-      endDateMm: updatedCourse.endDateMm
-        ? updatedCourse.endDateMm.toISOString()
-        : null,
-      // Add empty location fields for backward compatibility
-      location: "",
-      locationMm: null,
-      // Include both new fee fields and backward compatible fields
-      fee: updatedCourse.feeAmount.toString(),
-      feeMm: updatedCourse.feeAmountMm
-        ? updatedCourse.feeAmountMm.toString()
+      ...result,
+      startDate: result.startDate.toISOString(),
+      endDate: result.endDate.toISOString(),
+      applyByDate: result.applyByDate ? result.applyByDate.toISOString() : null,
+      applyByDateMm: result.applyByDateMm
+        ? result.applyByDateMm.toISOString()
         : null,
     };
 

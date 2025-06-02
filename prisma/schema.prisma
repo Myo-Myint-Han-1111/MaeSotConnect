@@ -87,7 +87,7 @@ model Course {
   address               String?   // Course-specific address
   applyByDate           DateTime? // Application deadline
   applyByDateMm         DateTime? // Myanmar version of application deadline
-  logoImage             String?   // Course logo image URL
+  // logoImage field removed - moved to Organization model
   // END NEW FIELDS
   availableDays         Boolean[]
   description           String?
@@ -144,6 +144,7 @@ model Organization {
   facebookPage String?
   latitude     Float
   longitude    Float
+  logoImage    String?  // Moved from Course model
   courses      Course[]
   users        User[]
   district     String?

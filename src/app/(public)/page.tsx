@@ -9,6 +9,13 @@ import { getFontSizeClasses } from "@/lib/font-sizes";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import Link from "next/link";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Updated interface to match new schema
 interface Course {
@@ -22,6 +29,8 @@ interface Course {
   startDateMm: string | null;
   endDate: string; // New field
   endDateMm: string | null; // New field
+  applyByDate?: string | null;
+  applyByDateMm?: string | null;
   // Updated: numeric types for duration
   duration: number;
   durationMm: number | null;
@@ -86,6 +95,16 @@ export default function Home() {
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<string>("default");
+
+  // ADD THESE SORT OPTIONS:
+  const sortOptions = [
+    { value: "default", label: t("sort.default") },
+    { value: "startDate-asc", label: t("sort.startDate.earliest") },
+    { value: "startDate-desc", label: t("sort.startDate.latest") },
+    { value: "applyByDate-asc", label: t("sort.applyByDate.earliest") },
+    { value: "applyByDate-desc", label: t("sort.applyByDate.latest") },
+  ];
 
   // Fetch courses from API
   useEffect(() => {
@@ -221,9 +240,49 @@ export default function Home() {
     []
   );
 
+  // ADD THIS SORT FUNCTION after the enhancedSearch function:
+  const sortCourses = useCallback(
+    (courses: Course[], sortBy: string): Course[] => {
+      if (sortBy === "default") return courses;
+
+      return [...courses].sort((a, b) => {
+        switch (sortBy) {
+          case "startDate-asc":
+            return (
+              new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+            );
+          case "startDate-desc":
+            return (
+              new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+            );
+          case "applyByDate-asc":
+            // Handle cases where applyByDate might be null
+            if (!a.applyByDate && !b.applyByDate) return 0;
+            if (!a.applyByDate) return 1; // Put courses without apply date at the end
+            if (!b.applyByDate) return -1;
+            return (
+              new Date(a.applyByDate).getTime() -
+              new Date(b.applyByDate).getTime()
+            );
+          case "applyByDate-desc":
+            if (!a.applyByDate && !b.applyByDate) return 0;
+            if (!a.applyByDate) return 1;
+            if (!b.applyByDate) return -1;
+            return (
+              new Date(b.applyByDate).getTime() -
+              new Date(a.applyByDate).getTime()
+            );
+          default:
+            return 0;
+        }
+      });
+    },
+    []
+  );
+
   // Filter courses based on search term and active filters
   const filteredCourses = useMemo(() => {
-    return courses.filter((course) => {
+    const filtered = courses.filter((course) => {
       // Search logic
       let matchesSearch = true;
       if (searchTerm !== "") {
@@ -349,7 +408,10 @@ export default function Home() {
 
       return matchesSearch && matchesFilters;
     });
-  }, [searchTerm, activeFilters, courses]);
+
+    // Apply sorting to filtered results
+    return sortCourses(filtered, sortBy);
+  }, [searchTerm, activeFilters, courses, sortBy, sortCourses]);
 
   // Toggle a filter badge
   const toggleFilter = (badge: string) => {
@@ -452,28 +514,47 @@ export default function Home() {
       {/* Search bar positioned to intersect with hero section */}
       <div className="search-container -mt-6 mb-8 relative z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-xl bg-white rounded-lg shadow-lg p-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <Input
-                type="text"
-                placeholder={t("home.search.placeholder")}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                data-language={language}
-                className={`w-full pl-10 py-3 rounded-md border-none focus:ring-2 focus:ring-primary ${getFontSizeClasses(
-                  "bodyRegular",
-                  language
-                )}`}
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  ✕
-                </button>
-              )}
+          <div className="flex flex-col sm:flex-row gap-4 max-w-4xl">
+            {/* Search Input */}
+            <div className="flex-1 bg-white rounded-lg shadow-lg p-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder={t("home.search.placeholder")}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  data-language={language}
+                  className={`w-full pl-10 py-3 rounded-md border-none focus:ring-2 focus:ring-primary ${getFontSizeClasses(
+                    "bodyRegular",
+                    language
+                  )}`}
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="w-full sm:w-64 bg-white rounded-lg shadow-lg">
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-full h-12 border-none focus:ring-2 focus:ring-primary rounded-md">
+                  <SelectValue placeholder={t("sort.placeholder")} />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {sortOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -559,8 +640,6 @@ export default function Home() {
                     titleMm={course.titleMm || null}
                     subtitle={course.subtitle}
                     subtitleMm={course.subtitleMm || null}
-                    
-                    
                     startDate={formatDate(course.startDate)}
                     startDateMm={
                       course.startDateMm ? formatDate(course.startDateMm) : null
@@ -571,8 +650,18 @@ export default function Home() {
                         ? formatDuration(course.durationMm)
                         : null
                     }
-                    schedule={course.schedule}
-                    scheduleMm={course.scheduleMm || null}
+                    // schedule={course.schedule}
+                    // scheduleMm={course.scheduleMm || null}
+                    applyByDate={
+                      course.applyByDate
+                        ? formatDate(course.applyByDate)
+                        : undefined
+                    }
+                    applyByDateMm={
+                      course.applyByDateMm
+                        ? formatDate(course.applyByDateMm)
+                        : undefined
+                    }
                     fee={
                       course.feeAmount ? formatFee(course.feeAmount) : undefined
                     }

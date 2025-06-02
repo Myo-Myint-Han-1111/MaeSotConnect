@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+// Add this import if not already present
+import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -92,6 +94,7 @@ interface CourseDetail {
     province?: string;
     latitude: number;
     longitude: number;
+    logoImage?: string;
   };
 }
 
@@ -690,23 +693,48 @@ export default function CourseDetailPage() {
             </h2>
             <Card>
               <CardContent className="pt-6">
-                <h3 className="text-xl font-semibold mb-2">
-                  {course.organizationInfo.name}
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  {course.organizationInfo.description}
-                </p>
-                <div className="space-y-3">
+                {/* Organization Name and Logo Row */}
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-xl font-semibold mb-0">
+                      {course.organizationInfo.name}
+                    </h3>
+                  </div>
+                  {/* Logo - Always on the right */}
+                  {course.organizationInfo.logoImage && (
+                    <div className="flex-shrink-0">
+                      <Image
+                        src={course.organizationInfo.logoImage}
+                        alt={`${course.organizationInfo.name} logo`}
+                        width={160}
+                        height={160}
+                        className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-contain rounded-lg border border-gray-200 bg-white p-1 sm:p-2"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Description - Same vertical spacing as other items */}
+                <div className="mb-4">
+                  <p className="text-muted-foreground">
+                    {course.organizationInfo.description}
+                  </p>
+                </div>
+
+                {/* Contact Information */}
+                <div className="space-y-4">
                   <div className="flex items-center">
                     <PhoneCall className="h-5 w-5 mr-3 text-primary flex-shrink-0" />
-                    <span>{course.organizationInfo.phone}</span>
+                    <span className="break-all">
+                      {course.organizationInfo.phone}
+                    </span>
                   </div>
 
                   <div className="flex items-center">
                     <Mail className="h-5 w-5 mr-3 text-primary flex-shrink-0" />
                     <Link
                       href={`mailto:${course.organizationInfo.email}`}
-                      className="text-primary hover:underline"
+                      className="text-primary hover:underline break-all"
                     >
                       {course.organizationInfo.email}
                     </Link>
@@ -719,7 +747,7 @@ export default function CourseDetailPage() {
                         href={course.organizationInfo.facebookPage}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-primary hover:underline"
+                        className="text-primary hover:underline break-all"
                       >
                         {t("course.facebook")}
                       </Link>
@@ -728,16 +756,14 @@ export default function CourseDetailPage() {
 
                   <div className="flex items-start">
                     <MapPin className="h-5 w-5 mr-3 text-primary flex-shrink-0 mt-0.5" />
-                    <div>
-                      <div className="text-muted-foreground">
-                        {course.organizationInfo?.address ||
-                          (course.organizationInfo?.district &&
-                          course.organizationInfo?.province
-                            ? `${course.organizationInfo.district}, ${course.organizationInfo.province}`
-                            : course.organizationInfo?.district ||
-                              course.organizationInfo?.province ||
-                              "Location information not available")}
-                      </div>
+                    <div className="text-muted-foreground break-words">
+                      {course.organizationInfo?.address ||
+                        (course.organizationInfo?.district &&
+                        course.organizationInfo?.province
+                          ? `${course.organizationInfo.district}, ${course.organizationInfo.province}`
+                          : course.organizationInfo?.district ||
+                            course.organizationInfo?.province ||
+                            "Location information not available")}
                     </div>
                   </div>
                 </div>

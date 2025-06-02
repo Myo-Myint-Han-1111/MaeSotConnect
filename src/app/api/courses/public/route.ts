@@ -22,6 +22,9 @@ export async function GET(request: NextRequest) {
         province: true, // New field
         district: true, // New field
         schedule: true,
+        address: true, // ADD THIS LINE
+        applyByDate: true, // ADD THIS LINE
+        applyByDateMm: true, // ADD THIS LINE
         scheduleMm: true,
         // fee/feeMm fields are replaced with feeAmount/feeAmountMm
         feeAmount: true, // New field
@@ -54,6 +57,7 @@ export async function GET(request: NextRequest) {
             longitude: true,
             district: true, // New field
             province: true, // New field
+            logoImage: true,
           },
         },
         images: {
@@ -92,6 +96,10 @@ export async function GET(request: NextRequest) {
       startDateMm: course.startDateMm ? course.startDateMm.toISOString() : null,
       endDate: course.endDate.toISOString(),
       endDateMm: course.endDateMm ? course.endDateMm.toISOString() : null,
+      applyByDate: course.applyByDate ? course.applyByDate.toISOString() : null, // ADD THIS LINE
+      applyByDateMm: course.applyByDateMm
+        ? course.applyByDateMm.toISOString()
+        : null, // ADD THIS LINE
       // Build location from organization address + course province/district
       location:
         [course.organizationInfo?.address, course.district, course.province]
