@@ -39,7 +39,6 @@ export const translations = {
     // Navbar
     "nav.home": "Home",
     "nav.about": "About Us",
-    "nav.contact": "Contact Us",
     "nav.language": "ENG | MM",
 
     // Home page
@@ -132,23 +131,6 @@ export const translations = {
     "about.mission.p2":
       "Founded with a clear vision of connecting businesses and communities, we've grown steadily while maintaining our commitment to personalized service and attention to detail.",
     "about.team.title": "Meet Our Team",
-    "about.contact.title": "Get in Touch",
-    "about.contact.text":
-      "Interested in learning more about our company or services? We'd love to hear from you!",
-    "about.contact.button": "Contact Us",
-
-    // Contact page
-    "contact.title": "Contact Us",
-    "contact.subtitle": "We'd love to hear from you",
-    "contact.phone.title": "Phone",
-    "contact.phone.text": "Call us during business hours",
-    "contact.email.title": "Email",
-    "contact.email.text": "We'll respond as soon as possible",
-    "contact.facebook.title": "Facebook",
-    "contact.facebook.text": "Follow us for updates",
-    "contact.location.title": "Our Location",
-    "course.facebook": "Visit our Facebook page",
-    "contact.location.maptext": "Map of our location in Mae Sot",
 
     // Add these sort translations:
     "sort.default": "Default Order",
@@ -164,7 +146,6 @@ export const translations = {
     // Navbar
     "nav.home": "ပင်မစာမျက်နှာ",
     "nav.about": "ကျွန်ုပ်တို့အကြောင်း",
-    "nav.contact": "ဆက်သွယ်ရန်",
     "nav.language": "အင်္ဂလိပ် | မြန်မာ",
 
     // Home page
@@ -257,23 +238,6 @@ export const translations = {
     "about.mission.p2":
       "စီးပွားရေးလုပ်ငန်းများနှင့် အသိုင်းအဝိုင်းများကို ချိတ်ဆက်ပေးရန် ရှင်းလင်းသော ရူပါရုံဖြင့် တည်ထောင်ခဲ့ပြီး၊ ကျွန်ုပ်တို့သည် တစ်ဦးချင်းအလိုက် ဝန်ဆောင်မှုနှင့် အသေးစိတ်အချက်များကို အာရုံစိုက်ခြင်းအပေါ် ကတိကဝတ်ကို ထိန်းသိမ်းထားပါသည်။",
     "about.team.title": "ကျွန်ုပ်တို့၏အဖွဲ့နှင့် တွေ့ဆုံပါ",
-    "about.contact.title": "ဆက်သွယ်ရန်",
-    "about.contact.text":
-      "ကျွန်ုပ်တို့ကုမ္ပဏီ သို့မဟုတ် ဝန်ဆောင်မှုများအကြောင်း ပိုမိုလေ့လာလိုပါသလား။ သင့်ထံမှ ကြားလိုပါသည်!",
-    "about.contact.button": "ဆက်သွယ်ရန်",
-
-    // Contact page
-    "contact.title": "ဆက်သွယ်ရန်",
-    "contact.subtitle": "သင့်ထံမှ ကြားလိုပါသည်",
-    "contact.phone.title": "ဖုန်း",
-    "contact.phone.text": "လုပ်ငန်းချိန်အတွင်း ဖုန်းခေါ်ဆိုပါ",
-    "contact.email.title": "အီးမေးလ်",
-    "contact.email.text":
-      "ကျွန်ုပ်တို့ တတ်နိုင်သမျှ မြန်ဆန်စွာ ပြန်ကြားပေးပါမည်",
-    "contact.facebook.title": "ဖေ့စ်ဘွတ်ခ်",
-    "contact.facebook.text": "နောက်ဆုံးရ အချက်အလက်များအတွက် Follow လုပ်ပါ",
-    "contact.location.title": "ကျွန်ုပ်တို့၏တည်နေရာ",
-    "contact.location.maptext": "မဲဆောက်မြို့ရှိ ကျွန်ုပ်တို့တည်နေရာ မြေပုံ",
 
     // Add these sort translations:
     "sort.default": "ပုံမှန်အစီအစဉ်",

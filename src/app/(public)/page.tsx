@@ -731,12 +731,6 @@ export default function Home() {
               >
                 {t("nav.about")}
               </Link>
-              <Link
-                href="/contact"
-                className="text-gray-600 hover:text-primary transition-colors text-sm"
-              >
-                {t("nav.contact")}
-              </Link>
             </nav>
           </div>
 
