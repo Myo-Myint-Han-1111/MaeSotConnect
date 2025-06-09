@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-// Add this import if not already present
+import React from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
 import { Button } from "@/components/ui/button";
@@ -43,7 +42,6 @@ interface CourseDetail {
   subtitleMm?: string;
   location: string;
   locationMm?: string;
-  // ADD the missing province and district fields
   province?: string;
   district?: string;
   startDate: string;
@@ -98,13 +96,13 @@ interface CourseDetail {
   };
 }
 
-export default function CourseDetailPage() {
-  const { id } = useParams<{ id: string }>();
+interface CourseDetailComponentProps {
+  course: CourseDetail;
+}
+
+export default function CourseDetailComponent({ course }: CourseDetailComponentProps) {
   const router = useRouter();
   const { t, language } = useLanguage();
-  const [course, setCourse] = useState<CourseDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Date formatting function to convert to DD/MM/YYYY format
   const formatDateToDDMMYYYY = (dateString: string): string => {
@@ -260,58 +258,6 @@ export default function CourseDetailPage() {
 
     return "";
   };
-
-  useEffect(() => {
-    async function fetchCourse() {
-      try {
-        const response = await fetch(`/api/courses/${id}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch course");
-        }
-        const data = await response.json();
-        setCourse(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load course");
-        console.error("Error fetching course:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (id) {
-      fetchCourse();
-    }
-  }, [id]);
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [id]);
-
-  if (loading) {
-    return (
-      <div className="content py-20">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex justify-center items-center h-64">
-            <div className="h-16 w-16 border-t-4 border-primary border-solid rounded-full animate-spin"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !course) {
-    return (
-      <div className="content py-20">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <h1 className="text-3xl font-bold mb-4">{t("course.notfound")}</h1>
-          <Button onClick={() => router.push("/")}>
-            <ChevronLeft className="mr-2 h-4 w-4" />
-            {t("course.back")}
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="content mt-20">

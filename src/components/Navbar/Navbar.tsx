@@ -33,7 +33,6 @@ export const Navbar: React.FC<NavbarProps> = ({ brand }) => {
   // Check if we're on a page that needs the dark navbar style
   const isAlternateStyle =
     pathname.startsWith("/about") ||
-    pathname.startsWith("/contact") ||
     pathname.startsWith("/courses/");
 
   const changeLanguage = (value: string) => {
