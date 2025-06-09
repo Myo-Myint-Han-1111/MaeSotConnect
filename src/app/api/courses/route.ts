@@ -4,6 +4,8 @@ import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { saveFile } from "@/lib/upload";
+import { generateCourseSlug, ensureUniqueSlug } from '@/lib/slugs';
+
 
 // Update the Zod schema:
 const courseSchema = z.object({
@@ -333,9 +335,26 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Get organization name for slug generation
+    let orgName: string | undefined;
+    if (validatedData.organizationId) {
+      const org = await prisma.organization.findUnique({
+        where: { id: validatedData.organizationId },
+        select: { name: true }
+      });
+      orgName = org?.name;
+    }
+
+    // Generate initial base slug (without course ID)
+    const initialBaseSlug = generateCourseSlug(
+      validatedData.title,
+      orgName,
+      undefined // No course ID yet
+    );
+
     // Create the course with all related entities in a transaction
     const course = await prisma.$transaction(async (tx) => {
-      // Create the course with the new field structure
+      // Create the course with the new field structure and temporary slug
       const newCourse = await tx.course.create({
         data: {
           title: validatedData.title,
@@ -363,7 +382,6 @@ export async function POST(request: NextRequest) {
           address: validatedData.address || null,
           applyByDate: validatedData.applyByDate || null,
           applyByDateMm: validatedData.applyByDateMm || null,
-
           availableDays: validatedData.availableDays,
           description: validatedData.description || null,
           descriptionMm: validatedData.descriptionMm || null,
@@ -374,8 +392,33 @@ export async function POST(request: NextRequest) {
           selectionCriteria: validatedData.selectionCriteria,
           selectionCriteriaMm: validatedData.selectionCriteriaMm || [],
           organizationId: validatedData.organizationId || null,
+          // Add temporary slug initially
+          slug: `${initialBaseSlug}-temp-${Date.now()}`, // Temporary unique slug
         },
       });
+
+      // Generate final slug with course ID
+      const finalBaseSlug = generateCourseSlug(
+        validatedData.title,
+        orgName,
+        newCourse.id
+      );
+
+      // Ensure slug uniqueness
+      const finalSlug = await ensureUniqueSlug(
+        finalBaseSlug,
+        async (slug) => {
+          const existing = await tx.course.findUnique({ where: { slug } });
+          return !!existing;
+        }
+      );
+
+      // Update course with final slug
+      const updatedCourse = await tx.course.update({
+        where: { id: newCourse.id },
+        data: { slug: finalSlug },
+      });
+      
       // Create images
       for (const imageUrl of imageUrls) {
         await tx.image.create({
@@ -413,7 +456,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      return newCourse;
+      return updatedCourse;
     });
 
     // Format the response to ensure compatibility with the frontend

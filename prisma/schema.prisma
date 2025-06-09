@@ -60,6 +60,7 @@ model VerificationToken {
 
 model Course {
   id                    String    @id @default(cuid())
+  slug                  String    @unique
   title                 String
   titleMm               String?
   subtitle              String
@@ -80,15 +81,11 @@ model Course {
   ageMaxMm              Int?
   document              String
   documentMm            String?
-  // NEW FIELDS ADDED HERE
   province              String?
   district              String?
-  // NEW FIELDS ADDED
   address               String?   // Course-specific address
   applyByDate           DateTime? // Application deadline
   applyByDateMm         DateTime? // Myanmar version of application deadline
-  // logoImage field removed - moved to Organization model
-  // END NEW FIELDS
   availableDays         Boolean[]
   description           String?
   descriptionMm         String?
@@ -136,6 +133,7 @@ model FAQ {
 
 model Organization {
   id           String   @id @default(cuid())
+  slug         String @unique
   name         String
   description  String
   phone        String

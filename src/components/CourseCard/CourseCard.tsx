@@ -13,6 +13,7 @@ import "./CourseCard.css";
 
 export interface CourseCardProps {
   id: string;
+  slug: string;
   images: {
     id: string;
     url: string;
@@ -64,7 +65,8 @@ export interface CourseCardProps {
 }
 
 export const CourseCard: React.FC<CourseCardProps> = ({
-  id,
+  id, // eslint-disable-line @typescript-eslint/no-unused-vars
+  slug,
   images,
   title,
   titleMm,
@@ -93,7 +95,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   const { language } = useLanguage();
 
   const handleNavigation = () => {
-    router.push(`/courses/${id}`);
+    router.push(`/courses/${slug}`);
   };
 
   const handleCarouselClick = (e: React.MouseEvent) => {

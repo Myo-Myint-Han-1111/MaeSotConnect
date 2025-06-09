@@ -20,6 +20,7 @@ import {
 // Updated interface to match new schema
 interface Course {
   id: string;
+  slug: string;
   title: string;
   titleMm: string | null;
   subtitle: string;
@@ -635,6 +636,7 @@ export default function Home() {
                 <div key={course.id} className="course-card-flex">
                   <CourseCard
                     id={course.id}
+                    slug={course.slug}
                     images={course.images}
                     title={course.title}
                     titleMm={course.titleMm || null}

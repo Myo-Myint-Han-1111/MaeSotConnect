@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { saveFile } from "@/lib/upload";
+import { generateCourseSlug, ensureUniqueSlug } from "@/lib/slugs";
 
 // Add this courseSchema after the imports
 const courseSchema = z.object({
@@ -85,11 +86,17 @@ export async function GET(
 ) {
   // Wait for params to be fully resolved
   const resolvedParams = await Promise.resolve(params);
-  const id = resolvedParams.id;
+  const idOrSlug = resolvedParams.id;
 
   try {
-    const course = await prisma.course.findUnique({
-      where: { id },
+    // Try to find course by slug first, then by ID
+    const course = await prisma.course.findFirst({
+      where: {
+        OR: [
+          { slug: idOrSlug },
+          { id: idOrSlug }
+        ],
+      },
       include: {
         images: true,
         badges: true,
@@ -327,10 +334,41 @@ export async function PUT(
     // Combine existing and new image URLs
     const allImageUrls = [...existingImageUrls, ...newImageUrls];
 
+    // Get organization name for slug generation
+    let orgName: string | undefined;
+    if (validatedData.organizationId) {
+      const org = await prisma.organization.findUnique({
+        where: { id: validatedData.organizationId },
+        select: { name: true }
+      });
+      orgName = org?.name;
+    }
+
+    // Generate new slug with course ID
+    const newBaseSlug = generateCourseSlug(
+      validatedData.title,
+      orgName,
+      id
+    );
+
+    // Ensure slug uniqueness (exclude current course from check)
+    const newSlug = await ensureUniqueSlug(
+      newBaseSlug,
+      async (slug) => {
+        const existing = await prisma.course.findFirst({ 
+          where: { 
+            slug,
+            id: { not: id } // Exclude current course
+          } 
+        });
+        return !!existing;
+      }
+    );
+
     // Update course and related entities in a SINGLE transaction with increased timeout
     const result = await prisma.$transaction(
       async (tx) => {
-        // 1. Update the main course record
+        // 1. Update the main course record with new slug
         const updatedCourse = await tx.course.update({
           where: { id },
           data: {
@@ -363,6 +401,7 @@ export async function PUT(
             selectionCriteria: validatedData.selectionCriteria,
             selectionCriteriaMm: validatedData.selectionCriteriaMm,
             organizationId: validatedData.organizationId,
+            slug: newSlug, // Update slug
           },
         });
 
