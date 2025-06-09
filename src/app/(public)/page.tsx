@@ -542,7 +542,7 @@ export default function Home() {
             </div>
 
             {/* Sort Dropdown */}
-            <div className="w-full sm:w-64 bg-white rounded-lg shadow-lg">
+            <div className="w-full sm:w-64 bg-white rounded-lg shadow-lg border-2 border-gray-400">
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-full h-12 border-none focus:ring-2 focus:ring-primary rounded-md">
                   <SelectValue placeholder={t("sort.placeholder")} />
