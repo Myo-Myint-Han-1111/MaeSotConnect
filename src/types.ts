@@ -66,6 +66,12 @@ export interface Course {
   applyByDate?: string | null; // ISO string format
   applyByDateMm?: string | null;
   logoImage?: string | null;
+  // HOW TO APPLY FIELDS - NEW
+  howToApply?: string[] | null;
+  howToApplyMm?: string[] | null;
+  applyButtonText?: string | null;
+  applyButtonTextMm?: string | null;
+  applyLink?: string | null;
   // END NEW FIELDS
   availableDays: boolean[];
   description?: string | null;

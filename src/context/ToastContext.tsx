@@ -5,6 +5,14 @@ import { Toast } from "@/components/ui/toast";
 
 type ToastVariant = "default" | "success" | "error" | "warning";
 
+interface ToastData {
+  id: string;
+  title: string;
+  description?: string;
+  variant: ToastVariant;
+  duration: number;
+}
+
 interface ToastContextType {
   showToast: (
     title: string,
@@ -17,11 +25,7 @@ interface ToastContextType {
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState<string | undefined>(undefined);
-  const [variant, setVariant] = useState<ToastVariant>("default");
-  const [duration, setDuration] = useState(5000);
+  const [toasts, setToasts] = useState<ToastData[]>([]);
 
   const showToast = (
     title: string,
@@ -29,25 +33,43 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     variant: ToastVariant = "default",
     duration: number = 5000
   ) => {
-    setTitle(title);
-    setDescription(description);
-    setVariant(variant);
-    setDuration(duration);
-    setOpen(true);
+    const id = Math.random().toString(36).substr(2, 9);
+    const newToast: ToastData = {
+      id,
+      title,
+      description,
+      variant,
+      duration,
+    };
+
+    setToasts((prev) => [...prev, newToast]);
+
+    // Auto remove toast after duration
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    }, duration);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
 
   return (
     <ToastContext.Provider value={{ showToast }}>
-      <div>
-        {children}
-        <Toast
-          open={open}
-          onClose={() => setOpen(false)}
-          title={title}
-          description={description}
-          variant={variant}
-          duration={duration}
-        />
+      {children}
+      {/* Render all toasts with unique keys */}
+      <div className="fixed top-4 right-4 z-50 space-y-2">
+        {toasts.map((toast) => (
+          <Toast
+            key={toast.id} // This is the crucial part - unique key for each toast
+            open={true}
+            onClose={() => removeToast(toast.id)}
+            title={toast.title}
+            description={toast.description}
+            variant={toast.variant}
+            duration={toast.duration}
+          />
+        ))}
       </div>
     </ToastContext.Provider>
   );

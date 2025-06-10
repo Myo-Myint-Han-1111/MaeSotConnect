@@ -4,79 +4,99 @@ import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { saveFile } from "@/lib/upload";
-import { generateCourseSlug, ensureUniqueSlug } from '@/lib/slugs';
-
+import { generateCourseSlug, ensureUniqueSlug } from "@/lib/slugs";
 
 // Update the Zod schema:
-const courseSchema = z.object({
-  title: z.string().min(2, "Title must be at least 2 characters"),
-  titleMm: z.string().optional(),
-  subtitle: z.string().min(2, "Subtitle must be at least 2 characters"),
-  subtitleMm: z.string().optional(),
-  startDate: z.string().min(1, "Start date is required").pipe(z.coerce.date()),
-  startDateMm: z
-    .string()
-    .optional()
-    .nullable()
-    .transform((val) => (val ? new Date(val) : null)),
-  endDate: z.string().min(1, "End date is required").pipe(z.coerce.date()),
-  endDateMm: z
-    .string()
-    .optional()
-    .nullable()
-    .transform((val) => (val ? new Date(val) : null)),
-  duration: z.number().int().positive(),
-  durationMm: z.number().int().positive().optional().nullable(),
-  schedule: z.string().min(2, "Schedule must be at least 2 characters"),
-  scheduleMm: z.string().optional(),
-  feeAmount: z.number().nonnegative(), // REMOVED .int()
-  feeAmountMm: z.number().nonnegative().optional().nullable(),
-  ageMin: z.number().int().nonnegative(),
-  ageMinMm: z.number().int().nonnegative().optional().nullable(),
-  ageMax: z.number().int().positive(),
-  ageMaxMm: z.number().int().positive().optional().nullable(),
-  document: z.string(),
-  documentMm: z.string().optional(),
-  province: z.string().optional(),
-  district: z.string().optional(),
-  address: z.string().optional(),
-  applyByDate: z
-    .string()
-    .optional()
-    .nullable()
-    .transform((val) => (val ? new Date(val) : null)),
-  applyByDateMm: z
-    .string()
-    .optional()
-    .nullable()
-    .transform((val) => (val ? new Date(val) : null)),
+const courseSchema = z
+  .object({
+    title: z.string().min(2, "Title must be at least 2 characters"),
+    titleMm: z.string().optional(),
+    subtitle: z.string().min(2, "Subtitle must be at least 2 characters"),
+    subtitleMm: z.string().optional(),
+    startDate: z
+      .string()
+      .min(1, "Start date is required")
+      .pipe(z.coerce.date()),
+    startDateMm: z
+      .string()
+      .optional()
+      .nullable()
+      .transform((val) => (val ? new Date(val) : null)),
+    endDate: z.string().min(1, "End date is required").pipe(z.coerce.date()),
+    endDateMm: z
+      .string()
+      .optional()
+      .nullable()
+      .transform((val) => (val ? new Date(val) : null)),
+    duration: z.number().int().positive(),
+    durationMm: z.number().int().positive().optional().nullable(),
+    schedule: z.string().min(2, "Schedule must be at least 2 characters"),
+    scheduleMm: z.string().optional(),
+    feeAmount: z.number().nonnegative(), // REMOVED .int()
+    feeAmountMm: z.number().nonnegative().optional().nullable(),
+    ageMin: z.number().int().nonnegative(),
+    ageMinMm: z.number().int().nonnegative().optional().nullable(),
+    ageMax: z.number().int().positive(),
+    ageMaxMm: z.number().int().positive().optional().nullable(),
+    document: z.string(),
+    documentMm: z.string().optional(),
+    province: z.string().optional(),
+    district: z.string().optional(),
+    address: z.string().optional(),
+    applyByDate: z
+      .string()
+      .optional()
+      .nullable()
+      .transform((val) => (val ? new Date(val) : null)),
+    applyByDateMm: z
+      .string()
+      .optional()
+      .nullable()
+      .transform((val) => (val ? new Date(val) : null)),
 
-  availableDays: z.array(z.boolean()).length(7, "Must provide 7 days"),
-  description: z.string().optional(),
-  descriptionMm: z.string().optional(),
-  outcomes: z.array(z.string()),
-  outcomesMm: z.array(z.string()).optional(),
-  scheduleDetails: z.string().optional(),
-  scheduleDetailsMm: z.string().optional(),
-  selectionCriteria: z.array(z.string()),
-  selectionCriteriaMm: z.array(z.string()).optional(),
-  organizationId: z.string(),
-  badges: z.array(
-    z.object({
-      text: z.string(),
-      color: z.string(),
-      backgroundColor: z.string(),
-    })
-  ),
-  faq: z.array(
-    z.object({
-      question: z.string(),
-      questionMm: z.string().optional(),
-      answer: z.string(),
-      answerMm: z.string().optional(),
-    })
-  ),
-});
+    availableDays: z.array(z.boolean()).length(7, "Must provide 7 days"),
+    description: z.string().optional(),
+    descriptionMm: z.string().optional(),
+    outcomes: z.array(z.string()),
+    outcomesMm: z.array(z.string()).optional(),
+    scheduleDetails: z.string().optional(),
+    scheduleDetailsMm: z.string().optional(),
+    selectionCriteria: z.array(z.string()),
+    selectionCriteriaMm: z.array(z.string()).optional(),
+    howToApply: z.array(z.string()).optional(),
+    howToApplyMm: z.array(z.string()).optional(),
+    applyButtonText: z.string().optional(),
+    applyButtonTextMm: z.string().optional(),
+    applyLink: z.string().url().optional().or(z.literal("")),
+    organizationId: z.string(),
+    badges: z.array(
+      z.object({
+        text: z.string(),
+        color: z.string(),
+        backgroundColor: z.string(),
+      })
+    ),
+    faq: z.array(
+      z.object({
+        question: z.string(),
+        questionMm: z.string().optional(),
+        answer: z.string(),
+        answerMm: z.string().optional(),
+      })
+    ),
+  })
+
+  .refine(
+    (data) => {
+      // If either applyButtonText or applyButtonTextMm is provided, applyLink must be provided
+      const hasButtonText = data.applyButtonText || data.applyButtonTextMm;
+      return !hasButtonText || (hasButtonText && data.applyLink);
+    },
+    {
+      message: "Apply link is required when apply button text is provided",
+      path: ["applyLink"],
+    }
+  );
 
 export async function GET(request: NextRequest) {
   try {
@@ -253,6 +273,24 @@ export async function POST(request: NextRequest) {
     // Parse and validate the JSON data
     const parsedData = JSON.parse(jsonData);
 
+    // ADD DEBUGGING HERE
+    console.log("Received data:", parsedData);
+    console.log("howToApply received:", parsedData.howToApply);
+    console.log("howToApplyMm received:", parsedData.howToApplyMm);
+
+    // Make sure howToApply fields are arrays
+    if (!Array.isArray(parsedData.howToApply)) {
+      parsedData.howToApply = [];
+    }
+    if (!Array.isArray(parsedData.howToApplyMm)) {
+      parsedData.howToApplyMm = [];
+    }
+
+    console.log("After array check:", {
+      howToApply: parsedData.howToApply,
+      howToApplyMm: parsedData.howToApplyMm,
+    });
+
     // IMPORTANT: Convert fee amounts to integers if they're not already
     if (parsedData.feeAmount !== undefined) {
       parsedData.feeAmount = Math.round(Number(parsedData.feeAmount));
@@ -340,7 +378,7 @@ export async function POST(request: NextRequest) {
     if (validatedData.organizationId) {
       const org = await prisma.organization.findUnique({
         where: { id: validatedData.organizationId },
-        select: { name: true }
+        select: { name: true },
       });
       orgName = org?.name;
     }
@@ -391,11 +429,18 @@ export async function POST(request: NextRequest) {
           scheduleDetailsMm: validatedData.scheduleDetailsMm || null,
           selectionCriteria: validatedData.selectionCriteria,
           selectionCriteriaMm: validatedData.selectionCriteriaMm || [],
+          howToApply: validatedData.howToApply || [],
+          howToApplyMm: validatedData.howToApplyMm || [],
+          applyButtonText: validatedData.applyButtonText || null,
+          applyButtonTextMm: validatedData.applyButtonTextMm || null,
+          applyLink: validatedData.applyLink || null,
           organizationId: validatedData.organizationId || null,
           // Add temporary slug initially
           slug: `${initialBaseSlug}-temp-${Date.now()}`, // Temporary unique slug
         },
       });
+      console.log("Course created with howToApply:", newCourse.howToApply);
+      console.log("Course created with howToApplyMm:", newCourse.howToApplyMm);
 
       // Generate final slug with course ID
       const finalBaseSlug = generateCourseSlug(
@@ -405,20 +450,17 @@ export async function POST(request: NextRequest) {
       );
 
       // Ensure slug uniqueness
-      const finalSlug = await ensureUniqueSlug(
-        finalBaseSlug,
-        async (slug) => {
-          const existing = await tx.course.findUnique({ where: { slug } });
-          return !!existing;
-        }
-      );
+      const finalSlug = await ensureUniqueSlug(finalBaseSlug, async (slug) => {
+        const existing = await tx.course.findUnique({ where: { slug } });
+        return !!existing;
+      });
 
       // Update course with final slug
       const updatedCourse = await tx.course.update({
         where: { id: newCourse.id },
         data: { slug: finalSlug },
       });
-      
+
       // Create images
       for (const imageUrl of imageUrls) {
         await tx.image.create({

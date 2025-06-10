@@ -40,6 +40,11 @@ interface CourseDetail {
   scheduleDetailsMm?: string;
   selectionCriteria?: string[];
   selectionCriteriaMm?: string[];
+  howToApply?: string[];
+  howToApplyMm?: string[];
+  applyButtonText?: string;
+  applyButtonTextMm?: string;
+  applyLink?: string;
   badges: {
     text: string;
     color: string;
@@ -77,15 +82,19 @@ export default function CourseSlugPage() {
     async function fetchCourse() {
       try {
         // Handle slug format
-        const slug = Array.isArray(params.slug) ? params.slug.join('/') : params.slug;
-        
+        const slug = Array.isArray(params.slug)
+          ? params.slug.join("/")
+          : params.slug;
+
         if (!slug) {
           notFound();
           return;
         }
 
         // Fetch course using the slug directly
-        const response = await fetch(`/api/courses/${encodeURIComponent(slug)}`);
+        const response = await fetch(
+          `/api/courses/${encodeURIComponent(slug)}`
+        );
         if (!response.ok) {
           if (response.status === 404) {
             notFound();
@@ -93,7 +102,7 @@ export default function CourseSlugPage() {
           }
           throw new Error("Failed to fetch course");
         }
-        
+
         const data = await response.json();
         setCourse(data);
       } catch (err) {

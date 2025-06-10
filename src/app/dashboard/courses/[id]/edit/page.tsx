@@ -77,6 +77,11 @@ interface CourseResponse {
   scheduleDetailsMm?: string | null;
   selectionCriteria: string[];
   selectionCriteriaMm?: string[] | null;
+  howToApply?: string[] | null;
+  howToApplyMm?: string[] | null;
+  applyButtonText?: string | null;
+  applyButtonTextMm?: string | null;
+  applyLink?: string | null;
   organizationId: string;
   images: string[];
   badges: {
@@ -128,6 +133,8 @@ interface CourseFormData {
   scheduleDetailsMm: string;
   selectionCriteria: string[];
   selectionCriteriaMm: string[];
+  howToApply: string[];
+  howToApplyMm: string[];
   organizationId?: string;
   images: File[];
   badges: {
@@ -243,6 +250,11 @@ export default function EditCoursePage() {
           scheduleDetailsMm: data.scheduleDetailsMm ?? "",
           selectionCriteria: data.selectionCriteria || [""],
           selectionCriteriaMm: data.selectionCriteriaMm ?? [""],
+          howToApply: data.howToApply || [""],
+          howToApplyMm: data.howToApplyMm ?? [""],
+          applyButtonText: data.applyButtonText || "",
+          applyButtonTextMm: data.applyButtonTextMm || "",
+          applyLink: data.applyLink || "",
           organizationId: data.organizationId,
           badges: data.badges || [],
           images: [], // New images will be added here, existing ones are stored separately

@@ -487,6 +487,8 @@ interface CourseDetailProps {
     scheduleDetailsMm?: string | null;
     selectionCriteria?: string[];
     selectionCriteriaMm?: string[] | null;
+    howToApply?: string[] | null;
+    howToApplyMm?: string[] | null;
     badges: {
       text: string;
       color: string;
@@ -517,6 +519,18 @@ interface CourseDetailProps {
     };
   }[];
 }
+
+// Helper function for localized string arrays
+const getLocalizedArray = (
+  enArray: string[] | null | undefined,
+  mmArray: string[] | null | undefined,
+  language: string
+): string[] => {
+  if (language === "mm" && mmArray && mmArray.length > 0) {
+    return mmArray;
+  }
+  return enArray || [];
+};
 
 const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
   const { id } = useParams<{ id: string }>();
@@ -976,6 +990,48 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
                   </AccordionContent>
                 </AccordionItem>
               )}
+            {/* How to Apply Section - FIXED */}
+            {((course.howToApply &&
+              course.howToApply.length > 0 &&
+              course.howToApply.some((step: string) => step.trim() !== "")) ||
+              (course.howToApplyMm &&
+                course.howToApplyMm.length > 0 &&
+                course.howToApplyMm.some(
+                  (step: string) => step.trim() !== ""
+                ))) && (
+              <AccordionItem
+                value="howToApply"
+                className="border rounded-md mb-3 px-4"
+              >
+                <AccordionTrigger className="py-4">
+                  <div className="flex items-center">
+                    <FileText className="h-5 w-5 mr-2 text-primary" />
+                    <span className="text-lg font-semibold">
+                      {language === "mm" ? "လျှောက်ထားပုံ" : "How to Apply"}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pb-4">
+                  <ul className="list-disc pl-5 space-y-2">
+                    {getLocalizedArray(
+                      course.howToApply,
+                      course.howToApplyMm,
+                      language
+                    )
+                      .filter((step: string) => step.trim() !== "") // Filter out empty steps
+                      .map((step: string, index: number) => (
+                        <li
+                          key={index}
+                          className="text-muted-foreground"
+                          dir="auto"
+                        >
+                          {step}
+                        </li>
+                      ))}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            )}
 
             {/* FAQ Section */}
             {course.faq && course.faq.length > 0 && (

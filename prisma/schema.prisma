@@ -29,15 +29,14 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -59,50 +58,54 @@ model VerificationToken {
 }
 
 model Course {
-  id                    String    @id @default(cuid())
-  slug                  String    @unique
-  title                 String
-  titleMm               String?
-  subtitle              String
-  subtitleMm            String?
-  startDate             DateTime
-  startDateMm           DateTime?
-  endDate               DateTime
-  endDateMm             DateTime?
-  duration              Int
-  durationMm            Int?
-  schedule              String
-  scheduleMm            String?
-  feeAmount             Int       @default(0)
-  feeAmountMm           Int?
-  ageMin                Int
-  ageMinMm              Int?
-  ageMax                Int
-  ageMaxMm              Int?
-  document              String
-  documentMm            String?
-  province              String?
-  district              String?
-  address               String?   // Course-specific address
-  applyByDate           DateTime? // Application deadline
-  applyByDateMm         DateTime? // Myanmar version of application deadline
-  availableDays         Boolean[]
-  description           String?
-  descriptionMm         String?
-  outcomes              String[]
-  outcomesMm            String[]
-  scheduleDetails       String?
-  scheduleDetailsMm     String?
-  selectionCriteria     String[]
-  selectionCriteriaMm   String[]
-  organizationId        String?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-
-  organizationInfo      Organization? @relation(fields: [organizationId], references: [id])
-  images                Image[]
-  badges                Badge[]
-  faq                   FAQ[]
+  id                  String        @id @default(cuid())
+  title               String
+  titleMm             String?
+  subtitle            String
+  subtitleMm          String?
+  startDate           DateTime
+  startDateMm         DateTime?
+  endDate             DateTime
+  endDateMm           DateTime?
+  duration            Int
+  durationMm          Int?
+  schedule            String
+  scheduleMm          String?
+  feeAmount           Int           @default(0)
+  feeAmountMm         Int?
+  ageMin              Int
+  ageMinMm            Int?
+  ageMax              Int
+  ageMaxMm            Int?
+  document            String
+  documentMm          String?
+  availableDays       Boolean[]
+  description         String?
+  descriptionMm       String?
+  outcomes            String[]
+  outcomesMm          String[]
+  scheduleDetails     String?
+  scheduleDetailsMm   String?
+  selectionCriteria   String[]
+  selectionCriteriaMm String[]
+  organizationId      String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  district            String?
+  province            String?
+  address             String?
+  applyByDate         DateTime?
+  applyByDateMm       DateTime?
+  slug                String        @unique
+  howToApply          String[]      @default([])
+  howToApplyMm        String[]      @default([])
+  applyButtonText     String?
+  applyButtonTextMm   String?
+  applyLink           String?
+  badges              Badge[]
+  organizationInfo    Organization? @relation(fields: [organizationId], references: [id])
+  faq                 FAQ[]
+  images              Image[]
 }
 
 model Image {
@@ -133,7 +136,6 @@ model FAQ {
 
 model Organization {
   id           String   @id @default(cuid())
-  slug         String @unique
   name         String
   description  String
   phone        String
@@ -142,12 +144,12 @@ model Organization {
   facebookPage String?
   latitude     Float
   longitude    Float
-  logoImage    String?  // Moved from Course model
-  courses      Course[]
-  users        User[]
   district     String?
   province     String?
-  
+  logoImage    String?
+  slug         String   @unique
+  courses      Course[]
+  users        User[]
 }
 
 model AdminAllowList {

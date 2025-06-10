@@ -45,6 +45,11 @@ const courseSchema = z.object({
   scheduleDetailsMm: z.string().optional().nullable(),
   selectionCriteria: z.array(z.string()),
   selectionCriteriaMm: z.array(z.string()).optional(),
+  howToApply: z.array(z.string()).optional().default([]),
+  howToApplyMm: z.array(z.string()).optional().default([]),
+  applyButtonText: z.string().optional().nullable(),
+  applyButtonTextMm: z.string().optional().nullable(),
+  applyLink: z.string().optional().nullable(),
   organizationId: z.string(),
   badges: z.array(
     z.object({
@@ -92,10 +97,7 @@ export async function GET(
     // Try to find course by slug first, then by ID
     const course = await prisma.course.findFirst({
       where: {
-        OR: [
-          { slug: idOrSlug },
-          { id: idOrSlug }
-        ],
+        OR: [{ slug: idOrSlug }, { id: idOrSlug }],
       },
       include: {
         images: true,
@@ -157,6 +159,11 @@ export async function GET(
       scheduleDetailsMm: course.scheduleDetailsMm,
       selectionCriteria: course.selectionCriteria,
       selectionCriteriaMm: course.selectionCriteriaMm,
+      howToApply: course.howToApply,
+      howToApplyMm: course.howToApplyMm,
+      applyButtonText: course.applyButtonText,
+      applyButtonTextMm: course.applyButtonTextMm,
+      applyLink: course.applyLink,
       organizationId: course.organizationId,
       images: course.images.map((img) => img.url),
       badges: course.badges.map((badge) => ({
@@ -339,31 +346,24 @@ export async function PUT(
     if (validatedData.organizationId) {
       const org = await prisma.organization.findUnique({
         where: { id: validatedData.organizationId },
-        select: { name: true }
+        select: { name: true },
       });
       orgName = org?.name;
     }
 
     // Generate new slug with course ID
-    const newBaseSlug = generateCourseSlug(
-      validatedData.title,
-      orgName,
-      id
-    );
+    const newBaseSlug = generateCourseSlug(validatedData.title, orgName, id);
 
     // Ensure slug uniqueness (exclude current course from check)
-    const newSlug = await ensureUniqueSlug(
-      newBaseSlug,
-      async (slug) => {
-        const existing = await prisma.course.findFirst({ 
-          where: { 
-            slug,
-            id: { not: id } // Exclude current course
-          } 
-        });
-        return !!existing;
-      }
-    );
+    const newSlug = await ensureUniqueSlug(newBaseSlug, async (slug) => {
+      const existing = await prisma.course.findFirst({
+        where: {
+          slug,
+          id: { not: id }, // Exclude current course
+        },
+      });
+      return !!existing;
+    });
 
     // Update course and related entities in a SINGLE transaction with increased timeout
     const result = await prisma.$transaction(
@@ -400,7 +400,13 @@ export async function PUT(
             scheduleDetailsMm: validatedData.scheduleDetailsMm,
             selectionCriteria: validatedData.selectionCriteria,
             selectionCriteriaMm: validatedData.selectionCriteriaMm,
+            howToApply: validatedData.howToApply,
+            howToApplyMm: validatedData.howToApplyMm,
+            applyButtonText: validatedData.applyButtonText,
+            applyButtonTextMm: validatedData.applyButtonTextMm,
+            applyLink: validatedData.applyLink,
             organizationId: validatedData.organizationId,
+
             slug: newSlug, // Update slug
           },
         });

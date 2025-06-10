@@ -45,6 +45,11 @@ export async function GET(request: NextRequest) {
         scheduleDetailsMm: true,
         selectionCriteria: true,
         selectionCriteriaMm: true,
+        howToApply: true,
+        howToApplyMm: true,
+        applyButtonText: true,
+        applyButtonTextMm: true,
+        applyLink: true,
         organizationInfo: {
           select: {
             id: true,
@@ -101,6 +106,11 @@ export async function GET(request: NextRequest) {
       applyByDateMm: course.applyByDateMm
         ? course.applyByDateMm.toISOString()
         : null, // ADD THIS LINE
+      howToApply: course.howToApply || [],
+      howToApplyMm: course.howToApplyMm || [],
+      applyButtonText: course.applyButtonText,
+      applyButtonTextMm: course.applyButtonTextMm,
+      applyLink: course.applyLink,
       // Build location from organization address + course province/district
       location:
         [course.organizationInfo?.address, course.district, course.province]

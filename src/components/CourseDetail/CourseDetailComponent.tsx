@@ -69,6 +69,11 @@ interface CourseDetail {
   scheduleDetailsMm?: string;
   selectionCriteria?: string[];
   selectionCriteriaMm?: string[];
+  howToApply?: string[];
+  howToApplyMm?: string[];
+  applyButtonText?: string;
+  applyButtonTextMm?: string;
+  applyLink?: string;
   badges: {
     text: string;
     color: string;
@@ -100,7 +105,9 @@ interface CourseDetailComponentProps {
   course: CourseDetail;
 }
 
-export default function CourseDetailComponent({ course }: CourseDetailComponentProps) {
+export default function CourseDetailComponent({
+  course,
+}: CourseDetailComponentProps) {
   const router = useRouter();
   const { t, language } = useLanguage();
 
@@ -589,6 +596,43 @@ export default function CourseDetailComponent({ course }: CourseDetailComponentP
               </AccordionItem>
             )}
 
+            {/* How to Apply Section - NEW */}
+            {((course.howToApply &&
+              course.howToApply.length > 0 &&
+              course.howToApply.some((step) => step.trim() !== "")) ||
+              (course.howToApplyMm &&
+                course.howToApplyMm.length > 0 &&
+                course.howToApplyMm.some((step) => step.trim() !== ""))) && (
+              <AccordionItem
+                value="howToApply"
+                className="border rounded-md mb-3 px-4"
+              >
+                <AccordionTrigger className="py-4">
+                  <div className="flex items-center">
+                    <FileText className="h-5 w-5 mr-2 text-primary" />
+                    <span className="text-lg font-semibold">
+                      {language === "mm" ? "လျှောက်ထားပုံ" : "How to Apply"}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pb-4">
+                  <ul className="list-disc pl-5 space-y-2">
+                    {getLocalizedArray(course.howToApply, course.howToApplyMm)
+                      .filter((step) => step.trim() !== "") // Filter out empty steps
+                      .map((step, index) => (
+                        <li
+                          key={index}
+                          className="text-muted-foreground"
+                          dir="auto"
+                        >
+                          {step}
+                        </li>
+                      ))}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+
             {/* FAQ Section */}
             {course.faq && course.faq.length > 0 && (
               <AccordionItem
@@ -718,27 +762,46 @@ export default function CourseDetailComponent({ course }: CourseDetailComponentP
           </section>
         )}
 
-        {/* Bottom CTA */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-16 p-6 bg-muted rounded-lg">
-          <div>
-            <h3 className="text-xl font-bold">
-              {language === "mm"
-                ? "ဤသင်တန်းကို စိတ်ဝင်စားပါသလား?"
-                : "Interested in this course?"}
-            </h3>
-            <p className="text-muted-foreground">
-              {language === "mm"
-                ? "လျှောက်ထားရန် သို့မဟုတ် ပိုမိုလေ့လာရန် အဖွဲ့အစည်းကို တိုက်ရိုက်ဆက်သွယ်ပါ"
-                : "Contact the organization directly to apply or learn more"}
-            </p>
+        {/* Custom Apply Button - Only show if configured */}
+        {(course.applyButtonText || course.applyButtonTextMm) && (
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-16 p-6 bg-muted rounded-lg">
+            <div>
+              <h3 className="text-xl font-bold">
+                {language === "mm"
+                  ? "ဤသင်တန်းကို စိတ်ဝင်စားပါသလား?"
+                  : "Interested in this course?"}
+              </h3>
+              <p className="text-muted-foreground">
+                {language === "mm"
+                  ? "လျှောက်ထားရန် သို့မဟုတ် ပိုမိုလေ့လာရန် အောက်တွင် နှိပ်ပါ"
+                  : "Click below to apply or learn more"}
+              </p>
+            </div>
+            <Button
+              size="lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+              onClick={() => {
+                if (course.applyLink) {
+                  // Open link in new tab if it's a URL, or in same tab if it's mailto
+                  if (course.applyLink.startsWith("mailto:")) {
+                    window.location.href = course.applyLink;
+                  } else {
+                    window.open(
+                      course.applyLink,
+                      "_blank",
+                      "noopener,noreferrer"
+                    );
+                  }
+                }
+              }}
+              disabled={!course.applyLink}
+            >
+              {language === "mm" && course.applyButtonTextMm
+                ? course.applyButtonTextMm
+                : course.applyButtonText}
+            </Button>
           </div>
-          <Button
-            size="lg"
-            className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-          >
-            {t("course.apply")}
-          </Button>
-        </div>
+        )}
       </div>
     </div>
   );

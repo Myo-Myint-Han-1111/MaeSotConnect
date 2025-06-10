@@ -39,42 +39,39 @@ import {
 interface CourseFormData {
   id?: string;
   title: string;
-  titleMm: string; // Keep this
+  titleMm: string;
   subtitle: string;
-  subtitleMm: string; // Keep this
-
+  subtitleMm: string;
   province: string;
   district: string;
-
   address: string;
   applyByDate: string;
   applyByDateMm: string;
-
   startDate: string;
-  // startDateMm: string; // REMOVE THIS LINE
   endDate: string;
-  // endDateMm: string; // REMOVE THIS LINE
   duration: number;
-  // durationMm: number; // REMOVE THIS LINE
   schedule: string;
-  scheduleMm: string; // Keep this
+  scheduleMm: string;
   feeAmount: number;
-  // feeAmountMm: number; // REMOVE THIS LINE
   ageMin: number;
-  // ageMinMm: number; // REMOVE THIS LINE
   ageMax: number;
-  // ageMaxMm: number; // REMOVE THIS LINE
   document: string;
-  documentMm: string; // Keep this
+  documentMm: string;
   availableDays: boolean[];
   description: string;
-  descriptionMm: string; // Keep this
+  descriptionMm: string;
   outcomes: string[];
-  outcomesMm: string[]; // Keep this
+  outcomesMm: string[];
   scheduleDetails: string;
-  scheduleDetailsMm: string; // Keep this
+  scheduleDetailsMm: string;
   selectionCriteria: string[];
-  selectionCriteriaMm: string[]; // Keep this
+  selectionCriteriaMm: string[];
+  // ADD THESE NEW FIELDS
+  howToApply: string[];
+  howToApplyMm: string[];
+  applyButtonText?: string;
+  applyButtonTextMm?: string;
+  applyLink?: string;
   organizationId?: string;
   images: File[];
   badges: {
@@ -84,9 +81,9 @@ interface CourseFormData {
   }[];
   faq: {
     question: string;
-    questionMm: string; // Keep this
+    questionMm: string;
     answer: string;
-    answerMm: string; // Keep this
+    answerMm: string;
   }[];
 }
 
@@ -180,6 +177,11 @@ export default function CourseForm({
     selectionCriteria: initialData?.selectionCriteria ?? [""],
     selectionCriteriaMm: initialData?.selectionCriteriaMm ?? [""],
     organizationId: organizationId ?? initialData?.organizationId ?? "",
+    howToApply: initialData?.howToApply ?? [""],
+    howToApplyMm: initialData?.howToApplyMm ?? [""],
+    applyButtonText: initialData?.applyButtonText ?? "",
+    applyButtonTextMm: initialData?.applyButtonTextMm ?? "",
+    applyLink: initialData?.applyLink ?? "",
     images: [],
     badges: initialData?.badges ?? [],
     faq: initialData?.faq ?? [
@@ -287,6 +289,11 @@ export default function CourseForm({
         scheduleDetailsMm: initialData.scheduleDetailsMm ?? "",
         selectionCriteria: initialData.selectionCriteria ?? [""],
         selectionCriteriaMm: initialData.selectionCriteriaMm ?? [""],
+        howToApply: initialData.howToApply ?? [""],
+        howToApplyMm: initialData.howToApplyMm ?? [""],
+        applyButtonText: initialData?.applyButtonText ?? "",
+        applyButtonTextMm: initialData?.applyButtonTextMm ?? "",
+        applyLink: initialData?.applyLink ?? "",
         organizationId: organizationId ?? initialData.organizationId ?? "",
         images: [],
         badges: initialData.badges ?? [],
@@ -340,7 +347,9 @@ export default function CourseForm({
       | "outcomes"
       | "outcomesMm"
       | "selectionCriteria"
-      | "selectionCriteriaMm",
+      | "selectionCriteriaMm"
+      | "howToApply"
+      | "howToApplyMm",
     index: number,
     value: string
   ) => {
@@ -361,6 +370,8 @@ export default function CourseForm({
       | "outcomesMm"
       | "selectionCriteria"
       | "selectionCriteriaMm"
+      | "howToApply"
+      | "howToApplyMm"
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -373,7 +384,9 @@ export default function CourseForm({
       | "outcomes"
       | "outcomesMm"
       | "selectionCriteria"
-      | "selectionCriteriaMm",
+      | "selectionCriteriaMm"
+      | "howToApply"
+      | "howToApplyMm",
     index: number
   ) => {
     setFormData((prev) => {
@@ -540,12 +553,28 @@ export default function CourseForm({
       return;
     }
 
+    // Add debugging here
+    console.log("Form data before submission:", formData);
+    console.log("How to Apply data:", formData.howToApply);
+    console.log("How to Apply MM data:", formData.howToApplyMm);
+
+    // IMPORTANT: Ensure howToApply arrays are properly filtered
+    const cleanedFormData = {
+      ...formData,
+      howToApply: formData.howToApply.filter((step) => step.trim() !== ""),
+      howToApplyMm: formData.howToApplyMm.filter((step) => step.trim() !== ""),
+    };
+
+    console.log("Cleaned form data:", cleanedFormData);
+
     try {
       const formDataToSend = new FormData();
       const jsonData = {
-        ...formData,
+        ...cleanedFormData,
         images: undefined,
       };
+
+      console.log("JSON data being sent:", jsonData);
       formDataToSend.append("data", JSON.stringify(jsonData));
 
       // Append new images
@@ -1270,6 +1299,164 @@ export default function CourseForm({
                     </Button>
                   </div>
                 </div>
+              </div>
+
+              {/* How to Apply - English and Myanmar - ADD THIS SECTION AFTER SELECTION CRITERIA */}
+              <div className="space-y-3">
+                <Label>How to Apply (Optional)</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">
+                      English
+                    </div>
+                    {(formData.howToApply || [""]).map((step, index) => (
+                      <div
+                        key={`howToApply-${index}`}
+                        className="flex gap-2 mb-2"
+                      >
+                        <Input
+                          value={step ?? ""}
+                          onChange={(e) =>
+                            handleArrayItemChange(
+                              "howToApply",
+                              index,
+                              e.target.value
+                            )
+                          }
+                          placeholder="e.g. Submit application form online"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => removeArrayItem("howToApply", index)}
+                          disabled={(formData.howToApply?.length || 0) <= 1}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addArrayItem("howToApply")}
+                      className="mt-2"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Step
+                    </Button>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">
+                      Myanmar
+                    </div>
+                    {(formData.howToApplyMm || [""]).map((step, index) => (
+                      <div
+                        key={`howToApplyMm-${index}`}
+                        className="flex gap-2 mb-2"
+                      >
+                        <Input
+                          value={step ?? ""}
+                          onChange={(e) =>
+                            handleArrayItemChange(
+                              "howToApplyMm",
+                              index,
+                              e.target.value
+                            )
+                          }
+                          placeholder="Myanmar translation..."
+                          dir="auto"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => removeArrayItem("howToApplyMm", index)}
+                          disabled={(formData.howToApplyMm?.length || 0) <= 1}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addArrayItem("howToApplyMm")}
+                      className="mt-2"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Myanmar Step
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Apply Button Customization - NEW SECTION */}
+              <div className="space-y-3">
+                <Label>Apply Button Customization (Optional)</Label>
+
+                {/* Apply Button Text */}
+                <div className="space-y-2">
+                  <Label htmlFor="applyButtonText">Apply Button Text</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1">
+                        English
+                      </div>
+                      <Input
+                        id="applyButtonText"
+                        name="applyButtonText"
+                        value={formData.applyButtonText ?? ""}
+                        onChange={handleTextChange}
+                        placeholder="e.g. Apply Now, Register Here, Join Course"
+                      />
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1">
+                        Myanmar
+                      </div>
+                      <Input
+                        id="applyButtonTextMm"
+                        name="applyButtonTextMm"
+                        value={formData.applyButtonTextMm ?? ""}
+                        onChange={handleTextChange}
+                        placeholder="Myanmar translation..."
+                        dir="auto"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Leave blank to use default Apply Now text
+                  </p>
+                </div>
+
+                {/* Apply Link - Only show if button text is provided */}
+                {(formData.applyButtonText || formData.applyButtonTextMm) && (
+                  <div className="space-y-2">
+                    <Label htmlFor="applyLink">
+                      Apply Link (Required when button text is provided)
+                    </Label>
+                    <Input
+                      id="applyLink"
+                      name="applyLink"
+                      type="url"
+                      value={formData.applyLink ?? ""}
+                      onChange={handleTextChange}
+                      placeholder="https://example.com/apply or mailto:contact@organization.com"
+                      required={
+                        !!(
+                          formData.applyButtonText || formData.applyButtonTextMm
+                        )
+                      }
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Enter a website URL (https://...) or email (mailto:...)
+                      where users can apply
+                    </p>
+                  </div>
+                )}
               </div>
             </TabsContent>
 
