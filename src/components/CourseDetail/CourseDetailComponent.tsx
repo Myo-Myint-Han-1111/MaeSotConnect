@@ -28,6 +28,7 @@ import {
   Facebook,
   FileText,
   Users,
+  ClipboardList,
 } from "lucide-react";
 import ImageCarousel from "@/components/common/ImageCarousel";
 import DayIndicator from "@/components/common/DayIndicator";
@@ -74,6 +75,8 @@ interface CourseDetail {
   applyButtonText?: string;
   applyButtonTextMm?: string;
   applyLink?: string;
+  estimatedDate?: string | null;
+  estimatedDateMm?: string | null;
   badges: {
     text: string;
     color: string;
@@ -596,43 +599,6 @@ export default function CourseDetailComponent({
               </AccordionItem>
             )}
 
-            {/* How to Apply Section - NEW */}
-            {((course.howToApply &&
-              course.howToApply.length > 0 &&
-              course.howToApply.some((step) => step.trim() !== "")) ||
-              (course.howToApplyMm &&
-                course.howToApplyMm.length > 0 &&
-                course.howToApplyMm.some((step) => step.trim() !== ""))) && (
-              <AccordionItem
-                value="howToApply"
-                className="border rounded-md mb-3 px-4"
-              >
-                <AccordionTrigger className="py-4">
-                  <div className="flex items-center">
-                    <FileText className="h-5 w-5 mr-2 text-primary" />
-                    <span className="text-lg font-semibold">
-                      {language === "mm" ? "လျှောက်ထားပုံ" : "How to Apply"}
-                    </span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="pb-4">
-                  <ul className="list-disc pl-5 space-y-2">
-                    {getLocalizedArray(course.howToApply, course.howToApplyMm)
-                      .filter((step) => step.trim() !== "") // Filter out empty steps
-                      .map((step, index) => (
-                        <li
-                          key={index}
-                          className="text-muted-foreground"
-                          dir="auto"
-                        >
-                          {step}
-                        </li>
-                      ))}
-                  </ul>
-                </AccordionContent>
-              </AccordionItem>
-            )}
-
             {/* FAQ Section */}
             {course.faq && course.faq.length > 0 && (
               <AccordionItem
@@ -674,6 +640,65 @@ export default function CourseDetailComponent({
             )}
           </Accordion>
         </div>
+
+        {/* How to Apply Section - Standalone */}
+        {((course.howToApply &&
+          course.howToApply.length > 0 &&
+          course.howToApply.some((step) => step.trim() !== "")) ||
+          (course.howToApplyMm &&
+            course.howToApplyMm.length > 0 &&
+            course.howToApplyMm.some((step) => step.trim() !== ""))) && (
+          <section className="mb-10">
+            <h2 className="text-2xl font-bold mb-4">
+              <ClipboardList className="h-6 w-6 inline mr-2 text-primary" />
+              {language === "mm" ? "လျှောက်ထားပုံ" : "How to Apply"}
+            </h2>
+            <Card>
+              <CardContent className="pt-6">
+                <ul className="list-decimal pl-6 space-y-3">
+                  {getLocalizedArray(course.howToApply, course.howToApplyMm)
+                    .filter((step) => step.trim() !== "")
+                    .map((step, index) => (
+                      <li
+                        key={index}
+                        className="text-muted-foreground"
+                        dir="auto"
+                      >
+                        {step}
+                      </li>
+                    ))}
+                </ul>
+
+                {/* Apply Button inside How to Apply section */}
+                {(course.applyButtonText || course.applyButtonTextMm) && (
+                  <div className="mt-6 pt-4 border-t border-gray-200 text-center">
+                    <Button
+                      className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer px-6 py-2 text-base"
+                      onClick={() => {
+                        if (course.applyLink) {
+                          if (course.applyLink.startsWith("mailto:")) {
+                            window.location.href = course.applyLink;
+                          } else {
+                            window.open(
+                              course.applyLink,
+                              "_blank",
+                              "noopener,noreferrer"
+                            );
+                          }
+                        }
+                      }}
+                      disabled={!course.applyLink}
+                    >
+                      {language === "mm" && course.applyButtonTextMm
+                        ? course.applyButtonTextMm
+                        : course.applyButtonText}
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </section>
+        )}
 
         {/* Organization Info */}
         {course.organizationInfo && (
@@ -760,47 +785,6 @@ export default function CourseDetailComponent({
               </CardContent>
             </Card>
           </section>
-        )}
-
-        {/* Custom Apply Button - Only show if configured */}
-        {(course.applyButtonText || course.applyButtonTextMm) && (
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-16 p-6 bg-muted rounded-lg">
-            <div>
-              <h3 className="text-xl font-bold">
-                {language === "mm"
-                  ? "ဤသင်တန်းကို စိတ်ဝင်စားပါသလား?"
-                  : "Interested in this course?"}
-              </h3>
-              <p className="text-muted-foreground">
-                {language === "mm"
-                  ? "လျှောက်ထားရန် သို့မဟုတ် ပိုမိုလေ့လာရန် အောက်တွင် နှိပ်ပါ"
-                  : "Click below to apply or learn more"}
-              </p>
-            </div>
-            <Button
-              size="lg"
-              className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-              onClick={() => {
-                if (course.applyLink) {
-                  // Open link in new tab if it's a URL, or in same tab if it's mailto
-                  if (course.applyLink.startsWith("mailto:")) {
-                    window.location.href = course.applyLink;
-                  } else {
-                    window.open(
-                      course.applyLink,
-                      "_blank",
-                      "noopener,noreferrer"
-                    );
-                  }
-                }
-              }}
-              disabled={!course.applyLink}
-            >
-              {language === "mm" && course.applyButtonTextMm
-                ? course.applyButtonTextMm
-                : course.applyButtonText}
-            </Button>
-          </div>
         )}
       </div>
     </div>

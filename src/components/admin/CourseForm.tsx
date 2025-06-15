@@ -72,6 +72,8 @@ interface CourseFormData {
   applyButtonText?: string;
   applyButtonTextMm?: string;
   applyLink?: string;
+  estimatedDate: string;
+  estimatedDateMm: string;
   organizationId?: string;
   images: File[];
   badges: {
@@ -106,14 +108,31 @@ interface CourseFormProps {
 }
 
 const badgeOptions: BadgeOption[] = [
-  { text: "Language", color: "#fff", backgroundColor: "#6e8efb" },
-  { text: "In-Person", color: "#fff", backgroundColor: "#28a745" },
-  { text: "Free", color: "#fff", backgroundColor: "#dc3545" },
-  { text: "Vocational", color: "#fff", backgroundColor: "#6610f2" },
-  { text: "Internship", color: "#fff", backgroundColor: "#fd7e14" },
-  { text: "Technology", color: "#fff", backgroundColor: "#007bff" },
-  { text: "Beginner", color: "#000", backgroundColor: "#ffc107" },
-  { text: "Certification", color: "#fff", backgroundColor: "#17a2b8" },
+  { text: "In-person", color: "#fff", backgroundColor: "#28a745" }, // Green
+  { text: "Online", color: "#fff", backgroundColor: "#007bff" }, // Blue
+  { text: "Free", color: "#fff", backgroundColor: "#dc3545" }, // Red
+  { text: "Internship", color: "#fff", backgroundColor: "#fd7e14" }, // Orange
+  { text: "Certificate", color: "#fff", backgroundColor: "#17a2b8" }, // Cyan
+  { text: "Vocational", color: "#fff", backgroundColor: "#6610f2" }, // Purple
+  { text: "Cooking", color: "#fff", backgroundColor: "#e83e8c" }, // Pink
+  { text: "Barista Training", color: "#fff", backgroundColor: "#6f4e37" }, // Brown
+  { text: "Hospitality", color: "#fff", backgroundColor: "#20c997" }, // Teal
+  { text: "Hair Dressing", color: "#fff", backgroundColor: "#f8c2d4" }, // Light Pink
+  { text: "Fashion", color: "#fff", backgroundColor: "#e91e63" }, // Deep Pink
+  { text: "Technology", color: "#fff", backgroundColor: "#6c757d" }, // Gray (changed from blue)
+  { text: "Computer Skills", color: "#fff", backgroundColor: "#343a40" }, // Dark Gray
+  { text: "Media", color: "#fff", backgroundColor: "#9c27b0" }, // Deep Purple
+  { text: "Mental Health", color: "#fff", backgroundColor: "#4caf50" }, // Light Green
+  { text: "Sports", color: "#fff", backgroundColor: "#ff5722" }, // Deep Orange
+  { text: "Art", color: "#fff", backgroundColor: "#3f51b5" }, // Indigo
+  { text: "Music", color: "#fff", backgroundColor: "#795548" }, // Brown Gray
+  { text: "Martial Art", color: "#fff", backgroundColor: "#607d8b" }, // Blue Gray
+  { text: "GED", color: "#fff", backgroundColor: "#ff9800" }, // Amber
+  { text: "IELTS", color: "#fff", backgroundColor: "#2196f3" }, // Light Blue
+  { text: "Thailand", color: "#fff", backgroundColor: "#ff6b35" }, // Coral
+  { text: "Korea", color: "#fff", backgroundColor: "#4ecdc4" }, // Turquoise
+  { text: "Japan", color: "#fff", backgroundColor: "#e74c3c" }, // Crimson
+  { text: "English", color: "#fff", backgroundColor: "#2c3e50" }, // Dark Blue
 ];
 
 export default function CourseForm({
@@ -182,6 +201,8 @@ export default function CourseForm({
     applyButtonText: initialData?.applyButtonText ?? "",
     applyButtonTextMm: initialData?.applyButtonTextMm ?? "",
     applyLink: initialData?.applyLink ?? "",
+    estimatedDate: initialData?.estimatedDate ?? "",
+    estimatedDateMm: initialData?.estimatedDateMm ?? "",
     images: [],
     badges: initialData?.badges ?? [],
     faq: initialData?.faq ?? [
@@ -294,6 +315,8 @@ export default function CourseForm({
         applyButtonText: initialData?.applyButtonText ?? "",
         applyButtonTextMm: initialData?.applyButtonTextMm ?? "",
         applyLink: initialData?.applyLink ?? "",
+        estimatedDate: initialData?.estimatedDate ?? "",
+        estimatedDateMm: initialData?.estimatedDateMm ?? "",
         organizationId: organizationId ?? initialData.organizationId ?? "",
         images: [],
         badges: initialData.badges ?? [],
@@ -1000,6 +1023,42 @@ export default function CourseForm({
                     />
                   </div>
                 </div>
+              </div>
+
+              {/* Estimated Date */}
+              <div className="space-y-2">
+                <Label htmlFor="estimatedDate">Estimated Date (Optional)</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">
+                      English
+                    </div>
+                    <Input
+                      id="estimatedDate"
+                      name="estimatedDate"
+                      value={formData.estimatedDate}
+                      onChange={handleTextChange}
+                      placeholder="e.g., Early 2024, Spring semester"
+                    />
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">
+                      Myanmar
+                    </div>
+                    <Input
+                      id="estimatedDateMm"
+                      name="estimatedDateMm"
+                      value={formData.estimatedDateMm}
+                      onChange={handleTextChange}
+                      placeholder="Myanmar translation..."
+                      dir="auto"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Use this for approximate or flexible dates when exact dates
+                  are not available
+                </p>
               </div>
 
               {/* Duration - REMOVE MYANMAR FIELD */}

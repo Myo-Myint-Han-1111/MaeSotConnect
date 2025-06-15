@@ -68,7 +68,7 @@ export const translations = {
     "course.days.sat": "Sat",
 
     // Course info display short descriptions
-    "course.info.starts": "Starts",
+    "course.info.starts": "Start by",
     "course.info.duration": "Duration",
     "course.info.schedule": "Schedule",
     "course.info.fee": "Fee",
@@ -103,6 +103,8 @@ export const translations = {
     "course.ageRange": "Age Range",
     "course.requiredDocuments": "Required Documents",
     "course.dates": "Dates",
+    "course.estimatedDate": "Estimated Date",
+    "course.info.estimated": "Estimated",
 
     // Specific course titles
     "course.thai.title": "Thai Language Course",
@@ -115,13 +117,31 @@ export const translations = {
       "Learn essential computer and office software skills",
 
     // Badge texts
-    "badge.language": "Language",
-    "badge.inperson": "In-Person",
+    "badge.in-person": "In-person",
+    "badge.online": "Online",
     "badge.free": "Free",
-    "badge.vocational": "Vocational",
     "badge.internship": "Internship",
+    "badge.certificate": "Certificate",
+    "badge.vocational": "Vocational",
+    "badge.cooking": "Cooking",
+    "badge.barista training": "Barista Training",
+    "badge.hospitality": "Hospitality",
+    "badge.hair dressing": "Hair Dressing",
+    "badge.fashion": "Fashion",
     "badge.technology": "Technology",
-    "badge.beginner": "Beginner",
+    "badge.computer skills": "Computer Skills",
+    "badge.media": "Media",
+    "badge.mental health": "Mental Health",
+    "badge.sports": "Sports",
+    "badge.art": "Art",
+    "badge.music": "Music",
+    "badge.martial art": "Martial Art",
+    "badge.ged": "GED",
+    "badge.ielts": "IELTS",
+    "badge.thailand": "Thailand",
+    "badge.korea": "Korea",
+    "badge.japan": "Japan",
+    "badge.english": "English",
 
     // About page
     "about.title": "About Us",
@@ -150,7 +170,7 @@ export const translations = {
     "nav.language": "အင်္ဂလိပ် | မြန်မာ",
 
     // Home page
-    "home.welcome": "မင်းဘာသင်ချင်လဲ",
+    "home.welcome": "သင်ဘာသင်ချင်လဲ",
     "home.subtitle": "အတက်ပညာကိုသင်ယူလေ့လာပါ။ သင်လမ်းကြောင်းကိုဖန်တီးပါ။",
     "home.search.placeholder":
       "သင်တန်းအမည်၊ တည်နေရာ သို့မဟုတ် အမျိုးအစားဖြင့် ရှာဖွေပါ...",
@@ -211,6 +231,8 @@ export const translations = {
     "course.ageRange": "အသက်အရွယ်",
     "course.requiredDocuments": "လိုအပ်သော စာရွက်စာတမ်းများ",
     "course.dates": "ရက်စွဲများ",
+    "course.estimatedDate": "ခန့်မှန်းရက်စွဲ",
+    "course.info.estimated": "ခန့်မှန်း",
 
     // Specific course titles
     "course.thai.title": "ထိုင်းဘာသာစကားသင်တန်း",
@@ -223,13 +245,31 @@ export const translations = {
       "အရေးကြီးသော ကွန်ပျူတာနှင့် ရုံးသုံးဆော့ဖ်ဝဲကျွမ်းကျင်မှုများ သင်ယူရန်",
 
     // Badge texts
-    "badge.language": "ဘာသာစကား",
-    "badge.inperson": "သင်တန်းခန်းမ",
+    "badge.in-person": "သင်တန်းခန်းမ",
+    "badge.online": "အွန်လိုင်း",
     "badge.free": "အခမဲ့",
-    "badge.vocational": "အသက်မွေးပညာ",
     "badge.internship": "အလုပ်သင်",
+    "badge.certificate": "လက်မှတ်",
+    "badge.vocational": "အသက်မွေးပညာ",
+    "badge.cooking": "ချက်ပြုတ်ခြင်း",
+    "badge.barista training": "ကော်ဖီပြုလုပ်ခြင်း",
+    "badge.hospitality": "ဧည့်ခံမှု",
+    "badge.hair dressing": "ဆံပင်ညှပ်ခြင်း",
+    "badge.fashion": "ဖက်ရှင်",
     "badge.technology": "နည်းပညာ",
-    "badge.beginner": "အခြေခံ",
+    "badge.computer skills": "ကွန်ပျူတာစွမ်းရည်",
+    "badge.media": "မီဒီယာ",
+    "badge.mental health": "စိတ်ကျန်းမာရေး",
+    "badge.sports": "အားကစား",
+    "badge.art": "အနုပညာ",
+    "badge.music": "ဂီတ",
+    "badge.martial art": "ကိုယ်ခံပညာ",
+    "badge.ged": "GED",
+    "badge.ielts": "IELTS",
+    "badge.thailand": "ထိုင်းနိုင်ငံ",
+    "badge.korea": "ကိုရီးယား",
+    "badge.japan": "ဂျပန်",
+    "badge.english": "အင်္ဂလိပ်ဘာသာ",
 
     // About page
     "about.title": "ကျွန်ုပ်တို့အကြောင်း",

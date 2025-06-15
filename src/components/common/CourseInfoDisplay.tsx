@@ -19,6 +19,8 @@ interface CourseInfoDisplayProps {
   applyByDate?: string;
   courseAddress?: string;
   fee?: string;
+  estimatedDate?: string | null; // Add this line
+  estimatedDateMm?: string | null; // Add this line
   compact?: boolean; // For compact view in card vs detailed view
   showDescriptions?: boolean; // New prop to control descriptions
   // TODO: Ko Myo - Add applyByDate field to database and props
@@ -35,8 +37,10 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
   showDescriptions = true, // Default to true for better UX
   applyByDate,
   courseAddress,
+  estimatedDate, // Add this line
+  estimatedDateMm, // Add this line
 }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   // Direct color override (keeping your existing styling)
   const grayColor = "hsl(215.4, 16.3%, 46.9%)";
@@ -66,27 +70,40 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
         </div>
       </div>
 
-      {/* Start Date - With "Starts" description */}
+      {/* Start Date - With "Starts" description and estimated date */}
       <div className={itemClass} style={{ color: grayColor }}>
         <Calendar className={iconClass} style={{ color: grayColor }} />
         <div className="flex-1 min-w-0">
           {!compact && (
             <p className="text-sm font-medium text-foreground">Start Date</p>
           )}
-          {compact && showDescriptions && (
-            <span
-              className="text-xs mr-2 flex-shrink-0"
+          <div className="flex items-center gap-2 flex-wrap">
+            {compact && showDescriptions && (
+              <span
+                className="text-xs mr-2 flex-shrink-0"
+                style={{ color: grayColor }}
+              >
+                {t("course.info.starts")}:
+              </span>
+            )}
+            <p
+              className={compact ? "truncate" : "text-sm"}
               style={{ color: grayColor }}
             >
-              {t("course.info.starts")}:
-            </span>
-          )}
-          <p
-            className={compact ? "truncate" : "text-sm"}
-            style={{ color: grayColor }}
-          >
-            {startDate}
-          </p>
+              {startDate}
+            </p>
+            {/* Add estimated date badge next to start date */}
+            {(estimatedDate || estimatedDateMm) && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded text-xs whitespace-nowrap">
+                <Calendar className="w-3 h-3" />
+                <span className="text-xs">
+                  {language === "mm" && estimatedDateMm
+                    ? estimatedDateMm
+                    : estimatedDate}
+                </span>
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -109,8 +126,7 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
           </div>
         </div>
       )}
-
-      {/* Apply By Date */}
+      {/* Apply By Date - With estimated date badge */}
       {applyByDate && (
         <div className={itemClass} style={{ color: grayColor }}>
           <CalendarCheck className={iconClass} style={{ color: grayColor }} />
@@ -118,20 +134,33 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
             {!compact && (
               <p className="text-sm font-medium text-foreground">Apply By</p>
             )}
-            {compact && showDescriptions && (
-              <span
-                className="text-xs mr-2 flex-shrink-0"
+            <div className="flex items-center gap-2 flex-wrap">
+              {compact && showDescriptions && (
+                <span
+                  className="text-xs mr-2 flex-shrink-0"
+                  style={{ color: grayColor }}
+                >
+                  {t("course.info.applyBy")}:
+                </span>
+              )}
+              <p
+                className={compact ? "truncate" : "text-sm"}
                 style={{ color: grayColor }}
               >
-                {t("course.info.applyBy")}:
-              </span>
-            )}
-            <p
-              className={compact ? "truncate" : "text-sm"}
-              style={{ color: grayColor }}
-            >
-              {applyByDate}
-            </p>
+                {applyByDate}
+              </p>
+              {/* Add estimated date badge next to apply by date */}
+              {(estimatedDate || estimatedDateMm) && (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded text-xs whitespace-nowrap">
+                  <Calendar className="w-3 h-3" />
+                  <span className="text-xs">
+                    {language === "mm" && estimatedDateMm
+                      ? estimatedDateMm
+                      : estimatedDate}
+                  </span>
+                </span>
+              )}
+            </div>
           </div>
         </div>
       )}

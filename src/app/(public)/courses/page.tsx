@@ -555,16 +555,24 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
     window.scrollTo(0, 0);
   }, [id]); // Re-run this effect if the course ID changes
 
-  // Translate badge text
+  // NEW modern function:
   const translateBadge = (badgeText: string) => {
-    if (badgeText === "Language") return t("badge.language");
-    if (badgeText === "In-Person") return t("badge.inperson");
-    if (badgeText === "Free") return t("badge.free");
-    if (badgeText === "Vocational") return t("badge.vocational");
-    if (badgeText === "Internship") return t("badge.internship");
-    if (badgeText === "Technology") return t("badge.technology");
-    if (badgeText === "Beginner") return t("badge.beginner");
-    return badgeText;
+    // Handle legacy badge mapping first
+    let normalizedBadgeText = badgeText;
+
+    // Map legacy "In-Person" to new "In-person" format
+    if (badgeText === "In-Person") {
+      normalizedBadgeText = "In-person";
+    }
+
+    // Use dynamic translation lookup based on badge text
+    const translationKey = `badge.${normalizedBadgeText
+      .toLowerCase()
+      .replace(/\s+/g, " ")}`;
+    const translation = t(translationKey);
+
+    // Return translation if it exists, otherwise return the normalized text
+    return translationKey !== translation ? translation : normalizedBadgeText;
   };
 
   // Format fee based on feeAmount if available, otherwise use legacy fee

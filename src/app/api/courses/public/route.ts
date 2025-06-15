@@ -50,6 +50,8 @@ export async function GET(request: NextRequest) {
         applyButtonText: true,
         applyButtonTextMm: true,
         applyLink: true,
+        estimatedDate: true,
+        estimatedDateMm: true,
         organizationInfo: {
           select: {
             id: true,
@@ -106,6 +108,8 @@ export async function GET(request: NextRequest) {
       applyByDateMm: course.applyByDateMm
         ? course.applyByDateMm.toISOString()
         : null, // ADD THIS LINE
+      estimatedDate: course.estimatedDate, // Add this line
+      estimatedDateMm: course.estimatedDateMm,
       howToApply: course.howToApply || [],
       howToApplyMm: course.howToApplyMm || [],
       applyButtonText: course.applyButtonText,

@@ -46,6 +46,8 @@ interface CourseResponse {
   address?: string | null; // Add this line
   applyByDate?: string | null; // Add this line
   applyByDateMm?: string | null; // Add this line
+  estimatedDate?: string | null; // Add this line
+  estimatedDateMm?: string | null; // Add this line
 
   // API returns DateTime as ISO strings
   startDate: string;
@@ -105,6 +107,8 @@ interface CourseFormData {
   address: string; // Add this line
   applyByDate: string; // Add this line
   applyByDateMm: string; // Add this line
+  estimatedDate: string; // Add this line
+  estimatedDateMm: string; // Add this line
 
   location: string; // Derived from organizationInfo.address
   locationMm: string;
@@ -211,7 +215,8 @@ export default function EditCoursePage() {
           applyByDateMm: data.applyByDateMm
             ? formatDateForInput(data.applyByDateMm)
             : "",
-
+          estimatedDate: data.estimatedDate ?? "", // Add this line
+          estimatedDateMm: data.estimatedDateMm ?? "",
           // Format dates for HTML date inputs (YYYY-MM-DD format)
           startDate: formatDateForInput(data.startDate),
           endDate: formatDateForInput(data.endDate),

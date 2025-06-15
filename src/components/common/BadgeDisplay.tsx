@@ -13,40 +13,130 @@ export interface BadgeStyle {
 
 // Centralized badge styles
 export const BADGE_STYLES: Record<string, BadgeStyle> = {
-  Language: {
-    text: "Language",
+  "In-person": {
+    text: "In-person",
     color: "#fff",
-    backgroundColor: "#6e8efb",
+    backgroundColor: "#28a745", // Green
   },
-  "In-Person": {
-    text: "In-Person",
+  Online: {
+    text: "Online",
     color: "#fff",
-    backgroundColor: "#28a745",
+    backgroundColor: "#007bff", // Blue
   },
   Free: {
     text: "Free",
     color: "#fff",
-    backgroundColor: "#dc3545",
-  },
-  Technology: {
-    text: "Technology",
-    color: "#fff",
-    backgroundColor: "#007bff",
-  },
-  Beginner: {
-    text: "Beginner",
-    color: "#000",
-    backgroundColor: "#ffc107",
-  },
-  Vocational: {
-    text: "Vocational",
-    color: "#fff",
-    backgroundColor: "#6610f2",
+    backgroundColor: "#dc3545", // Red
   },
   Internship: {
     text: "Internship",
     color: "#fff",
-    backgroundColor: "#fd7e14",
+    backgroundColor: "#fd7e14", // Orange
+  },
+  Certificate: {
+    text: "Certificate",
+    color: "#fff",
+    backgroundColor: "#17a2b8", // Cyan
+  },
+  Vocational: {
+    text: "Vocational",
+    color: "#fff",
+    backgroundColor: "#6610f2", // Purple
+  },
+  Cooking: {
+    text: "Cooking",
+    color: "#fff",
+    backgroundColor: "#e83e8c", // Pink
+  },
+  "Barista Training": {
+    text: "Barista Training",
+    color: "#fff",
+    backgroundColor: "#6f4e37", // Brown
+  },
+  Hospitality: {
+    text: "Hospitality",
+    color: "#fff",
+    backgroundColor: "#20c997", // Teal
+  },
+  "Hair Dressing": {
+    text: "Hair Dressing",
+    color: "#fff",
+    backgroundColor: "#f8c2d4", // Light Pink
+  },
+  Fashion: {
+    text: "Fashion",
+    color: "#fff",
+    backgroundColor: "#e91e63", // Deep Pink
+  },
+  Technology: {
+    text: "Technology",
+    color: "#fff",
+    backgroundColor: "#6c757d", // Gray (CHANGED from #007bff)
+  },
+  "Computer Skills": {
+    text: "Computer Skills",
+    color: "#fff",
+    backgroundColor: "#343a40", // Dark Gray
+  },
+  Media: {
+    text: "Media",
+    color: "#fff",
+    backgroundColor: "#9c27b0", // Deep Purple
+  },
+  "Mental Health": {
+    text: "Mental Health",
+    color: "#fff",
+    backgroundColor: "#4caf50", // Light Green
+  },
+  Sports: {
+    text: "Sports",
+    color: "#fff",
+    backgroundColor: "#ff5722", // Deep Orange
+  },
+  Art: {
+    text: "Art",
+    color: "#fff",
+    backgroundColor: "#3f51b5", // Indigo
+  },
+  Music: {
+    text: "Music",
+    color: "#fff",
+    backgroundColor: "#795548", // Brown Gray
+  },
+  "Martial Art": {
+    text: "Martial Art",
+    color: "#fff",
+    backgroundColor: "#607d8b", // Blue Gray
+  },
+  GED: {
+    text: "GED",
+    color: "#fff",
+    backgroundColor: "#ff9800", // Amber
+  },
+  IELTS: {
+    text: "IELTS",
+    color: "#fff",
+    backgroundColor: "#2196f3", // Light Blue
+  },
+  Thailand: {
+    text: "Thailand",
+    color: "#fff",
+    backgroundColor: "#ff6b35", // Coral
+  },
+  Korea: {
+    text: "Korea",
+    color: "#fff",
+    backgroundColor: "#4ecdc4", // Turquoise
+  },
+  Japan: {
+    text: "Japan",
+    color: "#fff",
+    backgroundColor: "#e74c3c", // Crimson
+  },
+  English: {
+    text: "English",
+    color: "#fff",
+    backgroundColor: "#2c3e50", // Dark Blue
   },
 };
 
@@ -74,16 +164,20 @@ export const BadgeDisplay: React.FC<BadgeDisplayProps> = ({
 }) => {
   const { t } = useLanguage();
 
-  // Translate badge text
+  // Updated translate badge text function - HANDLES LEGACY BADGES
   const translateBadge = (badgeText: string) => {
-    if (badgeText === "In-Person") return t("badge.inperson");
-    if (badgeText === "Language") return t("badge.language");
-    if (badgeText === "Free") return t("badge.free");
-    if (badgeText === "Vocational") return t("badge.vocational");
-    if (badgeText === "Internship") return t("badge.internship");
-    if (badgeText === "Technology") return t("badge.technology");
-    if (badgeText === "Beginner") return t("badge.beginner");
-    return badgeText;
+    // Handle legacy badge mapping
+    let normalizedBadgeText = badgeText;
+
+    // Map legacy badges to new format
+    if (badgeText === "In-Person") {
+      normalizedBadgeText = "In-person";
+    }
+
+    const translationKey = `badge.${normalizedBadgeText.toLowerCase()}`;
+    const translation = t(translationKey);
+
+    return translationKey !== translation ? translation : normalizedBadgeText;
   };
 
   // Size-based styling

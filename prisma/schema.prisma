@@ -104,6 +104,8 @@ model Course {
   applyLink           String?
   badges              Badge[]
   organizationInfo    Organization? @relation(fields: [organizationId], references: [id])
+  estimatedDate       String?
+  estimatedDateMm     String?
   faq                 FAQ[]
   images              Image[]
 }

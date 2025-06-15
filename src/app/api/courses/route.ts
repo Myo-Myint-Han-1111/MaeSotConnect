@@ -68,6 +68,8 @@ const courseSchema = z
     applyButtonText: z.string().optional(),
     applyButtonTextMm: z.string().optional(),
     applyLink: z.string().url().optional().or(z.literal("")),
+    estimatedDate: z.string().optional().nullable(),
+    estimatedDateMm: z.string().optional().nullable(),
     organizationId: z.string(),
     badges: z.array(
       z.object({
@@ -434,6 +436,8 @@ export async function POST(request: NextRequest) {
           applyButtonText: validatedData.applyButtonText || null,
           applyButtonTextMm: validatedData.applyButtonTextMm || null,
           applyLink: validatedData.applyLink || null,
+          estimatedDate: validatedData.estimatedDate || null,
+          estimatedDateMm: validatedData.estimatedDateMm || null,
           organizationId: validatedData.organizationId || null,
           // Add temporary slug initially
           slug: `${initialBaseSlug}-temp-${Date.now()}`, // Temporary unique slug

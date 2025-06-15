@@ -50,6 +50,8 @@ const courseSchema = z.object({
   applyButtonText: z.string().optional().nullable(),
   applyButtonTextMm: z.string().optional().nullable(),
   applyLink: z.string().optional().nullable(),
+  estimatedDate: z.string().optional().nullable(),
+  estimatedDateMm: z.string().optional().nullable(),
   organizationId: z.string(),
   badges: z.array(
     z.object({
@@ -405,6 +407,8 @@ export async function PUT(
             applyButtonText: validatedData.applyButtonText,
             applyButtonTextMm: validatedData.applyButtonTextMm,
             applyLink: validatedData.applyLink,
+            estimatedDate: validatedData.estimatedDate,
+            estimatedDateMm: validatedData.estimatedDateMm,
             organizationId: validatedData.organizationId,
 
             slug: newSlug, // Update slug

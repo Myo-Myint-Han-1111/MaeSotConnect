@@ -72,6 +72,8 @@ export interface Course {
   applyButtonText?: string | null;
   applyButtonTextMm?: string | null;
   applyLink?: string | null;
+  estimatedDate?: string | null;
+  estimatedDateMm?: string | null;
   // END NEW FIELDS
   availableDays: boolean[];
   description?: string | null;

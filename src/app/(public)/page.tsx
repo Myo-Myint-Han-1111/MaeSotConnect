@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { CourseCard } from "@/components/CourseCard/CourseCard";
-import { BADGE_STYLES } from "@/components/Badges/BadgeSystem";
+import { BADGE_STYLES } from "@/components/common/BadgeDisplay";
 import { convertToMyanmarNumber } from "@/lib/utils";
 import { getFontSizeClasses } from "@/lib/font-sizes";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,8 @@ interface Course {
   endDateMm: string | null; // New field
   applyByDate?: string | null;
   applyByDateMm?: string | null;
+  estimatedDate?: string | null; // Add this line
+  estimatedDateMm?: string | null;
   // Updated: numeric types for duration
   duration: number;
   durationMm: number | null;
@@ -429,17 +431,22 @@ export default function Home() {
     setActiveFilters([]);
   };
 
-  // Function to translate badge text
+  // Function to translate badge text - HANDLES LEGACY BADGES
   const translateBadge = (badgeText: string) => {
-    // Handle special case
-    if (badgeText === "In-Person") return t("badge.inperson");
+    // Handle legacy badge mapping
+    let normalizedBadgeText = badgeText;
+
+    // Map legacy "In-Person" to new "In-person" format
+    if (badgeText === "In-Person") {
+      normalizedBadgeText = "In-person";
+    }
 
     // Try to use the translation from language context
-    const translationKey = `badge.${badgeText.toLowerCase()}`;
+    const translationKey = `badge.${normalizedBadgeText.toLowerCase()}`;
     const translation = t(translationKey);
 
-    // Return the translation if it exists, otherwise return the original text
-    return translationKey !== translation ? translation : badgeText;
+    // Return the translation if it exists, otherwise return the normalized text
+    return translationKey !== translation ? translation : normalizedBadgeText;
   };
 
   // Show loading state
@@ -517,7 +524,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row gap-4 max-w-4xl">
             {/* Search Input */}
-            <div className="flex-1 bg-white rounded-lg shadow-lg p-1">
+            <div className="flex-1 bg-white rounded-lg  p-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input
@@ -545,7 +552,7 @@ export default function Home() {
             {/* Sort Dropdown */}
             <div className="w-full sm:w-64 bg-white rounded-lg shadow-lg border-2 border-gray-400">
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-full h-12 border-none focus:ring-2 focus:ring-primary rounded-md">
+                <SelectTrigger className="w-full h-10 border-none focus:ring-2 focus:ring-primary rounded-md">
                   <SelectValue placeholder={t("sort.placeholder")} />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
@@ -573,11 +580,39 @@ export default function Home() {
 
               <div className="flex flex-wrap gap-3 justify-start">
                 {allBadges.map((badge) => {
+                  // Debug: log the badge text to see what you're getting
+                  console.log("Badge from database:", badge);
+
                   // Use the centralized badge system to get styles
-                  const badgeStyle = BADGE_STYLES[badge] || {
-                    color: "#333",
-                    backgroundColor: "#e5e5e5",
-                  };
+                  // Try exact match first, then fallback
+                  let badgeStyle = BADGE_STYLES[badge];
+
+                  // If no exact match, try common variations
+                  if (!badgeStyle) {
+                    // Check for common variations
+                    const variations = [
+                      badge.trim(),
+                      badge.toLowerCase(),
+                      badge.charAt(0).toUpperCase() +
+                        badge.slice(1).toLowerCase(),
+                    ];
+
+                    for (const variation of variations) {
+                      if (BADGE_STYLES[variation]) {
+                        badgeStyle = BADGE_STYLES[variation];
+                        break;
+                      }
+                    }
+                  }
+
+                  // Final fallback
+                  if (!badgeStyle) {
+                    badgeStyle = {
+                      text: badge,
+                      color: "#333",
+                      backgroundColor: "#e5e5e5",
+                    };
+                  }
 
                   const isActive = activeFilters.includes(badge);
 
@@ -664,6 +699,8 @@ export default function Home() {
                         ? formatDate(course.applyByDateMm)
                         : undefined
                     }
+                    estimatedDate={course.estimatedDate || null} // Add this line
+                    estimatedDateMm={course.estimatedDateMm || null}
                     fee={
                       course.feeAmount ? formatFee(course.feeAmount) : undefined
                     }

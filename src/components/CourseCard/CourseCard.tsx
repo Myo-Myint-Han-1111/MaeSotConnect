@@ -31,6 +31,8 @@ export interface CourseCardProps {
   address?: string | null;
   applyByDate?: string | null;
   applyByDateMm?: string | null;
+  estimatedDate?: string | null;
+  estimatedDateMm?: string | null;
   logoImage?: string | null;
   duration: string;
   durationMm: string | null;
@@ -80,6 +82,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   address,
   applyByDate,
   applyByDateMm,
+  estimatedDate,
+  estimatedDateMm,
   duration,
   durationMm,
   // schedule,
@@ -155,6 +159,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({
               ? getLocalizedContent(applyByDate, applyByDateMm || null)
               : undefined
           }
+          estimatedDate={estimatedDate} // Add this line
+          estimatedDateMm={estimatedDateMm} // Add this line
           duration={getLocalizedContent(duration, durationMm)}
           fee={fee ? getLocalizedContent(fee, feeMm || null) : undefined}
           compact={true}
