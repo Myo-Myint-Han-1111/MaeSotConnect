@@ -68,9 +68,11 @@
   * {
     border-color: hsl(var(--border));
   }
+
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 
@@ -90,7 +92,7 @@
   margin: 0 auto;
 }
 
-/* Hero section with gradient background */
+/* Hero section with gradient background - Enhanced for dark mode */
 .hero-gradient {
   background: linear-gradient(135deg, #4257b2 0%, #2d3a85 50%, #1e2860 100%);
   color: white;
@@ -98,6 +100,12 @@
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
+  transition: background 0.3s ease;
+}
+
+/* Dark mode hero gradient */
+.dark .hero-gradient {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #020617 100%);
 }
 
 /* Dark overlay for hero gradient */
@@ -110,6 +118,11 @@
   bottom: 0;
   background: rgba(0, 0, 0, 0.1);
   z-index: 0;
+  transition: background 0.3s ease;
+}
+
+.dark .hero-gradient::after {
+  background: rgba(0, 0, 0, 0.3);
 }
 
 /* Make sure content sits above the overlay */
@@ -134,6 +147,18 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
+/* Dark mode search input styling */
+.dark .search-container input {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  background-color: hsl(var(--background));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark .search-container input:focus {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
 /* Add responsive adjustments for mobile */
 @media (max-width: 640px) {
   .hero-gradient {
@@ -145,18 +170,18 @@
   }
 }
 
-/* Course grid masonry - ONLY add align-items: stretch */
+/* Course grid masonry - Enhanced for dark mode */
 .course-grid-flex {
   display: flex;
   flex-wrap: wrap;
   gap: 1.5rem;
-  align-items: stretch; /* ADD THIS LINE ONLY - makes all cards same height */
+  align-items: stretch;
 }
 
 .course-card-flex {
-  flex: 0 0 100%; /* Full width on mobile */
+  flex: 0 0 100%;
   max-width: 100%;
-  display: flex; /* ADD THIS LINE */
+  display: flex;
 }
 
 /* Make the card itself fill the flex container height */
@@ -164,18 +189,426 @@
   width: 100%;
   display: flex;
   flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Enhanced hover effects for course cards */
+.course-card-flex .course-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.dark .course-card-flex .course-card:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 @media (min-width: 768px) {
   .course-card-flex {
-    flex: 0 0 calc(50% - 0.75rem); /* 2 columns on tablet */
+    flex: 0 0 calc(50% - 0.75rem);
     max-width: calc(50% - 0.75rem);
   }
 }
 
 @media (min-width: 1024px) {
   .course-card-flex {
-    flex: 0 0 calc(33.333% - 1rem); /* 3 columns on desktop */
+    flex: 0 0 calc(33.333% - 1rem);
     max-width: calc(33.333% - 1rem);
   }
+}
+
+/* Dark mode improvements for forms and components */
+.dark .bg-white {
+  background-color: hsl(var(--card)) !important;
+}
+
+.dark .text-gray-900 {
+  color: hsl(var(--foreground)) !important;
+}
+
+.dark .text-gray-500 {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.dark .border-gray-200 {
+  border-color: hsl(var(--border)) !important;
+}
+
+/* Dark mode scrollbar styling */
+.dark {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted)) hsl(var(--background));
+}
+
+.dark::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dark::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+.dark::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+.dark::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--muted-foreground));
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition-property: color, background-color, border-color,
+    text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Course detail page enhancements for dark mode */
+.course-detail-page {
+  padding-top: 70px;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  transition: background-color 0.3s ease;
+}
+
+.dark .course-detail-page {
+  background-color: hsl(var(--background));
+}
+
+.course-detail-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.course-detail-header {
+  margin-bottom: 2rem;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  color: #6e8efb;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  margin-bottom: 1rem;
+  transition: color 0.2s ease;
+}
+
+.back-button:hover {
+  color: #4b6ce0;
+}
+
+.dark .back-button {
+  color: hsl(var(--primary));
+}
+
+.dark .back-button:hover {
+  color: hsl(var(--primary) / 0.8);
+}
+
+.course-detail-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  color: #1f2937;
+  transition: color 0.3s ease;
+}
+
+.dark .course-detail-header h1 {
+  color: hsl(var(--foreground));
+}
+
+.course-detail-header .subtitle {
+  font-size: 1.2rem;
+  color: #6b7280;
+  transition: color 0.3s ease;
+}
+
+.dark .course-detail-header .subtitle {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Image carousel styling enhancements */
+.course-image-gallery {
+  position: relative;
+  margin-bottom: 2rem;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  height: 400px;
+  transition: box-shadow 0.3s ease;
+}
+
+.dark .course-image-gallery {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+.main-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.course-badges {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Badge styling for dark mode */
+.badge {
+  transition: all 0.2s ease;
+}
+
+.dark .badge {
+  border: 1px solid hsl(var(--border));
+}
+
+/* Form elements dark mode styling */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: hsl(var(--background));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 1px hsl(var(--ring));
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Toast notifications dark mode */
+.dark .toast {
+  background-color: hsl(var(--card));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark .toast-success {
+  background-color: hsl(142 76% 12%);
+  border-color: hsl(142 76% 20%);
+  color: hsl(142 76% 90%);
+}
+
+.dark .toast-error {
+  background-color: hsl(0 63% 12%);
+  border-color: hsl(0 63% 20%);
+  color: hsl(0 63% 90%);
+}
+
+.dark .toast-warning {
+  background-color: hsl(45 93% 12%);
+  border-color: hsl(45 93% 20%);
+  color: hsl(45 93% 90%);
+}
+
+/* Table styling for dark mode */
+.dark table {
+  border-color: hsl(var(--border));
+}
+
+.dark th {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  border-color: hsl(var(--border));
+}
+
+.dark td {
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark tr:nth-child(even) {
+  background-color: hsl(var(--muted) / 0.3);
+}
+
+.dark tr:hover {
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+/* Accordion and collapsible elements */
+.dark .accordion-trigger {
+  color: hsl(var(--foreground));
+}
+
+.dark .accordion-trigger:hover {
+  color: hsl(var(--accent-foreground));
+  background-color: hsl(var(--accent));
+}
+
+.dark .accordion-content {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Loading states and skeletons */
+.dark .skeleton {
+  background-color: hsl(var(--muted));
+}
+
+.dark .loading-spinner {
+  border-color: hsl(var(--muted));
+  border-top-color: hsl(var(--primary));
+}
+
+/* Modal and dialog styling */
+.dark .modal-overlay {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.dark .modal-content {
+  background-color: hsl(var(--card));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+/* Focus states for accessibility */
+.dark *:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Selection styling */
+.dark ::selection {
+  background-color: hsl(var(--primary) / 0.3);
+  color: hsl(var(--primary-foreground));
+}
+
+/* Pagination and navigation */
+.dark .pagination-button {
+  background-color: hsl(var(--card));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark .pagination-button:hover:not(:disabled) {
+  background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+.dark .pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dark .pagination-button.active {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
+}
+
+/* Code blocks and syntax highlighting */
+.dark pre {
+  background-color: hsl(var(--muted));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark code {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  border-radius: 4px;
+  padding: 0.125rem 0.25rem;
+}
+
+/* Progress bars and meters */
+.dark .progress-bar {
+  background-color: hsl(var(--muted));
+}
+
+.dark .progress-fill {
+  background-color: hsl(var(--primary));
+}
+
+/* Dividers and separators */
+.dark hr {
+  border-color: hsl(var(--border));
+}
+
+.dark .divider {
+  background-color: hsl(var(--border));
+}
+
+/* Image overlays and captions */
+.dark .image-overlay {
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+}
+
+.dark .image-caption {
+  color: hsl(var(--muted-foreground));
+  background-color: hsl(var(--card) / 0.9);
+  border-color: hsl(var(--border));
+}
+
+/* Responsive dark mode adjustments */
+@media (max-width: 640px) {
+  .dark .mobile-card {
+    background-color: hsl(var(--card));
+    border-color: hsl(var(--border));
+  }
+
+  .dark .mobile-menu {
+    background-color: hsl(var(--background));
+    border-color: hsl(var(--border));
+  }
+}
+
+/* Print styles for dark mode */
+@media print {
+  .dark * {
+    background: white !important;
+    color: black !important;
+    border-color: black !important;
+  }
+}
+
+/* Animation improvements for dark mode */
+@keyframes dark-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dark .animate-fade-in {
+  animation: dark-fade-in 0.3s ease-out;
+}
+
+/* Custom utility classes for dark mode */
+.dark-mode-transition {
+  transition: background-color 0.3s ease, color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+/* Ensure proper contrast for all text elements */
+.dark .text-contrast {
+  color: hsl(var(--foreground));
+}
+
+.dark .text-muted-contrast {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Final cleanup and overrides */
+.dark .bg-opacity-override {
+  background-color: hsl(var(--background)) !important;
+}
+
+.dark .border-opacity-override {
+  border-color: hsl(var(--border)) !important;
 }

@@ -5,6 +5,7 @@ import React from "react";
 import { SessionProvider } from "next-auth/react";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { ToastProvider } from "@/context/ToastContext";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
 
 export default function RootLayout({
@@ -16,11 +17,13 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head />
       <body>
-        <SessionProvider>
-          <LanguageProvider>
-            <ToastProvider>{children}</ToastProvider>
-          </LanguageProvider>
-        </SessionProvider>
+        <ThemeProvider defaultTheme="light">
+          <SessionProvider>
+            <LanguageProvider>
+              <ToastProvider>{children}</ToastProvider>
+            </LanguageProvider>
+          </SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
