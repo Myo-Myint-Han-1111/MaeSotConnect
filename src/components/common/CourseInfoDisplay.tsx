@@ -80,7 +80,7 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
           <div className="flex items-center gap-2 flex-wrap">
             {compact && showDescriptions && (
               <span
-                className="text-xs mr-2 flex-shrink-0"
+                className="text-xs w-16 flex-shrink-0"
                 style={{ color: grayColor }}
               >
                 {t("course.info.starts")}:
@@ -137,7 +137,7 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
             <div className="flex items-center gap-2 flex-wrap">
               {compact && showDescriptions && (
                 <span
-                  className="text-xs mr-2 flex-shrink-0"
+                  className="text-xs w-16 flex-shrink-0"
                   style={{ color: grayColor }}
                 >
                   {t("course.info.applyBy")}:
@@ -189,13 +189,13 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
       {/* Duration - With description */}
       <div className={itemClass} style={{ color: grayColor }}>
         <Clock className={iconClass} style={{ color: grayColor }} />
-        <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
           {!compact && (
             <p className="text-sm font-medium text-foreground">Duration</p>
           )}
           {compact && showDescriptions && (
             <span
-              className="text-xs mr-2 flex-shrink-0"
+              className="text-xs w-16 flex-shrink-0"
               style={{ color: grayColor }}
             >
               {t("course.info.duration")}:
@@ -214,13 +214,13 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
       {fee && (
         <div className={itemClass} style={{ color: grayColor }}>
           <HandCoins className={iconClass} style={{ color: grayColor }} />
-          <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
             {!compact && (
               <p className="text-sm font-medium text-foreground">Fee</p>
             )}
             {compact && showDescriptions && (
               <span
-                className="text-xs mr-2 flex-shrink-0"
+                className="text-xs w-16 flex-shrink-0"
                 style={{ color: grayColor }}
               >
                 {t("course.info.fee")}:

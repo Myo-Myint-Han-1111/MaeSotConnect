@@ -656,11 +656,20 @@ export default function Home() {
           {filteredCourses.length > 0 && (
             <p className="text-left text-sm text-muted-foreground mb-6 ml-1">
               {language === "mm"
-                ? convertToMyanmarNumber(filteredCourses.length)
-                : filteredCourses.length}{" "}
-              {filteredCourses.length === 1
-                ? t("home.course.found")
-                : t("home.courses.found")}
+                ? filteredCourses.length === 1
+                  ? t("home.course.found").replace(
+                      "{count}",
+                      convertToMyanmarNumber(filteredCourses.length)
+                    )
+                  : t("home.courses.found").replace(
+                      "{count}",
+                      convertToMyanmarNumber(filteredCourses.length)
+                    )
+                : `${filteredCourses.length} ${
+                    filteredCourses.length === 1
+                      ? t("home.course.found")
+                      : t("home.courses.found")
+                  }`}
             </p>
           )}
 

@@ -148,9 +148,15 @@ export const translations = {
     "about.subtitle": "Learn about our mission and our team",
     "about.mission.title": "Our Mission",
     "about.mission.p1":
-      "At Mae Sot Connect, we're dedicated to delivering exceptional products and services that empower our clients to achieve their goals. We believe in innovation, integrity, and creating lasting relationships with everyone we work with.",
-    "about.mission.p2":
-      "Founded with a clear vision of connecting businesses and communities, we've grown steadily while maintaining our commitment to personalized service and attention to detail.",
+      "This website empowers youth by providing an intuitive, time-saving platform that makes discovering and accessing educational opportunities effortless and effective. We solve the challenge of scattered course information by creating a centralized, user-friendly application where young people can easily search, filter, and compare vocational training programs, language courses, and skill development opportunities that match their career aspirations and schedules.",
+
+    "about.platform.title": "Our Platform Services",
+    "about.platform.content":
+      "We deliver a streamlined search experience through advanced filtering by location, course type, schedule, and fees, supported by comprehensive bilingual functionality (English and Myanmar) that ensures accessibility for all users. Our intelligent course management system provides detailed program information, clear application processes, and direct connections to training organizations, eliminating barriers between youth and their educational goals.",
+
+    "about.vision.title": "Our Long-term Vision",
+    "about.vision.content":
+      "We focus on continuously expanding our course offerings based on youth demand and needs. We are committed to identifying and partnering with organizations that provide the most sought-after skills training in technology, hospitality, healthcare, and emerging industries. Through data analysis of user search patterns and educational opportunity needs, we will proactively develop educational pathways that align with real opportunities, ensuring our platform remains the go-to resource for youth seeking relevant, practical education that leads to meaningful employment.",
     "about.team.title": "Meet Our Team",
 
     // Add these sort translations:
@@ -170,8 +176,8 @@ export const translations = {
     "nav.language": "အင်္ဂလိပ် | မြန်မာ",
 
     // Home page
-    "home.welcome": "သင်ဘာသင်ချင်လဲ",
-    "home.subtitle": "အတက်ပညာကိုသင်ယူလေ့လာပါ။ သင်လမ်းကြောင်းကိုဖန်တီးပါ။",
+    "home.welcome": "သင် ဘာသင်ယူချင်ပါသလဲ။",
+    "home.subtitle": "အတတ်ပညာကိုသင်ယူလေ့လာပါ။ သင့်လမ်းကြောင်းကိုဖန်တီးပါ။",
     "home.search.placeholder":
       "သင်တန်းအမည်၊ တည်နေရာ သို့မဟုတ် အမျိုးအစားဖြင့် ရှာဖွေပါ...",
     "home.filter.category": "အမျိုးအစားဖြင့် စစ်ထုတ်ရန်:",
@@ -180,8 +186,8 @@ export const translations = {
     "home.no.results.desc":
       "အခြားစကားလုံးများဖြင့် ထပ်မံကြိုးစားကြည့်ပါ သို့မဟုတ် သင်တန်းအသစ်များအတွက် နောက်တစ်ကြိမ် စစ်ဆေးပါ။",
     "home.clear.search": "ရှာဖွေမှုများအားလုံး ရှင်းလင်းရန်",
-    "home.courses.found": "သင်တန်းများတွေ့ရှိသည်",
-    "home.course.found": "သင်တန်းတွေ့ရှိသည်", // For singular case
+    "home.courses.found": "သင်တန်းများ {count} ခုတွေ့ရှိသည်",
+    "home.course.found": "သင်တန်း {count} ခုတွေ့ရှိသည်",
 
     // Course card
     "course.view.details": "အသေးစိတ်ကြည့်ရန်",
@@ -200,7 +206,7 @@ export const translations = {
     "course.info.duration": "ကြာချိန်",
     "course.info.schedule": "အချိန်ဇယား",
     "course.info.fee": "သင်တန်းကြေး",
-    "course.info.applyBy": "လျှောက်ထားရမည့်",
+    "course.info.applyBy": "လျှောက်ထားရမည့်ရက်",
     "course.applyBy": "လျှောက်ထားရမည့်ရက်",
     "course.address": "သင်တန်းလိပ်စာ",
 
@@ -276,9 +282,17 @@ export const translations = {
     "about.subtitle": "ကျွန်ုပ်တို့၏ ရည်မှန်းချက်နှင့် အဖွဲ့အကြောင်း လေ့လာပါ",
     "about.mission.title": "ကျွန်ုပ်တို့၏ ရည်မှန်းချက်",
     "about.mission.p1":
-      "မဲဆောက်ကွန်နက်တွင် ကျွန်ုပ်တို့သည် ကျွန်ုပ်တို့၏ ဖောက်သည်များအား ၎င်းတို့၏ ရည်မှန်းချက်များကို ရရှိရန် စွမ်းဆောင်ရည် မြှင့်တင်ပေးသည့် ထူးခြားသော ထုတ်ကုန်များနှင့် ဝန်ဆောင်မှုများ ပေးအပ်ရန် အာရုံစိုက်ထားပါသည်။",
-    "about.mission.p2":
-      "စီးပွားရေးလုပ်ငန်းများနှင့် အသိုင်းအဝိုင်းများကို ချိတ်ဆက်ပေးရန် ရှင်းလင်းသော ရူပါရုံဖြင့် တည်ထောင်ခဲ့ပြီး၊ ကျွန်ုပ်တို့သည် တစ်ဦးချင်းအလိုက် ဝန်ဆောင်မှုနှင့် အသေးစိတ်အချက်များကို အာရုံစိုက်ခြင်းအပေါ် ကတိကဝတ်ကို ထိန်းသိမ်းထားပါသည်။",
+      "ယခုဝက်ဆိုဒ်သည် ပညာရေးအခွင့်အလမ်းများကို လွယ်ကူထိရောက်စွာ ရှာဖွေရယူနိုင်သော အချိန်သက်သာသည့် စနစ်တစ်ခုပေးအပ်ခြင်းဖြင့် လူငယ်များကို စွမ်းဆောင်ရည်မြှင့်တင်ပေးပါသည်။ ကျွန်ုပ်တို့သည် သင်ယူရရှိနိုင်သော သင်တန်းအချက်အလက်များအား တစ်နေရာတည်းတွင် ဖော်ပြသော၊ အသုံးပြုရလွယ်ကူသည့် အက်ပလီကေးရှင်းတစ်ခုဖန်တီးခြင်းဖြင့် လူငယ်များအား ၎င်းတို့၏ အသက်မွေးဝမ်းကြောင်းရည်မှန်းချက်များနှင့် အချိန်ဇယားများနှင့်ကိုက်ညီသော အသက်မွေးပညာလေ့ကျင့်ရေးအစီအစဉ်များ၊ ဘာသာစကားသင်တန်းများနှင့် ကျွမ်းကျင်မှုတိုးတက်ရေးအခွင့်အလမ်းများကို လွယ်ကူစွာ နှိုင်းယှဉ်၊  စစ်ထုတ်၊ ရှာဖွေ နိုင်စေပါသည်။",
+
+    "about.platform.title": "ကျွန်ုပ်တို့၏ ပလပ်ဖောင်းဝန်ဆောင်မှုများ",
+
+    "about.platform.content":
+      "ကျွန်ုပ်တို့သည် တည်နေရာ၊ သင်တန်းအမျိုးအစား၊ အချိန်ဇယားနှင့် သင်တန်းကြေးများအလိုက် အဆင့်မြင့်စစ်ထုတ်မှုများမှတစ်ဆင့် ချောမွေ့သောရှာဖွေမှုအတွေ့အကြုံကို ပေးအပ်ပါသည်။ အသုံးပြုသူအားလုံးအတွက် လက်လှမ်းမီနိုင်မှုကို သေချာစေသည့် ကျယ်ပြန့်သော ဘာသာစကားနှစ်ခု(အင်္ဂလိပ်နှင့်မြန်မာ) စွမ်းဆောင်ရည်ဖြင့် ပံ့ပိုးထားပါသည်။ ကျွန်ုပ်တို့၏ ကောင်းမွန်သော သင်တန်းစီမံခန့်ခွဲမှုစနစ်သည် အသေးစိတ်အစီအစဉ်အချက်အလက်များ၊ ရှင်းလင်းသောလျှောက်ထားမှုလုပ်ငန်းစဉ်များအပြင် သင်တန်းအဖွဲ့အစည်းများနှင့် ချိတ်ဆက်ဆက်သွယ်မှုများ ပြုလုပ်ပေးအပ်ခြင်းဖြင့် လူငယ်များနှင့် ၎င်းတို့၏ပညာရေးရည်မှန်းချက်များကြား အတားအဆီးများကို ဖယ်ရှားပေးပါသည်။",
+
+    "about.vision.title": "ကျွန်ုပ်တို့၏ ရေရှည်မျှော်မှန်းချက်",
+
+    "about.vision.content":
+      "ကျွန်ုပ်တို့သည် လူငယ်များ၏တောင်းဆိုမှု နှင့် လိုအပ်ချက်များအပေါ် အခြေခံ၍ ကျွန်ုပ်တို့၏သင်တန်းအချက်အလက်မျှဝေမှုများကို စဉ်ဆက်မပြတ်တိုးချဲ့ခြင်းအပေါ် အာရုံစိုက်ပါသည်။ နည်းပညာ၊ ဧည့်ခံမှု၊ ကျန်းမာရေးစောင့်ရှောက်မှုနှင့် ပေါ်ထွန်းလာသောစက်မှုလုပ်ငန်းများတွင် အများဆုံးလိုအပ်သောကျွမ်းကျင်မှုလေ့ကျင့်ရေးကို ပေးအပ်သည့် အဖွဲ့အစည်းများကို ခွဲခြားသတ်မှတ်ခြင်းနှင့် ပူးပေါင်းဆောင်ရွက်ခြင်းအတွက် ကတိပြုပါသည်။ အသုံးပြုသူရှာဖွေမှုပုံစံများနှင့် ပညာရေးအခွင့်အလမ်းလိုအပ်မှုများ၏ ဒေတာခွဲခြမ်းစိတ်ဖြာမှုမှတစ်ဆင့် ကျွန်ုပ်တို့သည် စစ်မှန်သောအခွင့်အလမ်းများနှင့်ကိုက်ညီသော ပညာရေးလမ်းကြောင်းများကို တက်ကြွစွာဖွံ့ဖြိုးတိုးတက်စေပြီး ကျွန်ုပ်တို့၏ပလပ်ဖောင်းသည် အဓိပ္ပာယ်ရှိသောအလုပ်အကိုင်သို့ ဦးတည်သည့် သက်ဆိုင်ရာ၊ လက်တွေ့ကျသောပညာရေးကို ရှာဖွေနေသည့် လူငယ်များအတွက် အဓိကအရင်းအမြစ်ဖြစ်စေရန် သေချာစေပါမည်။",
     "about.team.title": "ကျွန်ုပ်တို့၏အဖွဲ့နှင့် တွေ့ဆုံပါ",
 
     // Add these sort translations:

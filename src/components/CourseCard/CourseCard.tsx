@@ -2,8 +2,8 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent } from "../ui/card";
-// import { Button } from "../ui/button";
+import { Card, CardContent, CardFooter } from "../ui/card";
+import { Button } from "../ui/button";
 import { useLanguage } from "../../context/LanguageContext";
 import ImageCarousel from "../common/ImageCarousel";
 // import DayIndicator from "../common/DayIndicator";
@@ -96,7 +96,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   // applyByDateMm, // TODO: Ko Myo - Uncomment when added to database
 }) => {
   const router = useRouter();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
 
   const handleNavigation = () => {
     router.push(`/courses/${slug}`);
@@ -184,17 +184,19 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         </div> */}
       </CardContent>
 
-      {/* <CardFooter className="see-more-container">
-        {<Button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleNavigation();
-          }}
-          className="see-more-button cursor-pointer"
-        >
-          {t("course.seemore")}
-        </Button>}
-      </CardFooter> */}
+      <CardFooter className="see-more-container">
+        {
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleNavigation();
+            }}
+            className="see-more-button cursor-pointer"
+          >
+            {t("course.seemore")}
+          </Button>
+        }
+      </CardFooter>
     </Card>
   );
 };

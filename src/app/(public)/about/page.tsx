@@ -9,60 +9,32 @@ import { ChevronLeft } from "lucide-react";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "../../../components/ui/card";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "../../../components/ui/tabs";
-import { Shield, Lightbulb, Users } from "lucide-react";
-
-// Define any styles that can't be easily converted to Tailwind
-const styles = {
-  iconContainer: {
-    height: "4rem",
-    width: "4rem",
-    borderRadius: "100%",
-    backgroundColor: "rgba(var(--primary), 0.1)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: "1rem",
-  },
-};
 
 const About: React.FC = () => {
   const { t } = useLanguage();
-  const router = useRouter(); // Initialize the router hook
+  const router = useRouter();
 
   // Sample team data
   const teamMembers = [
     {
-      name: "John Doe",
-      role: "Director",
+      name: "Peter Grunawalt",
+      role: "Main Developer",
       bio: "John has over 10 years of experience in community development and education.",
       image: "/team/placeholder.jpg",
     },
     {
-      name: "Jane Smith",
-      role: "Program Manager",
+      name: "Ko Myo",
+      role: "Developer",
       bio: "Jane specializes in curriculum development and has worked with diverse communities across Thailand.",
       image: "/team/placeholder.jpg",
     },
     {
-      name: "David Wong",
-      role: "Outreach Coordinator",
+      name: "Ko Phillip",
+      role: "Consultant",
       bio: "David builds relationships with local businesses and organizations to create opportunities for our community.",
-      image: "/team/placeholder.jpg",
-    },
-    {
-      name: "Maria Rodriguez",
-      role: "Education Specialist",
-      bio: "Maria has extensive experience in language education and vocational training programs.",
       image: "/team/placeholder.jpg",
     },
   ];
@@ -83,99 +55,76 @@ const About: React.FC = () => {
       </div>
 
       <section className="max-w-6xl mx-auto px-4 py-2">
-        <Tabs defaultValue="mission" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:w-[300px] mx-auto mb-4 p-1 rounded-md ">
-            <TabsTrigger value="mission">Our Mission</TabsTrigger>
-            <TabsTrigger value="team">Our Team</TabsTrigger>
-          </TabsList>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-3xl text-center mb-4">
+              About Us
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Mission Section */}
+            <div>
+              <h2 className="text-2xl font-semibold mb-4">
+                {t("about.mission.title")}
+              </h2>
+              <p className="text-muted-foreground mb-4">
+                {t("about.mission.p1")}
+              </p>
 
-          <TabsContent value="mission" className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl">
-                  {t("about.mission.title")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-muted-foreground">{t("about.mission.p1")}</p>
-                <p className="text-muted-foreground">{t("about.mission.p2")}</p>
+              <div className="mt-6">
+                <h3 className="text-xl font-semibold mb-3">
+                  {t("about.platform.title")}
+                </h3>
+                <p className="text-muted-foreground">
+                  {t("about.platform.content")}
+                </p>
+              </div>
 
-                <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-                  <div className="flex flex-col items-center text-center">
-                    <div style={styles.iconContainer}>
-                      <Shield className="h-8 w-8 text-primary" />
-                    </div>
-                    <h3 className="text-lg font-medium mb-2">Trust</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Building strong relationships based on reliability and
-                      integrity.
-                    </p>
-                  </div>
+              <div className="mt-6">
+                <h3 className="text-xl font-semibold mb-3">
+                  {t("about.vision.title")}
+                </h3>
+                <p className="text-muted-foreground">
+                  {t("about.vision.content")}
+                </p>
+              </div>
+            </div>
 
-                  <div className="flex flex-col items-center text-center">
-                    <div style={styles.iconContainer}>
-                      <Lightbulb className="h-8 w-8 text-primary" />
-                    </div>
-                    <h3 className="text-lg font-medium mb-2">Innovation</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Finding creative solutions to meet the needs of our
-                      community.
-                    </p>
-                  </div>
+            {/* Team Section */}
+            <div className="mt-12">
+              <h2 className="text-2xl font-semibold mb-4">
+                {t("about.team.title")}
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                Meet the dedicated professionals behind our organization
+              </p>
 
-                  <div className="flex flex-col items-center text-center">
-                    <div style={styles.iconContainer}>
-                      <Users className="h-8 w-8 text-primary" />
-                    </div>
-                    <h3 className="text-lg font-medium mb-2">Community</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Bringing people together to create opportunities for
-                      growth and learning.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="team" className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl">
-                  {t("about.team.title")}
-                </CardTitle>
-                <CardDescription>
-                  Meet the dedicated professionals behind our organization
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {teamMembers.map((member, index) => (
-                    <div
-                      key={index}
-                      className="flex flex-col items-center text-center"
-                    >
-                      <div className="h-32 w-32 rounded-full bg-muted overflow-hidden mb-4">
-                        {/* Fallback div in case image fails to load */}
-                        <div className="h-full w-full flex items-center justify-center bg-primary/10 text-primary text-2xl font-bold">
-                          {member.name
-                            .split(" ")
-                            .map((name) => name[0])
-                            .join("")}
-                        </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {teamMembers.map((member, index) => (
+                  <div
+                    key={index}
+                    className="flex flex-col items-center text-center"
+                  >
+                    <div className="h-32 w-32 rounded-full bg-muted overflow-hidden mb-4">
+                      {/* Fallback div in case image fails to load */}
+                      <div className="h-full w-full flex items-center justify-center bg-primary/10 text-primary text-2xl font-bold">
+                        {member.name
+                          .split(" ")
+                          .map((name) => name[0])
+                          .join("")}
                       </div>
-                      <h3 className="text-lg font-medium">{member.name}</h3>
-                      <p className="text-sm text-primary mb-2">{member.role}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {member.bio}
-                      </p>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                    <h3 className="text-lg font-medium">{member.name}</h3>
+                    <p className="text-sm text-primary mb-2">{member.role}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {member.bio}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </section>
     </div>
   );
