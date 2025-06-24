@@ -66,7 +66,6 @@ interface CourseFormData {
   scheduleDetailsMm: string;
   selectionCriteria: string[];
   selectionCriteriaMm: string[];
-  // ADD THESE NEW FIELDS
   howToApply: string[];
   howToApplyMm: string[];
   applyButtonText?: string;
@@ -74,6 +73,9 @@ interface CourseFormData {
   applyLink?: string;
   estimatedDate: string;
   estimatedDateMm: string;
+  // UI-only fields for checkbox state
+  showEstimatedForStartDate: boolean;
+  showEstimatedForApplyByDate: boolean;
   organizationId?: string;
   images: File[];
   badges: {
@@ -135,6 +137,34 @@ const badgeOptions: BadgeOption[] = [
   { text: "English", color: "#fff", backgroundColor: "#2c3e50" }, // Dark Blue
 ];
 
+// Helper function to decode estimated date and preferences when loading existing data
+const parseExistingEstimatedDate = (estimatedDateString: string | null) => {
+  if (!estimatedDateString) {
+    return {
+      estimatedDate: "",
+      showEstimatedForStartDate: false,
+      showEstimatedForApplyByDate: false
+    };
+  }
+
+  // Check if the string contains our encoding (text|startFlag|applyFlag)
+  const parts = estimatedDateString.split('|');
+  if (parts.length === 3) {
+    return {
+      estimatedDate: parts[0],
+      showEstimatedForStartDate: parts[1] === '1',
+      showEstimatedForApplyByDate: parts[2] === '1'
+    };
+  }
+
+  // If no encoding found, it's old data - default to showing for both (backward compatibility)
+  return {
+    estimatedDate: estimatedDateString,
+    showEstimatedForStartDate: true,
+    showEstimatedForApplyByDate: true
+  };
+};
+
 export default function CourseForm({
   initialData,
   mode,
@@ -150,6 +180,10 @@ export default function CourseForm({
     useState<string[]>(existingImages);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
 
+  // Parse existing estimated date data
+  const estimatedPrefs = parseExistingEstimatedDate(initialData?.estimatedDate ?? null);
+  const estimatedPrefsMm = parseExistingEstimatedDate(initialData?.estimatedDateMm ?? null);
+
   const [formData, setFormData] = useState<CourseFormData>({
     title: initialData?.title ?? "",
     titleMm: initialData?.titleMm ?? "",
@@ -163,19 +197,13 @@ export default function CourseForm({
     applyByDate: initialData?.applyByDate ?? "",
     applyByDateMm: initialData?.applyByDateMm ?? "",
     startDate: initialData?.startDate ?? "",
-    // startDateMm: initialData?.startDateMm ?? "", // REMOVE THIS LINE
     endDate: initialData?.endDate ?? "",
-    // endDateMm: initialData?.endDateMm ?? "", // REMOVE THIS LINE
     duration: initialData?.duration ?? 0,
-    // durationMm: initialData?.durationMm ?? 0, // REMOVE THIS LINE
     schedule: initialData?.schedule ?? "",
     scheduleMm: initialData?.scheduleMm ?? "",
     feeAmount: initialData?.feeAmount ?? 0,
-    // feeAmountMm: initialData?.feeAmountMm ?? 0, // REMOVE THIS LINE
     ageMin: initialData?.ageMin ?? 0,
-    // ageMinMm: initialData?.ageMinMm ?? 0, // REMOVE THIS LINE
     ageMax: initialData?.ageMax ?? 0,
-    // ageMaxMm: initialData?.ageMaxMm ?? 0, // REMOVE THIS LINE
     document: initialData?.document ?? "",
     documentMm: initialData?.documentMm ?? "",
     availableDays: initialData?.availableDays ?? [
@@ -201,8 +229,11 @@ export default function CourseForm({
     applyButtonText: initialData?.applyButtonText ?? "",
     applyButtonTextMm: initialData?.applyButtonTextMm ?? "",
     applyLink: initialData?.applyLink ?? "",
-    estimatedDate: initialData?.estimatedDate ?? "",
-    estimatedDateMm: initialData?.estimatedDateMm ?? "",
+    // Parsed estimated date data
+    estimatedDate: estimatedPrefs.estimatedDate,
+    estimatedDateMm: estimatedPrefsMm.estimatedDate,
+    showEstimatedForStartDate: estimatedPrefs.showEstimatedForStartDate,
+    showEstimatedForApplyByDate: estimatedPrefs.showEstimatedForApplyByDate,
     images: [],
     badges: initialData?.badges ?? [],
     faq: initialData?.faq ?? [
@@ -265,6 +296,11 @@ export default function CourseForm({
       console.log("Syncing form data with initialData:", initialData);
       console.log("Initial province:", initialData.province);
       console.log("Initial district:", initialData.district);
+      
+      // Parse existing estimated date data
+      const estimatedPrefs = parseExistingEstimatedDate(initialData.estimatedDate ?? null);
+      const estimatedPrefsMm = parseExistingEstimatedDate(initialData.estimatedDateMm ?? null);
+      
       setFormData({
         title: initialData.title ?? "",
         titleMm: initialData.titleMm ?? "",
@@ -278,19 +314,13 @@ export default function CourseForm({
 
         district: initialData.district ?? "",
         startDate: initialData.startDate ?? "",
-        // startDateMm: initialData.startDateMm ?? "", // REMOVE THIS LINE
         endDate: initialData.endDate ?? "",
-        // endDateMm: initialData.endDateMm ?? "", // REMOVE THIS LINE
         duration: initialData.duration ?? 0,
-        // durationMm: initialData.durationMm ?? 0, // REMOVE THIS LINE
         schedule: initialData.schedule ?? "",
         scheduleMm: initialData.scheduleMm ?? "",
         feeAmount: initialData.feeAmount ?? 0,
-        // feeAmountMm: initialData.feeAmountMm ?? 0, // REMOVE THIS LINE
         ageMin: initialData.ageMin ?? 0,
-        // ageMinMm: initialData.ageMinMm ?? 0, // REMOVE THIS LINE
         ageMax: initialData.ageMax ?? 0,
-        // ageMaxMm: initialData.ageMaxMm ?? 0, // REMOVE THIS LINE
         document: initialData.document ?? "",
         documentMm: initialData.documentMm ?? "",
         availableDays: initialData.availableDays ?? [
@@ -315,8 +345,11 @@ export default function CourseForm({
         applyButtonText: initialData?.applyButtonText ?? "",
         applyButtonTextMm: initialData?.applyButtonTextMm ?? "",
         applyLink: initialData?.applyLink ?? "",
-        estimatedDate: initialData?.estimatedDate ?? "",
-        estimatedDateMm: initialData?.estimatedDateMm ?? "",
+        // Parsed estimated date data
+        estimatedDate: estimatedPrefs.estimatedDate,
+        estimatedDateMm: estimatedPrefsMm.estimatedDate,
+        showEstimatedForStartDate: estimatedPrefs.showEstimatedForStartDate,
+        showEstimatedForApplyByDate: estimatedPrefs.showEstimatedForApplyByDate,
         organizationId: organizationId ?? initialData.organizationId ?? "",
         images: [],
         badges: initialData.badges ?? [],
@@ -351,6 +384,14 @@ export default function CourseForm({
     setFormData((prev) => ({
       ...prev,
       [fieldName]: value,
+    }));
+  };
+
+  // Add this new handler for checkbox changes
+  const handleCheckboxChange = (fieldName: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [fieldName]: !prev[fieldName as keyof CourseFormData],
     }));
   };
 
@@ -581,12 +622,23 @@ export default function CourseForm({
     console.log("How to Apply data:", formData.howToApply);
     console.log("How to Apply MM data:", formData.howToApplyMm);
 
-    // IMPORTANT: Ensure howToApply arrays are properly filtered
+    // IMPORTANT: Ensure howToApply arrays are properly filtered and encode estimated date preferences
     const cleanedFormData = {
       ...formData,
       howToApply: formData.howToApply.filter((step) => step.trim() !== ""),
       howToApplyMm: formData.howToApplyMm.filter((step) => step.trim() !== ""),
+      // Encode the display preferences into the estimated date field
+      estimatedDate: formData.estimatedDate ? 
+        `${formData.estimatedDate}|${formData.showEstimatedForStartDate ? '1' : '0'}|${formData.showEstimatedForApplyByDate ? '1' : '0'}` 
+        : "",
+      estimatedDateMm: formData.estimatedDateMm ? 
+        `${formData.estimatedDateMm}|${formData.showEstimatedForStartDate ? '1' : '0'}|${formData.showEstimatedForApplyByDate ? '1' : '0'}` 
+        : "",
     };
+
+    // Remove UI-only fields before submission
+    delete (cleanedFormData as Partial<CourseFormData>).showEstimatedForStartDate;
+    delete (cleanedFormData as Partial<CourseFormData>).showEstimatedForApplyByDate;
 
     console.log("Cleaned form data:", cleanedFormData);
 
@@ -974,36 +1026,39 @@ export default function CourseForm({
 
             {/* NEW TAB: Dates & Fees */}
             <TabsContent value="dates-fees" className="space-y-5">
-              {/* Start Date - REMOVE MYANMAR FIELD */}
-              <div className="space-y-2">
-                <Label htmlFor="startDate">
-                  <Calendar className="h-4 w-4 inline mr-1" />
-                  Start Date
-                </Label>
-                <Input
-                  id="startDate"
-                  name="startDate"
-                  type="date"
-                  value={formData.startDate ?? ""}
-                  onChange={handleTextChange}
-                  required
-                />
-              </div>
+              {/* Start Date and End Date - Side by Side */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Start Date */}
+                <div className="space-y-2">
+                  <Label htmlFor="startDate">
+                    <Calendar className="h-4 w-4 inline mr-1" />
+                    Start Date
+                  </Label>
+                  <Input
+                    id="startDate"
+                    name="startDate"
+                    type="date"
+                    value={formData.startDate ?? ""}
+                    onChange={handleTextChange}
+                    required
+                  />
+                </div>
 
-              {/* End Date - REMOVE MYANMAR FIELD */}
-              <div className="space-y-2">
-                <Label htmlFor="endDate">
-                  <Calendar className="h-4 w-4 inline mr-1" />
-                  End Date
-                </Label>
-                <Input
-                  id="endDate"
-                  name="endDate"
-                  type="date"
-                  value={formData.endDate ?? ""}
-                  onChange={handleTextChange}
-                  required
-                />
+                {/* End Date */}
+                <div className="space-y-2">
+                  <Label htmlFor="endDate">
+                    <Calendar className="h-4 w-4 inline mr-1" />
+                    End Date
+                  </Label>
+                  <Input
+                    id="endDate"
+                    name="endDate"
+                    type="date"
+                    value={formData.endDate ?? ""}
+                    onChange={handleTextChange}
+                    required
+                  />
+                </div>
               </div>
 
               {/* Apply By Date */}
@@ -1025,43 +1080,96 @@ export default function CourseForm({
                 </div>
               </div>
 
-              {/* Estimated Date */}
-              <div className="space-y-2">
-                <Label htmlFor="estimatedDate">Estimated Date (Optional)</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">
-                      English
+              {/* Estimated Date Section */}
+              <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+                <div className="space-y-3">
+                  <Label className="text-base font-medium">Estimated Date Options</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Configure when to display the estimated date. If neither option is selected, 
+                    estimated dates will not be shown on course cards.
+                  </p>
+                  
+                  {/* Estimated Date Input Fields */}
+                  <div className="space-y-2">
+                    <Label htmlFor="estimatedDate">Estimated Date (Optional)</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">
+                          English
+                        </div>
+                        <Input
+                          id="estimatedDate"
+                          name="estimatedDate"
+                          value={formData.estimatedDate}
+                          onChange={handleTextChange}
+                          placeholder="e.g., Early 2024, Spring semester"
+                        />
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">
+                          Myanmar
+                        </div>
+                        <Input
+                          id="estimatedDateMm"
+                          name="estimatedDateMm"
+                          value={formData.estimatedDateMm}
+                          onChange={handleTextChange}
+                          placeholder="Myanmar translation..."
+                          dir="auto"
+                        />
+                      </div>
                     </div>
-                    <Input
-                      id="estimatedDate"
-                      name="estimatedDate"
-                      value={formData.estimatedDate}
-                      onChange={handleTextChange}
-                      placeholder="e.g., Early 2024, Spring semester"
-                    />
                   </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">
-                      Myanmar
+
+                  {/* Checkboxes for display options - Only show if estimated date is filled */}
+                  {(formData.estimatedDate || formData.estimatedDateMm) && (
+                    <div className="space-y-3 pt-3 border-t">
+                      <Label className="text-sm font-medium">Display estimated date for:</Label>
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="showEstimatedForStartDate"
+                            checked={formData.showEstimatedForStartDate}
+                            onChange={() => handleCheckboxChange('showEstimatedForStartDate')}
+                          />
+                          <label
+                            htmlFor="showEstimatedForStartDate"
+                            className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            Start Date (show estimated date badge next to start date)
+                          </label>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="showEstimatedForApplyByDate"
+                            checked={formData.showEstimatedForApplyByDate}
+                            onChange={() => handleCheckboxChange('showEstimatedForApplyByDate')}
+                          />
+                          <label
+                            htmlFor="showEstimatedForApplyByDate"
+                            className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            Application Deadline (show estimated date badge next to deadline)
+                          </label>
+                        </div>
+                      </div>
+                      
+                      {!formData.showEstimatedForStartDate && !formData.showEstimatedForApplyByDate && (
+                        <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                          ⚠️ Estimated date is entered but won&apos;t be displayed. Select at least one option above to show it.
+                        </p>
+                      )}
                     </div>
-                    <Input
-                      id="estimatedDateMm"
-                      name="estimatedDateMm"
-                      value={formData.estimatedDateMm}
-                      onChange={handleTextChange}
-                      placeholder="Myanmar translation..."
-                      dir="auto"
-                    />
-                  </div>
+                  )}
+
+                  <p className="text-xs text-muted-foreground">
+                    Use estimated dates for approximate or flexible timing when exact dates are not available
+                  </p>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Use this for approximate or flexible dates when exact dates
-                  are not available
-                </p>
               </div>
 
-              {/* Duration - REMOVE MYANMAR FIELD */}
+              {/* Duration */}
               <div className="space-y-2">
                 <Label htmlFor="duration">
                   <Clock className="h-4 w-4 inline mr-1" />
@@ -1079,7 +1187,7 @@ export default function CourseForm({
                 />
               </div>
 
-              {/* Fee Amount - REMOVE MYANMAR FIELD */}
+              {/* Fee Amount */}
               <div className="space-y-2">
                 <Label htmlFor="feeAmount">
                   <DollarSign className="h-4 w-4 inline mr-1" />

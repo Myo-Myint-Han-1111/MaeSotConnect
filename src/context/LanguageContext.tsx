@@ -68,14 +68,11 @@ export const translations = {
     "course.days.sat": "Sat",
 
     // Course info display short descriptions
-    "course.info.starts": "Start by",
+    "course.info.starts": "Start Date",
     "course.info.duration": "Duration",
     "course.info.schedule": "Schedule",
     "course.info.fee": "Fee",
-    "course.info.applyBy": "Apply by", // TODO: Ko Myo - For future use when applyByDate is added
-
-    // Future full labels (for non-compact mode)
-    "course.applyBy": "Apply By", // TODO: Ko Myo - For future use when applyByDate is added
+    "course.info.applyBy": "Deadline", // TODO: Ko Myo - For future use when applyByDate is added
 
     // Course detail
     "course.back": "Back",
@@ -206,8 +203,8 @@ export const translations = {
     "course.info.duration": "ကြာချိန်",
     "course.info.schedule": "အချိန်ဇယား",
     "course.info.fee": "သင်တန်းကြေး",
-    "course.info.applyBy": "လျှောက်ထားရမည့်ရက်",
-    "course.applyBy": "လျှောက်ထားရမည့်ရက်",
+    "course.info.applyBy": "နောက်ဆုံးလျှောက်ရမည့်ရက်",
+
     "course.address": "သင်တန်းလိပ်စာ",
 
     // Course detail
