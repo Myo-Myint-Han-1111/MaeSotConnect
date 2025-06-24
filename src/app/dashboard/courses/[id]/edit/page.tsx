@@ -43,17 +43,17 @@ interface CourseResponse {
   subtitleMm?: string | null;
   province?: string | null;
   district?: string | null;
-  address?: string | null; // Add this line
-  applyByDate?: string | null; // Add this line
-  applyByDateMm?: string | null; // Add this line
-  estimatedDate?: string | null; // Add this line
-  estimatedDateMm?: string | null; // Add this line
+  address?: string | null;
+  applyByDate?: string | null;
+  applyByDateMm?: string | null;
+  estimatedDate?: string | null;
+  estimatedDateMm?: string | null;
 
   // API returns DateTime as ISO strings
   startDate: string;
   startDateMm?: string | null;
-  endDate: string; // New field
-  endDateMm?: string | null; // New field
+  endDate: string;
+  endDateMm?: string | null;
   // API returns numbers for duration
   duration: number;
   durationMm?: number | null;
@@ -104,30 +104,30 @@ interface CourseFormData {
   subtitleMm: string;
   province: string;
   district: string;
-  address: string; // Add this line
-  applyByDate: string; // Add this line
-  applyByDateMm: string; // Add this line
-  estimatedDate: string; // Add this line
-  estimatedDateMm: string; // Add this line
+  address: string;
+  applyByDate: string;
+  applyByDateMm: string;
+  estimatedDate: string;
+  estimatedDateMm: string;
 
   location: string; // Derived from organizationInfo.address
   locationMm: string;
   startDate: string; // ISO date string for HTML date input
   startDateMm: string;
-  endDate: string; // New field
-  endDateMm: string; // New field
+  endDate: string;
+  endDateMm: string;
   duration: number; // Number for new schema
   durationMm: number; // Number for new schema
   schedule: string;
   scheduleMm: string;
-  feeAmount: number; // New field
-  feeAmountMm: number; // New field
-  ageMin: number; // New field
-  ageMinMm: number; // New field
-  ageMax: number; // New field
-  ageMaxMm: number; // New field
-  document: string; // New field
-  documentMm: string; // New field
+  feeAmount: number;
+  feeAmountMm: number;
+  ageMin: number;
+  ageMinMm: number;
+  ageMax: number;
+  ageMaxMm: number;
+  document: string;
+  documentMm: string;
   availableDays: boolean[];
   description: string;
   descriptionMm: string;
@@ -139,6 +139,9 @@ interface CourseFormData {
   selectionCriteriaMm: string[];
   howToApply: string[];
   howToApplyMm: string[];
+  applyButtonText?: string;
+  applyButtonTextMm?: string;
+  applyLink?: string;
   organizationId?: string;
   images: File[];
   badges: {
@@ -190,9 +193,12 @@ export default function EditCoursePage() {
         const data: CourseResponse = await response.json();
 
         // DEBUG: Log the API response to see what we're getting
-        console.log("API Response:", data);
+        console.log("=== EditCoursePage: API Response ===");
+        console.log("Full response:", data);
         console.log("Province:", data.province);
         console.log("District:", data.district);
+        console.log("EstimatedDate (raw from API):", data.estimatedDate);
+        console.log("EstimatedDateMm (raw from API):", data.estimatedDateMm);
 
         // Store existing images separately
         setExistingImages(data.images || []);
@@ -215,8 +221,11 @@ export default function EditCoursePage() {
           applyByDateMm: data.applyByDateMm
             ? formatDateForInput(data.applyByDateMm)
             : "",
-          estimatedDate: data.estimatedDate ?? "", // Add this line
+          // Pass the encoded estimated date directly to CourseForm
+          // CourseForm will handle the decoding
+          estimatedDate: data.estimatedDate ?? "",
           estimatedDateMm: data.estimatedDateMm ?? "",
+
           // Format dates for HTML date inputs (YYYY-MM-DD format)
           startDate: formatDateForInput(data.startDate),
           endDate: formatDateForInput(data.endDate),
@@ -288,6 +297,11 @@ export default function EditCoursePage() {
         console.log("Processed course data for form:", processedData);
         console.log("Province being set:", processedData.province);
         console.log("District being set:", processedData.district);
+        console.log("EstimatedDate being passed:", processedData.estimatedDate);
+        console.log(
+          "EstimatedDateMm being passed:",
+          processedData.estimatedDateMm
+        );
 
         setCourse(processedData);
       } catch (err) {

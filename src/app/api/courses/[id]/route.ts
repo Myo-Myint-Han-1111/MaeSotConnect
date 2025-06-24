@@ -125,6 +125,7 @@ export async function GET(
       province: course.province,
       district: course.district,
       address: course.address,
+
       applyByDate: course.applyByDate ? course.applyByDate.toISOString() : null,
       applyByDateMm: course.applyByDateMm
         ? course.applyByDateMm.toISOString()
@@ -166,6 +167,8 @@ export async function GET(
       applyButtonText: course.applyButtonText,
       applyButtonTextMm: course.applyButtonTextMm,
       applyLink: course.applyLink,
+      estimatedDate: course.estimatedDate,
+      estimatedDateMm: course.estimatedDateMm,
       organizationId: course.organizationId,
       images: course.images.map((img) => img.url),
       badges: course.badges.map((badge) => ({
