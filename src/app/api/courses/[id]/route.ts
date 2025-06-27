@@ -492,9 +492,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
 
     // Must be authenticated
@@ -504,7 +505,7 @@ export async function DELETE(
 
     // Get existing course to check permissions
     const existingCourse = await prisma.course.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         images: true,
       },
@@ -525,7 +526,7 @@ export async function DELETE(
 
     // Delete the course and all related entities using cascading deletes
     await prisma.course.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });
