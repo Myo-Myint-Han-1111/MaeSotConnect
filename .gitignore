@@ -47,3 +47,7 @@ next-env.d.ts
 # Scripts for troubleshooting
 scripts/
 supabase/
+
+# Backup files (don't commit these)
+backups/
+.backup-tracker.json
