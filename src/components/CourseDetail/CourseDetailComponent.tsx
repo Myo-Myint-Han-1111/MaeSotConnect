@@ -764,7 +764,10 @@ export default function CourseDetailComponent({
                         rel="noopener noreferrer"
                         className="text-primary hover:underline break-all"
                       >
-                        {t("course.facebook")}
+                        {course.organizationInfo.facebookPage.replace(
+                          "https://www.facebook.com/",
+                          "facebook.com/"
+                        )}
                       </Link>
                     </div>
                   )}

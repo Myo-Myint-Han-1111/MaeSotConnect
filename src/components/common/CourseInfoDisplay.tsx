@@ -75,7 +75,7 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
   );
 
   // Direct color override (keeping your existing styling)
-  const grayColor = "hsl(215.4, 16.3%, 46.9%)";
+  const grayColor = "hsl(var(--muted-foreground))";
 
   // Choose styles based on compact mode
   const containerClass = compact ? "flex flex-col gap-2" : "space-y-4";

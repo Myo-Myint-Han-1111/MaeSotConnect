@@ -95,6 +95,7 @@ export const translations = {
     "course.fee": "Course Fee",
     "course.about.org": "About",
     "course.location.map": "Location",
+    "course.facebook": "Visit our Facebook page",
     "course.notfound": "Course not found",
     "about.organization": "About Organization",
     "course.ageRange": "Age Range",

@@ -2,6 +2,7 @@
   "name": "msconnect_v1",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -10,7 +11,9 @@
     "seed": "ts-node --project tsconfig.scripts.json scripts/seed-database.ts",
     "test-db": "ts-node --project tsconfig.scripts.json scripts/test-db.ts",
     "seed-admin": "ts-node --project tsconfig.scripts.json scripts/seed-admin.ts",
-    "migrate-to-supabase": "ts-node --project tsconfig.scripts.json scripts/migrate-to-supabase.ts"
+    "migrate-to-supabase": "ts-node --project tsconfig.scripts.json scripts/migrate-to-supabase.ts",
+    "backup": "node backup-scripts/daily-backup.js",
+    "backup-complete": "node backup-scripts/mark-db-complete.js"
   },
   "dependencies": {
     "@auth/core": "^0.39.1",
@@ -24,7 +27,7 @@
     "@types/google-one-tap": "^1.2.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "dotenv": "^16.5.0",
+    "dotenv": "^16.6.1",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.488.0",
     "next": "^15.3.0",
