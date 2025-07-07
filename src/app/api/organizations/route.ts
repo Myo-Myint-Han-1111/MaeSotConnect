@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { saveFile } from "@/lib/upload"; // ADD THIS IMPORT
+import { saveFile } from "@/lib/upload";
+import { generateOrganizationSlug, ensureUniqueSlug } from "@/lib/slugs";
 
 // Updated validation schema to include new fields
 const organizationSchema = z.object({
@@ -17,7 +18,7 @@ const organizationSchema = z.object({
   longitude: z.number(),
   district: z.string().optional(),
   province: z.string().optional(),
-  logoImage: z.string().optional(), // ADD THIS LINE
+  logoImage: z.string().optional(),
 });
 
 export async function GET(_request: NextRequest) {
@@ -172,21 +173,44 @@ export async function POST(request: NextRequest) {
 
     console.log("Creating organization with data:", parsedData.data);
 
-    // Create the organization with new fields including logoImage
-    const organization = await prisma.organization.create({
-      data: {
-        name,
-        description,
-        phone,
-        email,
-        address,
-        facebookPage,
-        latitude,
-        longitude,
-        district,
-        province,
-        logoImage: logoImageUrl || undefined, // ADD THIS LINE
-      },
+    // Use a transaction to create organization with generated slug
+    const organization = await prisma.$transaction(async (tx) => {
+      // Create organization with temporary slug first
+      const tempOrganization = await tx.organization.create({
+        data: {
+          name,
+          description,
+          phone,
+          email,
+          address,
+          facebookPage,
+          latitude,
+          longitude,
+          district,
+          province,
+          logoImage: logoImageUrl || undefined,
+          slug: `temp-${Date.now()}`, // Temporary slug
+        },
+      });
+
+      // Generate final slug with organization ID
+      const baseSlug = generateOrganizationSlug(name, tempOrganization.id);
+
+      // Ensure slug uniqueness
+      const finalSlug = await ensureUniqueSlug(baseSlug, async (slug) => {
+        const existing = await tx.organization.findUnique({
+          where: { slug },
+        });
+        return !!existing;
+      });
+
+      // Update organization with final slug
+      const finalOrganization = await tx.organization.update({
+        where: { id: tempOrganization.id },
+        data: { slug: finalSlug },
+      });
+
+      return finalOrganization;
     });
 
     console.log("Organization created successfully:", organization);

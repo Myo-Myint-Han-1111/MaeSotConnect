@@ -147,16 +147,34 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
-/* Dark mode search input styling */
+/* Enhanced Search Bar White Border in Dark Mode */
 .dark .search-container input {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   background-color: hsl(var(--background));
-  border-color: hsl(var(--border));
+  border: 1px solid rgba(255, 255, 255, 0.2) !important; /* NEW: White border */
   color: hsl(var(--foreground));
 }
 
 .dark .search-container input:focus {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.6) !important; /* Bright white border on focus */
+  outline: none !important; /* Remove default blue outline */
+  ring: none !important; /* Remove Tailwind focus ring */
+}
+
+/* Remove blue focus ring and replace with white border */
+.dark .search-container input:focus-visible {
+  outline: none !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Override any Tailwind focus styles */
+.dark .search-container input.focus\:ring-2 {
+  --tw-ring-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.dark .search-container input.focus\:ring-primary {
+  --tw-ring-color: rgba(255, 255, 255, 0.3) !important;
 }
 
 /* Add responsive adjustments for mobile */
@@ -192,10 +210,24 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Enhanced hover effects for course cards */
-.course-card-flex .course-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+/* Course Cards White Border in Dark Mode - Always Visible */
+.dark .course-card {
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Target the actual Card component classes */
+.dark .bg-card {
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Target Cards by their default border class */
+.dark .border {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Specific targeting for course cards in the grid */
+.dark .course-card-flex .course-card {
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
 
 .dark .course-card-flex .course-card:hover {

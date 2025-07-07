@@ -44,8 +44,7 @@ export const translations = {
     // Home page
     "home.welcome": "What do you want to learn?",
     "home.subtitle": "Learn the skills. Create your path.",
-    "home.search.placeholder":
-      "Search courses by name, location, or category...",
+    "home.search.placeholder": "Search courses by name or location",
     "home.filter.category": "Filter by category:",
     "home.filter.clear": "Clear all filters",
     "home.no.results": "No courses found",
@@ -176,8 +175,7 @@ export const translations = {
     // Home page
     "home.welcome": "သင် ဘာသင်ယူချင်ပါသလဲ။",
     "home.subtitle": "အတတ်ပညာကိုသင်ယူလေ့လာပါ။ သင့်လမ်းကြောင်းကိုဖန်တီးပါ။",
-    "home.search.placeholder":
-      "သင်တန်းအမည်၊ တည်နေရာ သို့မဟုတ် အမျိုးအစားဖြင့် ရှာဖွေပါ...",
+    "home.search.placeholder": "သင်တန်းအမည် သို့မဟုတ် တည်နေရာ ရှာဖွေပါ...",
     "home.filter.category": "အမျိုးအစားဖြင့် စစ်ထုတ်ရန်:",
     "home.filter.clear": "ပြန်လည်စတင်ရန်",
     "home.no.results": "သင်တန်းများ မတွေ့ရှိပါ",

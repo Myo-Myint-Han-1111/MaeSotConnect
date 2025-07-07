@@ -112,7 +112,7 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
           <div className="flex items-center gap-2 flex-wrap">
             {compact && showDescriptions && (
               <span
-                className="text-xs w-25 flex-shrink-0"
+                className="text-xs w-16 flex-shrink-0"
                 style={{ color: grayColor }}
               >
                 {t("course.info.starts")}:
@@ -166,7 +166,7 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
             <div className="flex items-center gap-2 flex-wrap">
               {compact && showDescriptions && (
                 <span
-                  className="text-xs w-25 flex-shrink-0"
+                  className="text-xs w-16 flex-shrink-0"
                   style={{ color: grayColor }}
                 >
                   {t("course.info.applyBy")}:
@@ -202,7 +202,7 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
           )}
           {compact && showDescriptions && (
             <span
-              className="text-xs w-25 flex-shrink-0"
+              className="text-xs w-16 flex-shrink-0"
               style={{ color: grayColor }}
             >
               {t("course.info.duration")}:
@@ -227,7 +227,7 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
             )}
             {compact && showDescriptions && (
               <span
-                className="text-xs w-25 flex-shrink-0"
+                className="text-xs w-16 flex-shrink-0"
                 style={{ color: grayColor }}
               >
                 {t("course.info.fee")}:

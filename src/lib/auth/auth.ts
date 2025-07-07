@@ -45,9 +45,16 @@ export const authConfig: NextAuthConfig = {
     async signIn({ user, account, profile }) {
       try {
         if (account?.provider === "google" && profile?.email) {
-          // Always assign a role of PLATFORM_ADMIN
-          user.role = Role.PLATFORM_ADMIN;
-          return true;
+          // Check if email is in the admin emails list
+          const adminEmails = getAdminEmails();
+
+          if (adminEmails.includes(profile.email)) {
+            user.role = Role.PLATFORM_ADMIN;
+            return true; // Allow sign in
+          } else {
+            console.log(`Access denied for email: ${profile.email}`);
+            return false; // Deny sign in
+          }
         }
         return false;
       } catch (error) {

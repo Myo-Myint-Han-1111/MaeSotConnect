@@ -24,6 +24,13 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
+// More robust ID generation
+let toastIdCounter = 0;
+const generateToastId = () => {
+  toastIdCounter += 1;
+  return `toast-${Date.now()}-${toastIdCounter}`;
+};
+
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastData[]>([]);
 
@@ -33,7 +40,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     variant: ToastVariant = "default",
     duration: number = 5000
   ) => {
-    const id = Math.random().toString(36).substr(2, 9);
+    const id = generateToastId();
     const newToast: ToastData = {
       id,
       title,
@@ -45,9 +52,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((prev) => [...prev, newToast]);
 
     // Auto remove toast after duration
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((toast) => toast.id !== id));
-    }, duration);
+    if (duration > 0) {
+      setTimeout(() => {
+        setToasts((prev) => prev.filter((toast) => toast.id !== id));
+      }, duration);
+    }
   };
 
   const removeToast = (id: string) => {
@@ -59,17 +68,21 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       {/* Render all toasts with unique keys */}
       <div className="fixed top-4 right-4 z-50 space-y-2">
-        {toasts.map((toast) => (
-          <Toast
-            key={toast.id} // This is the crucial part - unique key for each toast
-            open={true}
-            onClose={() => removeToast(toast.id)}
-            title={toast.title}
-            description={toast.description}
-            variant={toast.variant}
-            duration={toast.duration}
-          />
-        ))}
+        {toasts.map((toast) => {
+          // Debug: log the toast ID to console
+          console.log("Rendering toast with ID:", toast.id);
+          return (
+            <Toast
+              key={toast.id} // Unique key for each toast
+              open={true}
+              onClose={() => removeToast(toast.id)}
+              title={toast.title}
+              description={toast.description}
+              variant={toast.variant}
+              duration={0} // Disable auto-close in individual Toast since we handle it here
+            />
+          );
+        })}
       </div>
     </ToastContext.Provider>
   );

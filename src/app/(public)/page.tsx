@@ -109,6 +109,41 @@ export default function Home() {
     { value: "applyByDate-desc", label: t("sort.applyByDate.latest") },
   ];
 
+  // Load saved state from sessionStorage on component mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const savedState = sessionStorage.getItem("courseFilters");
+        if (savedState) {
+          const { searchTerm: savedSearch, activeFilters: savedFilters } =
+            JSON.parse(savedState);
+          if (savedSearch) setSearchTerm(savedSearch);
+          if (savedFilters && Array.isArray(savedFilters))
+            setActiveFilters(savedFilters);
+        }
+      } catch (error) {
+        console.error("Error loading saved filters:", error);
+      }
+    }
+  }, []);
+
+  // Save state to sessionStorage whenever searchTerm or activeFilters change
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem(
+          "courseFilters",
+          JSON.stringify({
+            searchTerm,
+            activeFilters,
+          })
+        );
+      } catch (error) {
+        console.error("Error saving filters:", error);
+      }
+    }
+  }, [searchTerm, activeFilters]);
+
   // Fetch courses from API
   useEffect(() => {
     async function fetchCourses() {
@@ -429,6 +464,10 @@ export default function Home() {
   const clearFilters = () => {
     setSearchTerm("");
     setActiveFilters([]);
+    // Clear from sessionStorage too
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("courseFilters");
+    }
   };
 
   // Function to translate badge text - HANDLES LEGACY BADGES
@@ -532,6 +571,13 @@ export default function Home() {
                   placeholder={t("home.search.placeholder")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      e.currentTarget.blur(); // This hides the keyboard on mobile
+                    }
+                  }}
+                  enterKeyHint="search"
                   data-language={language}
                   className={`w-full pl-10 py-3 rounded-md border-none focus:ring-2 focus:ring-primary ${getFontSizeClasses(
                     "bodyRegular",
