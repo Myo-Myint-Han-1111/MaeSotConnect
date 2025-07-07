@@ -1166,7 +1166,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
 };
 
 export default function CoursePage() {
-  const [courses, setCourses] = useState<any[]>([]);
+  const [courses, setCourses] = useState<CourseDetailProps['courses']>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
