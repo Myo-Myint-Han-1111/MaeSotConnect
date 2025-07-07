@@ -4,7 +4,7 @@ import NextAuth from "next-auth";
 import type { NextAuthConfig } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@/lib/db";
-import { Role } from "@prisma/client";
+import { Role } from "./roles";
 
 // Simple admin emails function
 const _getAdminEmails = (): string[] => {
