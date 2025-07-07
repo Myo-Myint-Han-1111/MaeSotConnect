@@ -159,16 +159,6 @@ export default function OrganizationAdminsPage() {
 
   return (
     <div>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h1 className="text-3xl font-bold">Organization Administrators</h1>
-        <Link href="/dashboard/admins/new">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Administrator
-          </Button>
-        </Link>
-      </div>
-
       <div className="mb-6">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
