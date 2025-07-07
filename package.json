@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
@@ -19,6 +19,7 @@
   "dependencies": {
     "@auth/core": "^0.39.1",
     "@auth/prisma-adapter": "^2.9.1",
+    "@prisma/client": "^6.8.2",
     "@radix-ui/react-accordion": "^1.2.7",
     "@radix-ui/react-dialog": "^1.1.10",
     "@radix-ui/react-separator": "^1.1.6",
@@ -44,7 +45,6 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@prisma/client": "^6.8.2",
     "@tailwindcss/postcss": "^4",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^20.17.32",
