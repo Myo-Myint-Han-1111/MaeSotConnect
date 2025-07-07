@@ -26,19 +26,6 @@ const nextConfig: NextConfig = {
   },
   // Ensure Prisma client works in serverless environment
   serverExternalPackages: ["@prisma/client"],
-  
-  // Add webpack configuration for Prisma
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      config.externals.push("@prisma/client");
-    }
-    return config;
-  },
-  
-  // Ensure proper bundling
-  experimental: {
-    serverComponentsExternalPackages: ["@prisma/client"],
-  },
 };
 
 export default nextConfig;
