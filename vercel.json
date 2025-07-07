@@ -4,7 +4,6 @@
       "maxDuration": 30
     }
   },
-  "regions": ["sin1"],
   "headers": [
     {
       "source": "/(.*)",
