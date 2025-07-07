@@ -27,9 +27,6 @@ export const Navbar: React.FC<NavbarProps> = ({ brand }) => {
   const { language, setLanguage } = useLanguage();
   const pathname = usePathname();
 
-  // Check if we're on the home page
-  const isHomePage = pathname === "/";
-
   // Check if we're on a page that needs the dark navbar style
   const isAlternateStyle =
     pathname.startsWith("/about") || pathname.startsWith("/courses/");

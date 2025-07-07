@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { signIn as nextAuthSignIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -15,9 +14,8 @@ import { useLanguage } from "@/context/LanguageContext";
 
 export default function SignIn() {
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const router = useRouter();
-  const { t, language } = useLanguage();
+  const [error] = useState("");
+  const { language } = useLanguage();
   
   const handleGoogleSignIn = () => {
     setIsLoading(true);

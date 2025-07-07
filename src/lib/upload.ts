@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
 import {
-  createSupabaseServerClient,
   createSupabaseAdminClient,
 } from "./supabaseServerClient";
 
@@ -11,7 +10,7 @@ const LOGO_IMAGES_BUCKET = "logo-images";
 export async function saveFile(
   file: File,
   organizationId?: string,
-  fileType: "course" | "logo" = "course" // New parameter to specify file type
+  fileType: "course" | "logo" = "course"
 ): Promise<string> {
   try {
     // Get the admin client
@@ -27,7 +26,7 @@ export async function saveFile(
     const buffer = await file.arrayBuffer();
 
     // Upload using the admin client
-    const { data, error } = await supabaseAdmin.storage
+    const { error } = await supabaseAdmin.storage
       .from(bucketName)
       .upload(filename, buffer, {
         contentType: file.type,
@@ -47,8 +46,10 @@ export async function saveFile(
 
     console.log("Public URL:", publicUrl);
     return publicUrl;
-  } catch (error: any) {
+  } catch (error: unknown) { // Change 'any' to 'unknown'
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     console.error("Error in saveFile:", error);
-    throw new Error(`Failed to upload file: ${error.message}`);
+    throw new Error(`Failed to upload file: ${errorMessage}`);
   }
 }
+

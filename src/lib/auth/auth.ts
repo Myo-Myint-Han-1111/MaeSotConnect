@@ -7,12 +7,32 @@ import { prisma } from "@/lib/db";
 import { Role } from "@prisma/client";
 
 // Simple admin emails function
-const getAdminEmails = (): string[] => {
+const _getAdminEmails = (): string[] => {
   const adminEmailsEnv = process.env.ADMIN_EMAILS || "";
   return adminEmailsEnv
     .split(",")
     .map((email) => email.trim())
     .filter(Boolean);
+};
+
+// Check if email is authorized as admin
+const isAuthorizedAdmin = async (email: string): Promise<boolean> => {
+  // Check environment variable first
+  const adminEmails = _getAdminEmails();
+  if (adminEmails.includes(email)) {
+    return true;
+  }
+
+  // Check database allowlist
+  try {
+    const allowlistEntry = await prisma.adminAllowList.findUnique({
+      where: { email },
+    });
+    return !!allowlistEntry;
+  } catch (error) {
+    console.error("Error checking admin allowlist:", error);
+    return false;
+  }
 };
 
 export const authConfig: NextAuthConfig = {
@@ -21,39 +41,52 @@ export const authConfig: NextAuthConfig = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-      // Place the option here in the provider config
       allowDangerousEmailAccountLinking: true,
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        // Always set role to PLATFORM_ADMIN
-        token.role = Role.PLATFORM_ADMIN;
-        token.organizationId = null; // No organization association
+      if (user && user.email) {
+        // Check if user is authorized admin
+        const isAdmin = await isAuthorizedAdmin(user.email);
+
+        if (isAdmin) {
+          token.role = Role.PLATFORM_ADMIN;
+          token.organizationId = null;
+        } else {
+          // For non-admin users, you might want to assign a different role
+          // or handle this case differently based on your app's requirements
+          token.role = null; // or some default role
+          token.organizationId = null;
+        }
       }
       return token;
     },
+
     async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.sub as string;
-        session.user.role = Role.PLATFORM_ADMIN; // Always PLATFORM_ADMIN
-        session.user.organizationId = null; // No organization association
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
+        session.user.role = token.role as Role;
+        session.user.organizationId = token.organizationId as string | null;
       }
       return session;
     },
+
     async signIn({ user, account, profile }) {
       try {
         if (account?.provider === "google" && profile?.email) {
-          // Check if email is in the admin emails list
-          const adminEmails = getAdminEmails();
+          // Check if the email is authorized as admin
+          const isAdmin = await isAuthorizedAdmin(profile.email);
 
-          if (adminEmails.includes(profile.email)) {
+          if (isAdmin) {
+            // Set the role for authorized admins
             user.role = Role.PLATFORM_ADMIN;
-            return true; // Allow sign in
+            return true;
           } else {
-            console.log(`Access denied for email: ${profile.email}`);
-            return false; // Deny sign in
+            // For demo/security purposes, reject non-admin users
+            // You might want to change this behavior based on your app's needs
+            console.log(`Unauthorized sign-in attempt from: ${profile.email}`);
+            return false;
           }
         }
         return false;
@@ -67,7 +100,6 @@ export const authConfig: NextAuthConfig = {
     signIn: "/auth/signin",
     error: "/auth/error",
   },
-  // Add this section to use JWT sessions instead of database sessions
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
