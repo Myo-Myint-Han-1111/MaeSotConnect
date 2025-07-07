@@ -13,7 +13,7 @@ const adminSchema = z.object({
 });
 
 // GET: List all admins in the allowlist
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await auth();
 

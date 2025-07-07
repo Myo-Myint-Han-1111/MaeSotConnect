@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Trash2, Plus, UserPlus, ShieldAlert } from "lucide-react";
+import { Trash2, UserPlus, ShieldAlert } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 
 interface AdminEntry {

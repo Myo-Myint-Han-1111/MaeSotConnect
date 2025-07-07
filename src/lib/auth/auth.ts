@@ -7,7 +7,7 @@ import { prisma } from "@/lib/db";
 import { Role } from "@prisma/client";
 
 // Simple admin emails function
-const getAdminEmails = (): string[] => {
+const _getAdminEmails = (): string[] => {
   const adminEmailsEnv = process.env.ADMIN_EMAILS || "";
   return adminEmailsEnv
     .split(",")
@@ -18,7 +18,7 @@ const getAdminEmails = (): string[] => {
 // Check if email is authorized as admin
 const isAuthorizedAdmin = async (email: string): Promise<boolean> => {
   // Check environment variable first
-  const adminEmails = getAdminEmails();
+  const adminEmails = _getAdminEmails();
   if (adminEmails.includes(email)) {
     return true;
   }

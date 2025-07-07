@@ -1,9 +1,10 @@
 // src/app/api/organizations/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { generateOrganizationSlug } from "@/lib/slugs";
 import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { saveFile } from "@/lib/upload"; // ADD THIS IMPORT
+import { saveFile } from "@/lib/upload";
 
 // Updated validation schema to include new fields
 const organizationSchema = z.object({
@@ -17,10 +18,10 @@ const organizationSchema = z.object({
   longitude: z.number(),
   district: z.string().optional(),
   province: z.string().optional(),
-  logoImage: z.string().optional(), // ADD THIS LINE
+  logoImage: z.string().optional(),
 });
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     // Get current session to check permissions
     const session = await auth();
@@ -172,7 +173,21 @@ export async function POST(request: NextRequest) {
 
     console.log("Creating organization with data:", parsedData.data);
 
-    // Create the organization with new fields including logoImage
+    // Generate a unique slug for the organization
+    const baseSlug = generateOrganizationSlug(name);
+    
+    // Ensure slug uniqueness by checking existing organizations
+    let slug = baseSlug;
+    let counter = 1;
+    
+    while (await prisma.organization.findUnique({ where: { slug } })) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+
+    console.log("Generated unique slug:", slug);
+
+    // Create the organization with new fields including logoImage and slug
     const organization = await prisma.organization.create({
       data: {
         name,
@@ -185,7 +200,8 @@ export async function POST(request: NextRequest) {
         longitude,
         district,
         province,
-        logoImage: logoImageUrl || undefined, // ADD THIS LINE
+        logoImage: logoImageUrl || undefined,
+        slug, // Add the generated slug
       },
     });
 

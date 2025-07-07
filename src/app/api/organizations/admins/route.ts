@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+/* import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
@@ -76,8 +76,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Return the created user without password
-    const { password: _, ...userWithoutPassword } = user;
-    return NextResponse.json(userWithoutPassword, { status: 201 });
+    return NextResponse.json(user, { status: 201 });
   } catch (error) {
     console.error("Error creating admin user:", error);
     return NextResponse.json(
@@ -86,3 +85,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+ */

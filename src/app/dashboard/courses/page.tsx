@@ -50,7 +50,6 @@ export default function CoursesPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -112,7 +111,6 @@ export default function CoursesPage() {
         });
 
         setCourses(coursesWithOrgs);
-        setOrganizations(orgsData);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "An unexpected error occurred"
