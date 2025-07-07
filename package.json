@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "postinstall": "prisma generate",
     "seed": "ts-node --project tsconfig.scripts.json scripts/seed-database.ts",
     "test-db": "ts-node --project tsconfig.scripts.json scripts/test-db.ts",
     "seed-admin": "ts-node --project tsconfig.scripts.json scripts/seed-admin.ts",
