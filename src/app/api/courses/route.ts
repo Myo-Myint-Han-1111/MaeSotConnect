@@ -32,7 +32,7 @@ const courseSchema = z
     durationMm: z.number().int().positive().optional().nullable(),
     schedule: z.string().min(2, "Schedule must be at least 2 characters"),
     scheduleMm: z.string().optional(),
-    feeAmount: z.number().nonnegative(), // REMOVED .int()
+    feeAmount: z.number().nonnegative(),
     feeAmountMm: z.number().nonnegative().optional().nullable(),
     ageMin: z.number().int().nonnegative(),
     ageMinMm: z.number().int().nonnegative().optional().nullable(),
@@ -53,7 +53,6 @@ const courseSchema = z
       .optional()
       .nullable()
       .transform((val) => (val ? new Date(val) : null)),
-
     availableDays: z.array(z.boolean()).length(7, "Must provide 7 days"),
     description: z.string().optional(),
     descriptionMm: z.string().optional(),
@@ -87,7 +86,6 @@ const courseSchema = z
       })
     ),
   })
-
   .refine(
     (data) => {
       // If either applyButtonText or applyButtonTextMm is provided, applyLink must be provided
@@ -108,133 +106,66 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
     }
 
-    // If platform admin, return all courses
-    if (session.user.role === "PLATFORM_ADMIN") {
-      const courses = await prisma.course.findMany({
-        include: {
-          images: true,
-          badges: true,
-        },
-        orderBy: { createdAt: "desc" },
-      });
-
-      // Format data to match the expected structure
-      const formattedCourses = courses.map((course) => ({
-        id: course.id,
-        title: course.title,
-        titleMm: course.titleMm,
-        subtitle: course.subtitle,
-        subtitleMm: course.subtitleMm,
-        address: course.address,
-        applyByDate: course.applyByDate
-          ? course.applyByDate.toISOString()
-          : null,
-        applyByDateMm: course.applyByDateMm
-          ? course.applyByDateMm.toISOString()
-          : null,
-
-        // Map date fields to strings for backward compatibility in the frontend
-        startDate: course.startDate.toISOString(),
-        startDateMm: course.startDateMm
-          ? course.startDateMm.toISOString()
-          : null,
-        endDate: course.endDate.toISOString(),
-        endDateMm: course.endDateMm ? course.endDateMm.toISOString() : null,
-        duration: course.duration,
-        durationMm: course.durationMm,
-        schedule: course.schedule,
-        scheduleMm: course.scheduleMm,
-        feeAmount: course.feeAmount,
-        feeAmountMm: course.feeAmountMm,
-        ageMin: course.ageMin,
-        ageMinMm: course.ageMinMm,
-        ageMax: course.ageMax,
-        ageMaxMm: course.ageMaxMm,
-        document: course.document,
-        documentMm: course.documentMm,
-        availableDays: course.availableDays,
-        description: course.description,
-        descriptionMm: course.descriptionMm,
-
-        outcomes: course.outcomes,
-        outcomesMm: course.outcomesMm || [],
-        scheduleDetails: course.scheduleDetails,
-        scheduleDetailsMm: course.scheduleDetailsMm,
-        selectionCriteria: course.selectionCriteria,
-        selectionCriteriaMm: course.selectionCriteriaMm || [],
-        organizationId: course.organizationId,
-        images: course.images.map((img) => img.url),
-        badges: course.badges.map((badge) => ({
-          text: badge.text,
-          color: badge.color,
-          backgroundColor: badge.backgroundColor,
-        })),
-      }));
-
-      return NextResponse.json(formattedCourses);
-    }
-    // If organization admin, return only their courses
-    else if (
-      session.user.role === "ORGANIZATION_ADMIN" &&
-      session.user.organizationId
-    ) {
-      const courses = await prisma.course.findMany({
-        where: { organizationId: session.user.organizationId },
-        include: {
-          images: true,
-          badges: true,
-        },
-        orderBy: { createdAt: "desc" },
-      });
-
-      // Format data to match the expected structure
-      const formattedCourses = courses.map((course) => ({
-        id: course.id,
-        title: course.title,
-        titleMm: course.titleMm,
-        subtitle: course.subtitle,
-        subtitleMm: course.subtitleMm,
-        // Map date fields to strings for backward compatibility in the frontend
-        startDate: course.startDate.toISOString(),
-        startDateMm: course.startDateMm
-          ? course.startDateMm.toISOString()
-          : null,
-        endDate: course.endDate.toISOString(),
-        endDateMm: course.endDateMm ? course.endDateMm.toISOString() : null,
-        duration: course.duration,
-        durationMm: course.durationMm,
-        schedule: course.schedule,
-        scheduleMm: course.scheduleMm,
-        feeAmount: course.feeAmount,
-        feeAmountMm: course.feeAmountMm,
-        ageMin: course.ageMin,
-        ageMinMm: course.ageMinMm,
-        ageMax: course.ageMax,
-        ageMaxMm: course.ageMaxMm,
-        document: course.document,
-        documentMm: course.documentMm,
-        availableDays: course.availableDays,
-        description: course.description,
-        descriptionMm: course.descriptionMm,
-        outcomes: course.outcomes,
-        outcomesMm: course.outcomesMm || [],
-        scheduleDetails: course.scheduleDetails,
-        scheduleDetailsMm: course.scheduleDetailsMm,
-        selectionCriteria: course.selectionCriteria,
-        selectionCriteriaMm: course.selectionCriteriaMm || [],
-        organizationId: course.organizationId,
-        images: course.images.map((img) => img.url),
-        badges: course.badges.map((badge) => ({
-          text: badge.text,
-          color: badge.color,
-          backgroundColor: badge.backgroundColor,
-        })),
-      }));
-
-      return NextResponse.json(formattedCourses);
-    } else {
+    // Only platform admins can access courses
+    if (session.user.role !== "PLATFORM_ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
+
+    const courses = await prisma.course.findMany({
+      include: {
+        images: true,
+        badges: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Format data to match the expected structure
+    const formattedCourses = courses.map((course) => ({
+      id: course.id,
+      title: course.title,
+      titleMm: course.titleMm,
+      subtitle: course.subtitle,
+      subtitleMm: course.subtitleMm,
+      address: course.address,
+      applyByDate: course.applyByDate ? course.applyByDate.toISOString() : null,
+      applyByDateMm: course.applyByDateMm
+        ? course.applyByDateMm.toISOString()
+        : null,
+      startDate: course.startDate.toISOString(),
+      startDateMm: course.startDateMm ? course.startDateMm.toISOString() : null,
+      endDate: course.endDate.toISOString(),
+      endDateMm: course.endDateMm ? course.endDateMm.toISOString() : null,
+      duration: course.duration,
+      durationMm: course.durationMm,
+      schedule: course.schedule,
+      scheduleMm: course.scheduleMm,
+      feeAmount: course.feeAmount,
+      feeAmountMm: course.feeAmountMm,
+      ageMin: course.ageMin,
+      ageMinMm: course.ageMinMm,
+      ageMax: course.ageMax,
+      ageMaxMm: course.ageMaxMm,
+      document: course.document,
+      documentMm: course.documentMm,
+      availableDays: course.availableDays,
+      description: course.description,
+      descriptionMm: course.descriptionMm,
+      outcomes: course.outcomes,
+      outcomesMm: course.outcomesMm || [],
+      scheduleDetails: course.scheduleDetails,
+      scheduleDetailsMm: course.scheduleDetailsMm,
+      selectionCriteria: course.selectionCriteria,
+      selectionCriteriaMm: course.selectionCriteriaMm || [],
+      organizationId: course.organizationId,
+      images: course.images.map((img) => img.url),
+      badges: course.badges.map((badge) => ({
+        text: badge.text,
+        color: badge.color,
+        backgroundColor: badge.backgroundColor,
+      })),
+    }));
+
+    return NextResponse.json(formattedCourses);
   } catch (error) {
     console.error("Error fetching courses:", error);
     return NextResponse.json(
@@ -243,8 +174,6 @@ export async function GET() {
     );
   }
 }
-
-// src/app/api/courses/route.ts - Updated POST function
 
 export async function POST(request: NextRequest) {
   try {
@@ -255,12 +184,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
     }
 
-    // Must be platform admin or organization admin
-    if (
-      session.user.role !== "PLATFORM_ADMIN" &&
-      (session.user.role !== "ORGANIZATION_ADMIN" ||
-        !session.user.organizationId)
-    ) {
+    // Must be platform admin
+    if (session.user.role !== "PLATFORM_ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -275,12 +200,9 @@ export async function POST(request: NextRequest) {
     // Parse and validate the JSON data
     const parsedData = JSON.parse(jsonData);
 
-    // ADD DEBUGGING HERE
     console.log("Received data:", parsedData);
-    console.log("howToApply received:", parsedData.howToApply);
-    console.log("howToApplyMm received:", parsedData.howToApplyMm);
 
-    // Make sure howToApply fields are arrays
+    // Make sure arrays are properly formatted
     if (!Array.isArray(parsedData.howToApply)) {
       parsedData.howToApply = [];
     }
@@ -288,12 +210,7 @@ export async function POST(request: NextRequest) {
       parsedData.howToApplyMm = [];
     }
 
-    console.log("After array check:", {
-      howToApply: parsedData.howToApply,
-      howToApplyMm: parsedData.howToApplyMm,
-    });
-
-    // IMPORTANT: Convert fee amounts to integers if they're not already
+    // Convert fee amounts to proper numbers
     if (parsedData.feeAmount !== undefined) {
       parsedData.feeAmount = Math.round(Number(parsedData.feeAmount));
     }
@@ -301,7 +218,7 @@ export async function POST(request: NextRequest) {
       parsedData.feeAmountMm = Math.round(Number(parsedData.feeAmountMm));
     }
 
-    // VALIDATE DATES ARE NOT EMPTY
+    // Validate required dates
     if (!parsedData.startDate || parsedData.startDate === "") {
       return NextResponse.json(
         { error: "Start date is required" },
@@ -315,6 +232,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
     // Ensure numeric fields are proper integers
     if (parsedData.duration !== undefined) {
       parsedData.duration = Math.round(Number(parsedData.duration));
@@ -351,18 +269,7 @@ export async function POST(request: NextRequest) {
 
     const validatedData = validationResult.data;
 
-    // Organization admins can only create courses for their own organization
-    if (
-      session.user.role === "ORGANIZATION_ADMIN" &&
-      session.user.organizationId !== parsedData.organizationId
-    ) {
-      return NextResponse.json(
-        { error: "You can only create courses for your own organization" },
-        { status: 403 }
-      );
-    }
-
-    // Process and save image files (regular course images) - EXCLUDE logo
+    // Process and save image files
     const imageUrls: string[] = [];
     for (const [key, value] of formData.entries()) {
       if (
@@ -389,12 +296,12 @@ export async function POST(request: NextRequest) {
     const initialBaseSlug = generateCourseSlug(
       validatedData.title,
       orgName,
-      undefined // No course ID yet
+      undefined
     );
 
     // Create the course with all related entities in a transaction
     const course = await prisma.$transaction(async (tx) => {
-      // Create the course with the new field structure and temporary slug
+      // Create the course with temporary slug
       const newCourse = await tx.course.create({
         data: {
           title: validatedData.title,
@@ -439,12 +346,9 @@ export async function POST(request: NextRequest) {
           estimatedDate: validatedData.estimatedDate || null,
           estimatedDateMm: validatedData.estimatedDateMm || null,
           organizationId: validatedData.organizationId || null,
-          // Add temporary slug initially
-          slug: `${initialBaseSlug}-temp-${Date.now()}`, // Temporary unique slug
+          slug: `${initialBaseSlug}-temp-${Date.now()}`,
         },
       });
-      console.log("Course created with howToApply:", newCourse.howToApply);
-      console.log("Course created with howToApplyMm:", newCourse.howToApplyMm);
 
       // Generate final slug with course ID
       const finalBaseSlug = generateCourseSlug(
@@ -505,7 +409,7 @@ export async function POST(request: NextRequest) {
       return updatedCourse;
     });
 
-    // Format the response to ensure compatibility with the frontend
+    // Format the response
     const formattedCourse = {
       ...course,
       startDate: course.startDate.toISOString(),

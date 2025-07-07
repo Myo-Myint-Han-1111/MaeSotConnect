@@ -5,10 +5,11 @@ import { prisma } from "@/lib/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const resolvedParams = await Promise.resolve(params);
+    // Wait for params to be resolved in Next.js 15
+    const resolvedParams = await params;
     const id = resolvedParams.id;
 
     const session = await auth();
@@ -17,12 +18,8 @@ export async function GET(
       return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
     }
 
-    // Check permissions - platform admin can access any, org admin only their own
-    if (
-      session.user.role !== "PLATFORM_ADMIN" &&
-      (session.user.role !== "ORGANIZATION_ADMIN" ||
-        session.user.organizationId !== id)
-    ) {
+    // Only platform admins can access organization courses
+    if (session.user.role !== "PLATFORM_ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -36,7 +33,7 @@ export async function GET(
       orderBy: { createdAt: "desc" },
     });
 
-    // Format data to match the expected structure, handling the new schema
+    // Format data to match the expected structure
     const formattedCourses = courses.map((course) => ({
       id: course.id,
       title: course.title,

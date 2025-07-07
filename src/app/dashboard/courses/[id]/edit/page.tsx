@@ -5,6 +5,16 @@ import { useSession } from "next-auth/react";
 import { useParams, redirect } from "next/navigation";
 import CourseForm from "@/components/admin/CourseForm";
 
+// Type assertion for session user with organizationId
+interface SessionUser {
+  id: string;
+  name: string;
+  email: string;
+  image?: string;
+  role: string;
+  organizationId?: string | null;
+}
+
 // Define interface for organization info
 interface OrganizationInfo {
   id: string;
@@ -325,11 +335,14 @@ export default function EditCoursePage() {
     );
   }
 
+  // Type assertion to access organizationId
+  const user = session?.user as SessionUser;
+
   // Check if user has permission to edit this course
   if (
     course?.organizationId &&
-    session?.user?.role !== "PLATFORM_ADMIN" &&
-    course.organizationId !== session?.user?.organizationId
+    user?.role !== "PLATFORM_ADMIN" &&
+    course.organizationId !== user?.organizationId
   ) {
     return (
       <div className="text-center py-12">

@@ -30,20 +30,8 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
     }
 
-    // Only platform admins can list all organizations
+    // Only platform admins can list organizations
     if (session.user.role !== "PLATFORM_ADMIN") {
-      // If organization admin, only return their organization
-      if (
-        session.user.role === "ORGANIZATION_ADMIN" &&
-        session.user.organizationId
-      ) {
-        const organization = await prisma.organization.findUnique({
-          where: { id: session.user.organizationId },
-        });
-
-        return NextResponse.json([organization]);
-      }
-
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 

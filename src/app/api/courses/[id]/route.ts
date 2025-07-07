@@ -1,5 +1,4 @@
-// src/app/api/courses/[id]/route.ts - Fixed version with your existing code
-
+// src/app/api/courses/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
@@ -7,7 +6,6 @@ import { prisma } from "@/lib/db";
 import { saveFile } from "@/lib/upload";
 import { generateCourseSlug, ensureUniqueSlug } from "@/lib/slugs";
 
-// Add this courseSchema after the imports
 const courseSchema = z.object({
   title: z.string().min(2),
   titleMm: z.string().optional().nullable(),
@@ -89,10 +87,10 @@ const safeInteger = (value: unknown, defaultValue: number = 0): number => {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  // Wait for params to be fully resolved
-  const resolvedParams = await Promise.resolve(params);
+  // Wait for params to be resolved in Next.js 15
+  const resolvedParams = await params;
   const idOrSlug = resolvedParams.id;
 
   try {
@@ -113,44 +111,36 @@ export async function GET(
       return NextResponse.json({ error: "Course not found" }, { status: 404 });
     }
 
-    // Format data to match the expected structure with new fields
+    // Format data to match the expected structure
     const formattedCourse = {
       id: course.id,
       title: course.title,
       titleMm: course.titleMm,
       subtitle: course.subtitle,
       subtitleMm: course.subtitleMm,
-
-      // ADD new fields
       province: course.province,
       district: course.district,
       address: course.address,
-
       applyByDate: course.applyByDate ? course.applyByDate.toISOString() : null,
       applyByDateMm: course.applyByDateMm
         ? course.applyByDateMm.toISOString()
         : null,
-
-      // Convert DateTime objects to ISO strings
       startDate: course.startDate.toISOString(),
-      startDateMm: null, // No longer exists
+      startDateMm: null,
       endDate: course.endDate.toISOString(),
-      endDateMm: null, // No longer exists
+      endDateMm: null,
       duration: course.duration,
-      durationMm: null, // No longer exists
+      durationMm: null,
       schedule: course.schedule,
       scheduleMm: course.scheduleMm,
-      // Include both new fee fields and backward compatible fields
       feeAmount: course.feeAmount,
-      feeAmountMm: null, // No longer exists
+      feeAmountMm: null,
       fee: course.feeAmount.toString(),
-      feeMm: null, // No longer exists
-      // Include age fields
+      feeMm: null,
       ageMin: course.ageMin,
-      ageMinMm: null, // No longer exists
+      ageMinMm: null,
       ageMax: course.ageMax,
-      ageMaxMm: null, // No longer exists
-      // Include document fields
+      ageMaxMm: null,
       document: course.document,
       documentMm: course.documentMm,
       availableDays: course.availableDays,
@@ -207,10 +197,11 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const resolvedParams = await Promise.resolve(params);
+    // Wait for params to be resolved in Next.js 15
+    const resolvedParams = await params;
     const id = resolvedParams.id;
 
     const session = await auth();
@@ -220,21 +211,17 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
     }
 
+    // Must be platform admin
+    if (session.user.role !== "PLATFORM_ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
     const existingCourse = await prisma.course.findUnique({
       where: { id },
     });
 
     if (!existingCourse) {
       return NextResponse.json({ error: "Course not found" }, { status: 404 });
-    }
-
-    // Check permissions
-    if (
-      session.user.role !== "PLATFORM_ADMIN" &&
-      (session.user.role !== "ORGANIZATION_ADMIN" ||
-        session.user.organizationId !== existingCourse.organizationId)
-    ) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     // Parse the multipart form data
@@ -248,16 +235,13 @@ export async function PUT(
     // Parse the JSON data
     const parsedData = JSON.parse(jsonData);
 
-    // Clean and convert all data types properly with type safety
+    // Clean and convert all data types properly
     const cleanedData = {
       ...parsedData,
-      // Convert numbers properly with safe integer conversion
       feeAmount: safeInteger(parsedData.feeAmount, 0),
       duration: safeInteger(parsedData.duration, 1),
       ageMin: safeInteger(parsedData.ageMin, 0),
       ageMax: safeInteger(parsedData.ageMax, 100),
-
-      // Clean arrays with type safety
       availableDays: Array.isArray(parsedData.availableDays)
         ? parsedData.availableDays.map(Boolean)
         : [false, false, false, false, false, false, false],
@@ -265,8 +249,6 @@ export async function PUT(
       outcomesMm: filterStringArray(parsedData.outcomesMm),
       selectionCriteria: filterStringArray(parsedData.selectionCriteria),
       selectionCriteriaMm: filterStringArray(parsedData.selectionCriteriaMm),
-
-      // Clean string fields - convert null/undefined to null for optional fields
       titleMm: parsedData.titleMm || null,
       subtitleMm: parsedData.subtitleMm || null,
       scheduleMm: parsedData.scheduleMm || null,
@@ -278,8 +260,6 @@ export async function PUT(
       province: parsedData.province || null,
       district: parsedData.district || null,
       address: parsedData.address || null,
-
-      // Handle date fields properly
       applyByDate:
         parsedData.applyByDate && parsedData.applyByDate.trim() !== ""
           ? parsedData.applyByDate
@@ -302,19 +282,7 @@ export async function PUT(
 
     const validatedData = validationResult.data;
 
-    // Organization admins can only update courses for their own organization
-    if (
-      session.user.role === "ORGANIZATION_ADMIN" &&
-      (session.user.organizationId !== validatedData.organizationId ||
-        session.user.organizationId !== existingCourse.organizationId)
-    ) {
-      return NextResponse.json(
-        { error: "You can only update courses for your own organization" },
-        { status: 403 }
-      );
-    }
-
-    // Process existing images from the form
+    // Process existing images
     const existingImagesJSON = formData.get("existingImages");
     let existingImageUrls: string[] = [];
 
@@ -326,7 +294,7 @@ export async function PUT(
       }
     }
 
-    // Process and save new image files
+    // Process new image files
     const newImageUrls: string[] = [];
     for (const [key, value] of formData.entries()) {
       if (
@@ -334,11 +302,7 @@ export async function PUT(
         key !== "logoImage" &&
         value instanceof File
       ) {
-        const imageUrl = await saveFile(
-          value,
-          session.user.organizationId ?? undefined,
-          "course"
-        );
+        const imageUrl = await saveFile(value, undefined, "course");
         newImageUrls.push(imageUrl);
       }
     }
@@ -356,7 +320,7 @@ export async function PUT(
       orgName = org?.name;
     }
 
-    // Generate new slug with course ID
+    // Generate new slug
     const newBaseSlug = generateCourseSlug(validatedData.title, orgName, id);
 
     // Ensure slug uniqueness (exclude current course from check)
@@ -364,16 +328,16 @@ export async function PUT(
       const existing = await prisma.course.findFirst({
         where: {
           slug,
-          id: { not: id }, // Exclude current course
+          id: { not: id },
         },
       });
       return !!existing;
     });
 
-    // Update course and related entities in a SINGLE transaction with increased timeout
+    // Update course and related entities in a transaction
     const result = await prisma.$transaction(
       async (tx) => {
-        // 1. Update the main course record with new slug
+        // Update the main course record
         const updatedCourse = await tx.course.update({
           where: { id },
           data: {
@@ -413,12 +377,11 @@ export async function PUT(
             estimatedDate: validatedData.estimatedDate,
             estimatedDateMm: validatedData.estimatedDateMm,
             organizationId: validatedData.organizationId,
-
-            slug: newSlug, // Update slug
+            slug: newSlug,
           },
         });
 
-        // 2. Handle images
+        // Handle images
         await tx.image.deleteMany({ where: { courseId: id } });
 
         if (allImageUrls.length > 0) {
@@ -430,7 +393,7 @@ export async function PUT(
           });
         }
 
-        // 3. Handle badges
+        // Handle badges
         await tx.badge.deleteMany({ where: { courseId: id } });
 
         if (validatedData.badges.length > 0) {
@@ -444,7 +407,7 @@ export async function PUT(
           });
         }
 
-        // 4. Handle FAQs
+        // Handle FAQs
         await tx.fAQ.deleteMany({ where: { courseId: id } });
 
         const validFaqs = validatedData.faq.filter(
@@ -465,11 +428,11 @@ export async function PUT(
         return updatedCourse;
       },
       {
-        timeout: 15000, // Increase timeout to 15 seconds
+        timeout: 15000,
       }
     );
 
-    // Format the response to ensure dates are properly formatted
+    // Format the response
     const formattedCourse = {
       ...result,
       startDate: result.startDate.toISOString(),
@@ -495,6 +458,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Wait for params to be resolved in Next.js 15
     const { id } = await params;
     const session = await auth();
 
@@ -503,7 +467,12 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
     }
 
-    // Get existing course to check permissions
+    // Must be platform admin
+    if (session.user.role !== "PLATFORM_ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    // Get existing course to check if it exists
     const existingCourse = await prisma.course.findUnique({
       where: { id },
       include: {
@@ -513,15 +482,6 @@ export async function DELETE(
 
     if (!existingCourse) {
       return NextResponse.json({ error: "Course not found" }, { status: 404 });
-    }
-
-    // Check permissions
-    if (
-      session.user.role !== "PLATFORM_ADMIN" &&
-      (session.user.role !== "ORGANIZATION_ADMIN" ||
-        session.user.organizationId !== existingCourse.organizationId)
-    ) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     // Delete the course and all related entities using cascading deletes

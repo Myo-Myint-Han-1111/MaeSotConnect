@@ -2,6 +2,16 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/db";
 
+// Type assertion for session user with organizationId
+interface SessionUser {
+  id: string;
+  name: string;
+  email: string;
+  image?: string;
+  role: string;
+  organizationId?: string | null;
+}
+
 export async function GET() {
   try {
     const session = await auth();
@@ -10,8 +20,10 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
     }
 
-    const isPlatformAdmin = session.user.role === "PLATFORM_ADMIN";
-    const organizationId = session.user.organizationId;
+    // Type assertion to access organizationId
+    const user = session.user as SessionUser;
+    const isPlatformAdmin = user.role === "PLATFORM_ADMIN";
+    const organizationId = user.organizationId;
 
     // Platform admin gets stats for the entire system
     if (isPlatformAdmin) {

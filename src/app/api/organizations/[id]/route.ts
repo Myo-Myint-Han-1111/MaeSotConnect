@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { saveFile } from "@/lib/upload"; // ADD THIS IMPORT
+import { saveFile } from "@/lib/upload";
 
 // Updated validation schema to include new fields
 const organizationSchema = z.object({
@@ -16,15 +16,16 @@ const organizationSchema = z.object({
   longitude: z.number(),
   district: z.string().optional(),
   province: z.string().optional(),
-  logoImage: z.string().optional(), // ADD THIS LINE
+  logoImage: z.string().optional(),
 });
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const resolvedParams = await Promise.resolve(params);
+    // Wait for params to be resolved in Next.js 15
+    const resolvedParams = await params;
     const id = resolvedParams.id;
 
     const session = await auth();
@@ -33,12 +34,8 @@ export async function GET(
       return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
     }
 
-    // Check permissions - platform admin can access any, org admin only their own
-    if (
-      session.user.role !== "PLATFORM_ADMIN" &&
-      (session.user.role !== "ORGANIZATION_ADMIN" ||
-        session.user.organizationId !== params.id)
-    ) {
+    // Only platform admins can access organizations
+    if (session.user.role !== "PLATFORM_ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -65,10 +62,11 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const resolvedParams = await Promise.resolve(params);
+    // Wait for params to be resolved in Next.js 15
+    const resolvedParams = await params;
     const id = resolvedParams.id;
 
     const session = await auth();
@@ -209,10 +207,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const resolvedParams = await Promise.resolve(params);
+    // Wait for params to be resolved in Next.js 15
+    const resolvedParams = await params;
     const id = resolvedParams.id;
 
     const session = await auth();
@@ -238,7 +237,7 @@ export async function DELETE(
       );
     }
 
-    // Check if organization has any courses or user
+    // Check if organization has any courses or users
     if (
       existingOrganization.courses.length > 0 ||
       existingOrganization.users.length > 0

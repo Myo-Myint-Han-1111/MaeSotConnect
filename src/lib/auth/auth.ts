@@ -52,12 +52,8 @@ export const authConfig: NextAuthConfig = {
 
         if (isAdmin) {
           token.role = Role.PLATFORM_ADMIN;
-          token.organizationId = null;
         } else {
-          // For non-admin users, you might want to assign a different role
-          // or handle this case differently based on your app's requirements
-          token.role = null; // or some default role
-          token.organizationId = null;
+          token.role = null;
         }
       }
       return token;
@@ -67,7 +63,6 @@ export const authConfig: NextAuthConfig = {
       if (session.user && token.sub) {
         session.user.id = token.sub;
         session.user.role = token.role as Role;
-        session.user.organizationId = token.organizationId as string | null;
       }
       return session;
     },
@@ -83,8 +78,7 @@ export const authConfig: NextAuthConfig = {
             user.role = Role.PLATFORM_ADMIN;
             return true;
           } else {
-            // For demo/security purposes, reject non-admin users
-            // You might want to change this behavior based on your app's needs
+            // Reject non-admin users
             console.log(`Unauthorized sign-in attempt from: ${profile.email}`);
             return false;
           }
