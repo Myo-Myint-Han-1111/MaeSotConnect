@@ -1,9 +1,11 @@
 {
   "functions": {
     "src/app/api/**/*.ts": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "regions": ["sin1"]
     }
   },
+  "regions": ["sin1"],
   "headers": [
     {
       "source": "/(.*)",
