@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useLanguage } from "../../../context/LanguageContext";
 import { Button } from "../../../components/ui/button";
@@ -1165,4 +1165,37 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
   );
 };
 
-export default CourseDetail;
+export default function CoursePage() {
+  const [courses, setCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch courses data
+    async function fetchCourses() {
+      try {
+        const response = await fetch('/api/courses');
+        if (response.ok) {
+          const data = await response.json();
+          setCourses(data);
+        }
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchCourses();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="h-16 w-16 border-t-4 border-primary border-solid rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  // Pass the fetched courses to the existing CourseDetail component
+  return <CourseDetail courses={courses} />;
+}
