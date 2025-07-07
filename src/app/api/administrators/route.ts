@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { hashPassword } from "@/lib/auth/password";
 
 // Input validation schema for updates
 const updateAdministratorSchema = z.object({
@@ -31,7 +30,7 @@ export async function GET(
     }
 
     // Platform admins can view any administrator, org admins can only view administrators in their organization
-    if (session.administrator.role !== "PLATFORM_ADMIN") {
+    if (session.user.role !== "PLATFORM_ADMIN") {
       // Check if administrator is from the same organization
       const administrator = await prisma.user.findUnique({
         where: { id },
@@ -40,7 +39,7 @@ export async function GET(
 
       if (
         !administrator ||
-        administrator.organizationId !== session.administrator.organizationId
+        administrator.organizationId !== session.user.organizationId
       ) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
       }
@@ -90,7 +89,7 @@ export async function PUT(
     const session = await auth();
 
     // Only platform admins can update administrators
-    if (!session || session.administrator.role !== "PLATFORM_ADMIN") {
+    if (!session || session.user.role !== "PLATFORM_ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -152,7 +151,6 @@ export async function PUT(
     const updateData: UpdateData = {};
     if (name) updateData.name = name;
     if (email) updateData.email = email;
-    if (password) updateData.password = await hashPassword(password);
     if (role) updateData.role = role;
     if (organizationId !== undefined)
       updateData.organizationId = organizationId;
@@ -188,7 +186,7 @@ export async function DELETE(
     const session = await auth();
 
     // Only platform admins can delete administrators
-    if (!session || session.administrator.role !== "PLATFORM_ADMIN") {
+    if (!session || session.user.role !== "PLATFORM_ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -205,7 +203,7 @@ export async function DELETE(
     }
 
     // Prevent deleting yourself
-    if (existingAdministrator.id === session.administrator.id) {
+    if (existingAdministrator.id === session.user.id) {
       return NextResponse.json(
         { error: "Cannot delete your own account" },
         { status: 400 }
