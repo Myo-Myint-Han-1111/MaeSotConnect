@@ -73,11 +73,11 @@ model Course {
   scheduleMm          String?
   feeAmount           Int           @default(0)
   feeAmountMm         Int?
-  ageMin              Int
+  ageMin              Int?
   ageMinMm            Int?
-  ageMax              Int
+  ageMax              Int?
   ageMaxMm            Int?
-  document            String
+  document            String?
   documentMm          String?
   availableDays       Boolean[]
   description         String?
