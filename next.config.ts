@@ -24,10 +24,21 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Move this from experimental to the root level
+  // Ensure Prisma client works in serverless environment
   serverExternalPackages: ["@prisma/client"],
-  // Remove the experimental section if it doesn't have other options
-  // experimental: {},
+  
+  // Add webpack configuration for Prisma
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals.push("@prisma/client");
+    }
+    return config;
+  },
+  
+  // Ensure proper bundling
+  experimental: {
+    serverComponentsExternalPackages: ["@prisma/client"],
+  },
 };
 
 export default nextConfig;
