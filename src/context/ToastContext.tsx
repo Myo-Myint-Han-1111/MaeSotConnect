@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useState, useContext, ReactNode } from "react";
+import React, {
+  createContext,
+  useState,
+  useContext,
+  ReactNode,
+  useCallback,
+} from "react";
 import { Toast } from "@/components/ui/toast";
 
 type ToastVariant = "default" | "success" | "error" | "warning";
@@ -24,65 +30,66 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
-// More robust ID generation
-let toastIdCounter = 0;
-const generateToastId = () => {
-  toastIdCounter += 1;
-  return `toast-${Date.now()}-${toastIdCounter}`;
+// More robust ID generation with crypto.randomUUID fallback
+const generateToastId = (): string => {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return `toast-${crypto.randomUUID()}`;
+  }
+  // Fallback for environments without crypto.randomUUID
+  return `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastData[]>([]);
 
-  const showToast = (
-    title: string,
-    description?: string,
-    variant: ToastVariant = "default",
-    duration: number = 5000
-  ) => {
-    const id = generateToastId();
-    const newToast: ToastData = {
-      id,
-      title,
-      description,
-      variant,
-      duration,
-    };
+  const showToast = useCallback(
+    (
+      title: string,
+      description?: string,
+      variant: ToastVariant = "default",
+      duration: number = 5000
+    ) => {
+      const id = generateToastId();
+      const newToast: ToastData = {
+        id,
+        title,
+        description,
+        variant,
+        duration,
+      };
 
-    setToasts((prev) => [...prev, newToast]);
+      setToasts((prev) => [...prev, newToast]);
 
-    // Auto remove toast after duration
-    if (duration > 0) {
-      setTimeout(() => {
-        setToasts((prev) => prev.filter((toast) => toast.id !== id));
-      }, duration);
-    }
-  };
+      // Auto remove toast after duration
+      if (duration > 0) {
+        setTimeout(() => {
+          setToasts((prev) => prev.filter((toast) => toast.id !== id));
+        }, duration);
+      }
+    },
+    []
+  );
 
-  const removeToast = (id: string) => {
+  const removeToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  };
+  }, []);
 
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
       {/* Render all toasts with unique keys */}
       <div className="fixed top-4 right-4 z-50 space-y-2">
-        {toasts.map((toast) => {
-          // Debug: log the toast ID to console
-          console.log("Rendering toast with ID:", toast.id);
-          return (
-            <Toast
-              key={toast.id} // Unique key for each toast
-              open={true}
-              onClose={() => removeToast(toast.id)}
-              title={toast.title}
-              description={toast.description}
-              variant={toast.variant}
-              duration={0} // Disable auto-close in individual Toast since we handle it here
-            />
-          );
-        })}
+        {toasts.map((toast) => (
+          <Toast
+            key={toast.id} // Unique key for each toast
+            open={true}
+            onClose={() => removeToast(toast.id)}
+            title={toast.title}
+            description={toast.description}
+            variant={toast.variant}
+            duration={0} // Disable auto-close in individual Toast since we handle it here
+          />
+        ))}
       </div>
     </ToastContext.Provider>
   );

@@ -5,10 +5,6 @@ import { auth } from "@/lib/auth/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { saveFile } from "@/lib/upload";
-<<<<<<< HEAD
-import { generateOrganizationSlug, ensureUniqueSlug } from "@/lib/slugs";
-=======
->>>>>>> 3b6b11eb58d4fa66ae27ab7752c6e535ea449b09
 
 // Updated validation schema to include new fields
 const organizationSchema = z.object({
@@ -177,53 +173,13 @@ export async function POST(request: NextRequest) {
 
     console.log("Creating organization with data:", parsedData.data);
 
-<<<<<<< HEAD
-    // Use a transaction to create organization with generated slug
-    const organization = await prisma.$transaction(async (tx) => {
-      // Create organization with temporary slug first
-      const tempOrganization = await tx.organization.create({
-        data: {
-          name,
-          description,
-          phone,
-          email,
-          address,
-          facebookPage,
-          latitude,
-          longitude,
-          district,
-          province,
-          logoImage: logoImageUrl || undefined,
-          slug: `temp-${Date.now()}`, // Temporary slug
-        },
-      });
-
-      // Generate final slug with organization ID
-      const baseSlug = generateOrganizationSlug(name, tempOrganization.id);
-
-      // Ensure slug uniqueness
-      const finalSlug = await ensureUniqueSlug(baseSlug, async (slug) => {
-        const existing = await tx.organization.findUnique({
-          where: { slug },
-        });
-        return !!existing;
-      });
-
-      // Update organization with final slug
-      const finalOrganization = await tx.organization.update({
-        where: { id: tempOrganization.id },
-        data: { slug: finalSlug },
-      });
-
-      return finalOrganization;
-=======
     // Generate a unique slug for the organization
     const baseSlug = generateOrganizationSlug(name);
-    
+
     // Ensure slug uniqueness by checking existing organizations
     let slug = baseSlug;
     let counter = 1;
-    
+
     while (await prisma.organization.findUnique({ where: { slug } })) {
       slug = `${baseSlug}-${counter}`;
       counter++;
@@ -247,7 +203,6 @@ export async function POST(request: NextRequest) {
         logoImage: logoImageUrl || undefined,
         slug, // Add the generated slug
       },
->>>>>>> 3b6b11eb58d4fa66ae27ab7752c6e535ea449b09
     });
 
     console.log("Organization created successfully:", organization);

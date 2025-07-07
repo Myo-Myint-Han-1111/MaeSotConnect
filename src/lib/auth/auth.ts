@@ -100,6 +100,7 @@ export const authConfig: NextAuthConfig = {
     signIn: "/auth/signin",
     error: "/auth/error",
   },
+
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days

@@ -45,7 +45,6 @@
     "@eslint/eslintrc": "^3",
     "@prisma/client": "^6.8.2",
     "@tailwindcss/postcss": "^4",
-    "@types/bcrypt": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^20.17.32",
     "@types/react": "^19",
