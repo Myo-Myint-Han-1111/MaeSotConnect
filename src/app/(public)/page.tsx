@@ -212,22 +212,63 @@ export default function Home() {
       return [...courses].sort((a, b) => {
         switch (sortBy) {
           case "startDate-asc":
-            return (
-              new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-            );
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const dateA = new Date(a.startDate);
+            const dateB = new Date(b.startDate);
+
+            const isAFuture = dateA >= today;
+            const isBFuture = dateB >= today;
+
+            // If both are future dates, sort by earliest
+            if (isAFuture && isBFuture) {
+              return dateA.getTime() - dateB.getTime();
+            }
+
+            // If both are past dates, sort by most recent past first
+            if (!isAFuture && !isBFuture) {
+              return dateB.getTime() - dateA.getTime();
+            }
+
+            // If one is future and one is past, future comes first
+            if (isAFuture && !isBFuture) return -1;
+            if (!isAFuture && isBFuture) return 1;
+
+            return 0;
+
           case "startDate-desc":
             return (
               new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
             );
+
           case "applyByDate-asc":
-            // Handle cases where applyByDate might be null
             if (!a.applyByDate && !b.applyByDate) return 0;
-            if (!a.applyByDate) return 1; // Put courses without apply date at the end
+            if (!a.applyByDate) return 1;
             if (!b.applyByDate) return -1;
-            return (
-              new Date(a.applyByDate).getTime() -
-              new Date(b.applyByDate).getTime()
-            );
+
+            const todayApply = new Date();
+            todayApply.setHours(0, 0, 0, 0);
+
+            const applyDateA = new Date(a.applyByDate);
+            const applyDateB = new Date(b.applyByDate);
+
+            const isAApplyFuture = applyDateA >= todayApply;
+            const isBApplyFuture = applyDateB >= todayApply;
+
+            if (isAApplyFuture && isBApplyFuture) {
+              return applyDateA.getTime() - applyDateB.getTime();
+            }
+
+            if (!isAApplyFuture && !isBApplyFuture) {
+              return applyDateB.getTime() - applyDateA.getTime();
+            }
+
+            if (isAApplyFuture && !isBApplyFuture) return -1;
+            if (!isAApplyFuture && isBApplyFuture) return 1;
+
+            return 0;
+
           case "applyByDate-desc":
             if (!a.applyByDate && !b.applyByDate) return 0;
             if (!a.applyByDate) return 1;
@@ -236,6 +277,7 @@ export default function Home() {
               new Date(b.applyByDate).getTime() -
               new Date(a.applyByDate).getTime()
             );
+
           default:
             return 0;
         }

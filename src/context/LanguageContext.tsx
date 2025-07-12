@@ -43,7 +43,8 @@ export const translations = {
 
     // Home page
     "home.welcome": "What do you want to learn?",
-    "home.subtitle": "Learn the skills. Create your path.",
+    "home.subtitle":
+      "Learn the skills. Create your path. Find skill-building courses and training programs in Mae Sot that match your goals.",
     "home.search.placeholder": "Search courses by name or location",
     "home.filter.category": "Filter by category:",
     "home.filter.clear": "Clear all filters",
@@ -71,7 +72,7 @@ export const translations = {
     "course.info.duration": "Duration",
     "course.info.schedule": "Schedule",
     "course.info.fee": "Fee",
-    "course.info.applyBy": "Deadline", // TODO: Ko Myo - For future use when applyByDate is added
+    "course.info.applyBy": "Application Deadline", // TODO: Ko Myo - For future use when applyByDate is added
 
     // Course detail
     "course.back": "Back",
@@ -161,8 +162,8 @@ export const translations = {
     "sort.placeholder": "Sort by...",
     "sort.startDate.earliest": "Start Date (Earliest First)",
     "sort.startDate.latest": "Start Date (Latest First)",
-    "sort.applyByDate.earliest": "Apply By Date (Earliest First)",
-    "sort.applyByDate.latest": "Apply By Date (Latest First)",
+    "sort.applyByDate.earliest": "Application Deadline (Earliest First)",
+    "sort.applyByDate.latest": "Application Deadline (Latest First)",
   },
 
   // Myanmar translations
@@ -174,7 +175,8 @@ export const translations = {
 
     // Home page
     "home.welcome": "သင် ဘာသင်ယူချင်ပါသလဲ။",
-    "home.subtitle": "အတတ်ပညာကိုသင်ယူလေ့လာပါ။ သင့်လမ်းကြောင်းကိုဖန်တီးပါ။",
+    "home.subtitle":
+      "အတတ်ပညာကိုသင်ယူလေ့လာပါ။ သင့်လမ်းကြောင်းကိုဖန်တီးပါ။ မဲဆောက်တွင် သင့်ရည်မှန်းချက်များနှင့် ကိုက်ညီသော ကျွမ်းကျင်မှုမြှင့်တင်ရေး သင်တန်းများနှင့် လေ့ကျင့်ရေးပရိုဂရမ်များကို ရှာဖွေပါ။",
     "home.search.placeholder": "သင်တန်းအမည် သို့မဟုတ် တည်နေရာ ရှာဖွေပါ...",
     "home.filter.category": "အမျိုးအစားဖြင့် စစ်ထုတ်ရန်:",
     "home.filter.clear": "ပြန်လည်စတင်ရန်",
@@ -295,9 +297,9 @@ export const translations = {
     "sort.default": "ပုံမှန်အစီအစဉ်",
     "sort.placeholder": "အစီအစဉ်ခွဲ...",
     "sort.startDate.earliest": "စတင်ရက် (အစောဆုံးဦးစွာ)",
-    "sort.startDate.latest": "စတင်ရက် (နောက်ဆုံးဦးစွာ)",
+    "sort.startDate.latest": "စတင်ရက် (အနောက်ကျဆုံး)",
     "sort.applyByDate.earliest": "လျှောက်ထားရမည့်ရက် (အစောဆုံးဦးစွာ)",
-    "sort.applyByDate.latest": "လျှောက်ထားရမည့်ရက် (နောက်ဆုံးဦးစွာ)",
+    "sort.applyByDate.latest": "လျှောက်ထားရမည့်ရက် (အနောက်ကျဆုံး)",
   },
 };
 
