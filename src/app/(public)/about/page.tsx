@@ -22,19 +22,19 @@ const About: React.FC = () => {
     {
       name: "Peter Grunawalt",
       role: "Main Developer",
-      bio: "John has over 10 years of experience in community development and education.",
+      bio: "",
       image: "/team/placeholder.jpg",
     },
     {
       name: "Ko Myo",
       role: "Developer",
-      bio: "Jane specializes in curriculum development and has worked with diverse communities across Thailand.",
+      bio: "",
       image: "/team/placeholder.jpg",
     },
     {
       name: "Ko Phillip",
       role: "Consultant",
-      bio: "David builds relationships with local businesses and organizations to create opportunities for our community.",
+      bio: "",
       image: "/team/placeholder.jpg",
     },
   ];

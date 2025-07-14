@@ -44,7 +44,7 @@ export const translations = {
     // Home page
     "home.welcome": "What do you want to learn?",
     "home.subtitle":
-      "Learn the skills. Create your path. Find skill-building courses and training programs in Mae Sot that match your goals.",
+      "Learn the skills. Find courses and education programs that match your goals.",
     "home.search.placeholder": "Search courses by name or location",
     "home.filter.category": "Filter by category:",
     "home.filter.clear": "Clear all filters",
@@ -176,7 +176,7 @@ export const translations = {
     // Home page
     "home.welcome": "သင် ဘာသင်ယူချင်ပါသလဲ။",
     "home.subtitle":
-      "အတတ်ပညာကိုသင်ယူလေ့လာပါ။ သင့်လမ်းကြောင်းကိုဖန်တီးပါ။ မဲဆောက်တွင် သင့်ရည်မှန်းချက်များနှင့် ကိုက်ညီသော ကျွမ်းကျင်မှုမြှင့်တင်ရေး သင်တန်းများနှင့် လေ့ကျင့်ရေးပရိုဂရမ်များကို ရှာဖွေပါ။",
+      "အတတ်ပညာကိုသင်ယူလေ့လာပါ။ သင့်ရည်မှန်းချက်နှင့် ကိုက်ညီသော သင်တန်းများနှင့် ပညာရေးအစီအစဉ်များကို ရှာဖွေပါ။",
     "home.search.placeholder": "သင်တန်းအမည် သို့မဟုတ် တည်နေရာ ရှာဖွေပါ...",
     "home.filter.category": "အမျိုးအစားဖြင့် စစ်ထုတ်ရန်:",
     "home.filter.clear": "ပြန်လည်စတင်ရန်",
