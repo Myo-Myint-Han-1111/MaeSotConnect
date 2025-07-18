@@ -30,14 +30,14 @@ const About: React.FC = () => {
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Hero Section */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-16 max-w-2xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold mb-2">
             About Us
           </h1>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed py-4">
+          <p className="text-lg text-muted-foreground leading-relaxed py-4">
             {t("about.mission.p1")}
           </p>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed py-2">
+          <p className="text-lg text-muted-foreground leading-relaxed py-2">
             Ko Myo teamed up with Peter in 2025 to develop a web app that solves this problem by creating a centralized, user-friendly platform to search, filter, and compare vocational training programs, language courses, and skill development opportunities. It is being developed as an{" "}
             <a 
               href="https://github.com/Myo-Myint-Han-1111/MaeSotConnect" 
@@ -66,40 +66,40 @@ const About: React.FC = () => {
         </div>
 
         {/* Team Profiles */}
-        <div className="space-y-12 mb-16">
+        <div className="space-y-12 mb-16 max-w-2xl mx-auto">
           {/* About Ko Myo */}
-          <div className="max-w-3xl mx-auto">
+          <div>
             <h2 className="text-2xl font-semibold mb-4 text-center">
-              About Ko Myo
+              {t("about.komyo.title")}
             </h2>
             <p className="text-muted-foreground leading-relaxed text-center">
-              Ko Myo is a fullstack developer sharpening his skills through open-source projects that benefit Thai and Myanmar youth. He holds a bachelors in electrical engineering and is currently attending online classes in React, Javascript, and modern backend frameworks. He is passionate about education and technology and supporting digital literacy in rural communities.
+              {t("about.komyo.content")}
             </p>
           </div>
           
           {/* About Peter */}
-          <div className="max-w-3xl mx-auto">
+          <div>
             <h2 className="text-2xl font-semibold mb-4 text-center">
-              About Peter
+              {t("about.peter.title")}
             </h2>
             <p className="text-muted-foreground leading-relaxed text-center">
-              Peter is currently a graduate student in Boston supporting the development of ThailandStudyGuide part-time. He works to build bi-partisan constituencies that support youth education in conflict-affected settings. Peter worked in Mae Sot for several years, supporting local education organizations and teaching research and computer science part-time to youth.
+              {t("about.peter.content")}
             </p>
           </div>
           
           {/* Contact */}
-          <div className="max-w-3xl mx-auto">
+          <div>
             <h2 className="text-2xl font-semibold mb-4 text-center">
-              Contact
+              {t("about.contact.title")}
             </h2>
             <div className="text-center">
               <p className="text-muted-foreground mb-4">
-                <a href="mailto:contact@thailandstudyguide.com" className="text-primary hover:text-primary/80 underline">
-                  contact@thailandstudyguide.com
+                <a href={`mailto:${t("about.contact.email")}`} className="text-primary hover:text-primary/80 underline">
+                  {t("about.contact.email")}
                 </a>
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                We're currently looking for organizations and individuals who share our mission of supporting youth education in Thailand. If you have feedback about the app, or would like to collaborate, please don't hesitate to send us an email.
+                {t("about.contact.description")}
               </p>
             </div>
           </div>
