@@ -144,7 +144,7 @@ export const translations = {
     // About page
     "about.title": "About Us",
     "about.mission.p1":
-      "ThailandStudyGuide began as a simple idea to solve a problem Ko Myo noticed while living in Mae Sot, Thailand: many youth feel stuck, unable to progress their education or begin a career. While Thailand has a wealth of education resources, the information is scattered across dozens of Facebook pages, Signal and WhatsApp groups, and is not easily searchable. Posts often exclude important information that allow youth to plan around a busy work schedule or other personal commitments.",
+      "ThailandStudyGuide began as a simple idea to help solve an all-too common problem: many youth feel stuck, unable to progress their education or begin a career. While Thailand has a wealth of education resources, the information is scattered across dozens of Facebook pages, Signal and WhatsApp groups, and is not easily searchable. Posts often exclude important information that allow youth to plan around a busy work schedule and personal commitments.",
     "about.mission.p2":
       "Ko Myo teamed up with Peter in 2025 to develop a web app that solves this problem by creating a centralized, user-friendly platform to search, filter, and compare vocational training programs, language courses, and skill development opportunities. It is being developed as an open source project and is currently self-funded. Our approach is to work with organizations that support youth to make the discovery process more accessible, transparent, and user-centered.",
     "about.komyo.title": "About Ko Myo",
