@@ -44,7 +44,7 @@ export const translations = {
     // Home page
     "home.welcome": "What do you want to learn?",
     "home.subtitle":
-      "Learn the skills. Find courses and education programs that match your goals.",
+      "Learn the skills. Find education programs that match your goals.",
     "home.search.placeholder": "Search courses by name or location",
     "home.filter.category": "Filter by category:",
     "home.filter.clear": "Clear all filters",
@@ -143,27 +143,30 @@ export const translations = {
 
     // About page
     "about.title": "About Us",
-    "about.subtitle": "Learn about our mission and our team",
-    "about.mission.title": "Our Mission",
     "about.mission.p1":
-      "This website empowers youth by providing an intuitive, time-saving platform that makes discovering and accessing educational opportunities effortless and effective. We solve the challenge of scattered course information by creating a centralized, user-friendly application where young people can easily search, filter, and compare vocational training programs, language courses, and skill development opportunities that match their career aspirations and schedules.",
+      "ThailandStudyGuide began as a simple idea to solve a problem Ko Myo noticed while living in Mae Sot, Thailand: many youth feel stuck, unable to progress their education or begin a career. While Thailand has a wealth of education resources, the information is scattered across dozens of Facebook pages, Signal and WhatsApp groups, and is not easily searchable. Posts often exclude important information that allow youth to plan around a busy work schedule or other personal commitments.",
+    "about.mission.p2":
+      "Ko Myo teamed up with Peter in 2025 to develop a web app that solves this problem by creating a centralized, user-friendly platform to search, filter, and compare vocational training programs, language courses, and skill development opportunities. It is being developed as an open source project and is currently self-funded. Our approach is to work with organizations that support youth to make the discovery process more accessible, transparent, and user-centered.",
+    "about.komyo.title": "About Ko Myo",
+    "about.komyo.content":
+      "Ko Myo is a fullstack developer sharpening his skills through open-source projects that benefit Thai and Myanmar youth. He holds a bachelors in electrical engineering and is currently attending online classes in React, Javascript, and modern backend frameworks. He is passionate about education and technology and supporting digital literacy in rural communities.",
 
-    "about.platform.title": "Our Platform Services",
-    "about.platform.content":
-      "We deliver a streamlined search experience through advanced filtering by location, course type, schedule, and fees, supported by comprehensive bilingual functionality (English and Myanmar) that ensures accessibility for all users. Our intelligent course management system provides detailed program information, clear application processes, and direct connections to training organizations, eliminating barriers between youth and their educational goals.",
+    "about.peter.title": "About Peter",
+    "about.peter.content":
+      "Peter is currently a graduate student in Boston supporting the development of ThailandStudyGuide part-time. He works to build bi-partisan constituencies that support youth education in conflict-affected settings. Peter worked in Mae Sot for several years, supporting local education organizations and teaching research and computer science part-time to youth.",
 
-    "about.vision.title": "Our Long-term Vision",
-    "about.vision.content":
-      "We focus on continuously expanding our course offerings based on youth demand and needs. We are committed to identifying and partnering with organizations that provide the most sought-after skills training in technology, hospitality, healthcare, and emerging industries. Through data analysis of user search patterns and educational opportunity needs, we will proactively develop educational pathways that align with real opportunities, ensuring our platform remains the go-to resource for youth seeking relevant, practical education that leads to meaningful employment.",
-    "about.team.title": "Meet Our Team",
+    "about.contact.title": "Contact",
+    "about.contact.email": "contact@thailandstudyguide.com",
+    "about.contact.description":
+      "We're currently looking to partner with organizations and individuals who share our mission of supporting youth education in Thailand. If you have feedback about the app, or would like to collaborate, please don't hesitate to send us an email.",
 
     // Add these sort translations:
-    "sort.default": "Default Order",
-    "sort.placeholder": "Sort by...",
-    "sort.startDate.earliest": "Start Date (Earliest First)",
-    "sort.startDate.latest": "Start Date (Latest First)",
-    "sort.applyByDate.earliest": "Application Deadline (Earliest First)",
-    "sort.applyByDate.latest": "Application Deadline (Latest First)",
+    "sort.default": "Newest First",
+    "sort.placeholder": "Sort by",
+    "sort.startDate.earliest": "Starting Soon",
+    "sort.startDate.latest": "Starting Later",
+    "sort.applyByDate.earliest": "Apply Soon",
+    "sort.applyByDate.latest": "Apply Later",
   },
 
   // Myanmar translations
@@ -282,24 +285,27 @@ export const translations = {
     "about.mission.p1":
       "ယခုဝက်ဆိုဒ်သည် ပညာရေးအခွင့်အလမ်းများကို လွယ်ကူထိရောက်စွာ ရှာဖွေရယူနိုင်သော အချိန်သက်သာသည့် စနစ်တစ်ခုပေးအပ်ခြင်းဖြင့် လူငယ်များကို စွမ်းဆောင်ရည်မြှင့်တင်ပေးပါသည်။ ကျွန်ုပ်တို့သည် သင်ယူရရှိနိုင်သော သင်တန်းအချက်အလက်များအား တစ်နေရာတည်းတွင် ဖော်ပြသော၊ အသုံးပြုရလွယ်ကူသည့် အက်ပလီကေးရှင်းတစ်ခုဖန်တီးခြင်းဖြင့် လူငယ်များအား ၎င်းတို့၏ အသက်မွေးဝမ်းကြောင်းရည်မှန်းချက်များနှင့် အချိန်ဇယားများနှင့်ကိုက်ညီသော အသက်မွေးပညာလေ့ကျင့်ရေးအစီအစဉ်များ၊ ဘာသာစကားသင်တန်းများနှင့် ကျွမ်းကျင်မှုတိုးတက်ရေးအခွင့်အလမ်းများကို လွယ်ကူစွာ နှိုင်းယှဉ်၊  စစ်ထုတ်၊ ရှာဖွေ နိုင်စေပါသည်။",
 
-    "about.platform.title": "ကျွန်ုပ်တို့၏ ပလပ်ဖောင်းဝန်ဆောင်မှုများ",
+    "about.komyo.title": "Ko Myo အကြောင်း",
+    "about.komyo.content":
+      "Ko Myo သည် ထိုင်းနှင့် မြန်မာလူငယ်များအတွက် အကျိုးပြုသော open-source projects များမှတစ်ဆင့် ကျွမ်းကျင်မှုများကို တိုးတက်စေနေသော fullstack developer တစ်ဦးဖြစ်သည်။ သူသည် လျှပ်စစ်အင်ဂျင်နီယာဘွဲ့ရရှိထားပြီး လောလောဆယ် React၊ Javascript နှင့် ခေတ်မီ backend frameworks များကို အွန်လိုင်း class များတက်နေပါသည်။ သူသည် ပညာရေးနှင့် နည်းပညာကို စိတ်ရောက်ရောက် ခံယူထားပြီး ကျေးလက်ရှိ လူမှုအသိုင်းအဝိုင်းများတွင် ဒီဂျစ်တယ်ပညာရေးကို ထောက်ပံ့နေပါသည်။",
 
-    "about.platform.content":
-      "ကျွန်ုပ်တို့သည် တည်နေရာ၊ သင်တန်းအမျိုးအစား၊ အချိန်ဇယားနှင့် သင်တန်းကြေးများအလိုက် အဆင့်မြင့်စစ်ထုတ်မှုများမှတစ်ဆင့် ချောမွေ့သောရှာဖွေမှုအတွေ့အကြုံကို ပေးအပ်ပါသည်။ အသုံးပြုသူအားလုံးအတွက် လက်လှမ်းမီနိုင်မှုကို သေချာစေသည့် ကျယ်ပြန့်သော ဘာသာစကားနှစ်ခု(အင်္ဂလိပ်နှင့်မြန်မာ) စွမ်းဆောင်ရည်ဖြင့် ပံ့ပိုးထားပါသည်။ ကျွန်ုပ်တို့၏ ကောင်းမွန်သော သင်တန်းစီမံခန့်ခွဲမှုစနစ်သည် အသေးစိတ်အစီအစဉ်အချက်အလက်များ၊ ရှင်းလင်းသောလျှောက်ထားမှုလုပ်ငန်းစဉ်များအပြင် သင်တန်းအဖွဲ့အစည်းများနှင့် ချိတ်ဆက်ဆက်သွယ်မှုများ ပြုလုပ်ပေးအပ်ခြင်းဖြင့် လူငယ်များနှင့် ၎င်းတို့၏ပညာရေးရည်မှန်းချက်များကြား အတားအဆီးများကို ဖယ်ရှားပေးပါသည်။",
+    "about.peter.title": "Peter အကြောင်း",
+    "about.peter.content":
+      "Peter သည် လောလောဆယ် Boston တွင် ဘွဲ့လွန်ကျောင်းသားတစ်ဦးဖြစ်ပြီး ThailandStudyGuide ၏ တိုးတက်မှုကို အချိန်ပိုင်းအားဖြင့် ပံ့ပိုးနေပါသည်။ သူသည် ပဋိပက္ခကျရောက်သော နေရာများတွင် လူငယ်ပညာရေးကို ထောက်ပံ့သည့် နှစ်ဖက်စလုံးပူးပေါင်း အုပ်စုများကို တည်ဆောက်ရန် ကြိုးပမ်းနေပါသည်။ Peter သည် Mae Sot တွင် နှစ်ပေါင်းများစွာ လုပ်ဆောင်ခဲ့ပြီး ပြည်သူ့ပညာရေးအဖွဲ့အစည်းများကို ပံ့ပိုးခဲ့သည်အပြင် လူငယ်များအား သုတေသနနှင့် computer science ကို အချိန်ပိုင်းဆရာအဖြစ် သင်ကြားပေးခဲ့ပါသည်။",
 
-    "about.vision.title": "ကျွန်ုပ်တို့၏ ရေရှည်မျှော်မှန်းချက်",
-
-    "about.vision.content":
-      "ကျွန်ုပ်တို့သည် လူငယ်များ၏တောင်းဆိုမှု နှင့် လိုအပ်ချက်များအပေါ် အခြေခံ၍ ကျွန်ုပ်တို့၏သင်တန်းအချက်အလက်မျှဝေမှုများကို စဉ်ဆက်မပြတ်တိုးချဲ့ခြင်းအပေါ် အာရုံစိုက်ပါသည်။ နည်းပညာ၊ ဧည့်ခံမှု၊ ကျန်းမာရေးစောင့်ရှောက်မှုနှင့် ပေါ်ထွန်းလာသောစက်မှုလုပ်ငန်းများတွင် အများဆုံးလိုအပ်သောကျွမ်းကျင်မှုလေ့ကျင့်ရေးကို ပေးအပ်သည့် အဖွဲ့အစည်းများကို ခွဲခြားသတ်မှတ်ခြင်းနှင့် ပူးပေါင်းဆောင်ရွက်ခြင်းအတွက် ကတိပြုပါသည်။ အသုံးပြုသူရှာဖွေမှုပုံစံများနှင့် ပညာရေးအခွင့်အလမ်းလိုအပ်မှုများ၏ ဒေတာခွဲခြမ်းစိတ်ဖြာမှုမှတစ်ဆင့် ကျွန်ုပ်တို့သည် စစ်မှန်သောအခွင့်အလမ်းများနှင့်ကိုက်ညီသော ပညာရေးလမ်းကြောင်းများကို တက်ကြွစွာဖွံ့ဖြိုးတိုးတက်စေပြီး ကျွန်ုပ်တို့၏ပလပ်ဖောင်းသည် အဓိပ္ပာယ်ရှိသောအလုပ်အကိုင်သို့ ဦးတည်သည့် သက်ဆိုင်ရာ၊ လက်တွေ့ကျသောပညာရေးကို ရှာဖွေနေသည့် လူငယ်များအတွက် အဓိကအရင်းအမြစ်ဖြစ်စေရန် သေချာစေပါမည်။",
+    "about.contact.title": "ဆက်သွယ်ရန်",
+    "about.contact.email": "contact@thailandstudyguide.com",
+    "about.contact.description":
+      "ကျွန်ုပ်တို့သည် လောလောဆယ် ထိုင်းနိုင်ငံမှ လူငယ်ပညာရေးကို ပံ့ပိုးရန် ကျွန်ုပ်တို့၏ ရည်မှန်းချက်နှင့် သဘောထားတူသော အဖွဲ့အစည်းများနှင့် တစ်ဦးချင်းပုဂ္ဂိုလ်များကို ရှာဖွေနေပါသည်။ အကယ်၍ သင်တွင် app နှင့် ပတ်သတ်သော အကြံပြုချက်များရှိပါက သို့မဟုတ် ပူးပေါင်းဆောင်ရွက်လိုပါက ကျွန်ုပ်တို့ထံ email ပို့ရန် မဝန်လျတ် ပါ။",
     "about.team.title": "ကျွန်ုပ်တို့၏အဖွဲ့နှင့် တွေ့ဆုံပါ",
 
     // Add these sort translations:
-    "sort.default": "ပုံမှန်အစီအစဉ်",
-    "sort.placeholder": "အစီအစဉ်ခွဲ...",
-    "sort.startDate.earliest": "စတင်ရက် (အစောဆုံးဦးစွာ)",
-    "sort.startDate.latest": "စတင်ရက် (အနောက်ကျဆုံး)",
-    "sort.applyByDate.earliest": "လျှောက်ထားရမည့်ရက် (အစောဆုံးဦးစွာ)",
-    "sort.applyByDate.latest": "လျှောက်ထားရမည့်ရက် (အနောက်ကျဆုံး)",
+    "sort.default": "အသစ်ဆုံးကို ဦးစွာ",
+    "sort.placeholder": "အစီအစဉ်ခွဲ",
+    "sort.startDate.earliest": "မကြာမီစတင်မည်",
+    "sort.startDate.latest": "နောက်ပိုင်းစတင်မည်",
+    "sort.applyByDate.earliest": "မကြာမီလျှောက်ပါ",
+    "sort.applyByDate.latest": "နောက်ပိုင်းလျှောက်ပါ",
   },
 };
 

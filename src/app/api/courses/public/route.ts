@@ -115,9 +115,9 @@ export async function GET() {
       applyButtonText: course.applyButtonText,
       applyButtonTextMm: course.applyButtonTextMm,
       applyLink: course.applyLink,
-      // Build location from organization address + course province/district
+      // Build location from course district/province only
       location:
-        [course.organizationInfo?.address, course.district, course.province]
+        [course.district, course.province]
           .filter(Boolean)
           .join(", ") || "",
       locationMm: null, // Keep for backward compatibility

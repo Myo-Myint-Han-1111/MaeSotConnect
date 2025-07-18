@@ -50,6 +50,9 @@ interface Course {
   // New document fields
   document: string;
   documentMm: string | null;
+  // Course location fields
+  district?: string | null;
+  province?: string | null;
   availableDays: boolean[];
   description?: string;
   descriptionMm?: string | null;
@@ -464,7 +467,7 @@ export default function Home() {
           className="absolute top-0 left-0 w-full hero-gradient pt-40 pb-24 -mt-16"
           data-language={language}
         >
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto px-1 sm:px-6 lg:px-8">
             <div className="w-full">
               <div
                 className={`${getFontSizeClasses(
@@ -504,7 +507,7 @@ export default function Home() {
         className="absolute top-0 left-0 w-full hero-gradient pt-40 pb-24 -mt-16"
         data-language={language}
       >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-1 sm:px-6 lg:px-8">
           <div
             className={`${getFontSizeClasses(
               "heading1",
@@ -563,21 +566,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Sort Dropdown */}
-            <div className="w-full sm:w-64 bg-white rounded-lg shadow-lg border-2 border-gray-400">
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-full h-10 border-none focus:ring-2 focus:ring-primary rounded-md">
-                  <SelectValue placeholder={t("sort.placeholder")} />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {sortOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
           </div>
         </div>
       </div>
@@ -585,12 +573,26 @@ export default function Home() {
       {/* Rest of content in container */}
       <div className="content">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Filter badges */}
+          {/* Filter badges with sort dropdown */}
           <div className="mb-6">
-            <div className="flex flex-col items-start gap-4">
-              <span className="text-sm text-muted-foreground ml-1">
-                {t("home.filter.category")}
-              </span>
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-start">
+                {/* Sort Dropdown - Minimalist text with arrow */}
+                <div className="w-auto">
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-auto h-auto border-none bg-transparent p-0 text-sm font-medium hover:text-foreground focus:ring-0 focus:ring-offset-0 [&>span]:flex [&>span]:items-center [&>span]:gap-2 [&>svg]:ml-2" style={{ color: 'hsl(var(--muted-foreground))' }}>
+                      <SelectValue placeholder={t("sort.placeholder")} />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border border-gray-300 rounded-sm shadow-sm">
+                      {sortOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value} className="text-sm hover:bg-gray-50">
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
               <div className="flex flex-wrap gap-3 justify-start">
                 {allBadges.map((badge) => {
@@ -690,7 +692,7 @@ export default function Home() {
           {/* Course cards grid */}
           {filteredCourses.length > 0 ? (
             <div className="course-grid-flex mt-4">
-              {filteredCourses.map((course) => (
+              {filteredCourses.map((course, index) => (
                 <div key={course.id} className="course-card-flex">
                   <CourseCard
                     id={course.id}
@@ -733,6 +735,9 @@ export default function Home() {
                     availableDays={course.availableDays}
                     badges={course.badges}
                     organizationInfo={course.organizationInfo}
+                    district={course.district}
+                    province={course.province}
+                    showSwipeHint={index === 0}
                   />
                 </div>
               ))}
@@ -775,7 +780,7 @@ export default function Home() {
             <div className="mb-4 md:mb-0">
               <Link href="/" className="flex items-center space-x-2">
                 <span className="font-semibold text-gray-700">
-                  StudyinThailand.org
+                  ThailandStudyGuide.org
                 </span>
               </Link>
             </div>
@@ -798,7 +803,7 @@ export default function Home() {
 
           <div className="mt-6 pt-6 border-t border-gray-200">
             <p className="text-xs text-gray-500 text-center">
-              © {new Date().getFullYear()} StudyinThailand.org. All rights
+              © {new Date().getFullYear()} ThailandStudyGuide.org. All rights
               reserved.
             </p>
           </div>

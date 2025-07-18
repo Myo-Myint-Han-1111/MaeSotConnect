@@ -44,7 +44,7 @@ export const Navbar: React.FC<NavbarProps> = ({ brand }) => {
       }`}
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-16 gap-8">
           {/* Brand/Logo */}
           <Link href="/" className="transition-transform hover:scale-105">
             {brand.logo && (
@@ -61,7 +61,7 @@ export const Navbar: React.FC<NavbarProps> = ({ brand }) => {
           </Link>
 
           {/* Right side controls */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
             {/* Theme Toggle */}
             <ThemeToggle />
 
@@ -73,10 +73,10 @@ export const Navbar: React.FC<NavbarProps> = ({ brand }) => {
                 onValueChange={changeLanguage}
                 className="border rounded-md overflow-hidden border-white/30"
               >
-                <TabsList className="bg-transparent p-0 h-auto">
+                <TabsList className="bg-transparent p-0 h-auto flex">
                   <TabsTrigger
                     value="en"
-                    className={`px-3 py-1.5 text-xs font-medium transition-all duration-200 rounded-sm
+                    className={`px-2 py-1 md:px-3 md:py-2 text-xs md:text-sm font-medium transition-all duration-200 rounded-l-md border-0 h-full
                       ${
                         language === "en"
                           ? "bg-white text-gray-900 font-semibold shadow-sm"
@@ -87,7 +87,7 @@ export const Navbar: React.FC<NavbarProps> = ({ brand }) => {
                   </TabsTrigger>
                   <TabsTrigger
                     value="mm"
-                    className={`px-3 py-1.5 text-xs font-medium transition-all duration-200 rounded-sm
+                    className={`px-2 py-1 md:px-3 md:py-2 text-xs md:text-sm font-medium transition-all duration-200 rounded-r-md border-0 h-full
                       ${
                         language === "mm"
                           ? "bg-white text-gray-900 font-semibold shadow-sm"
