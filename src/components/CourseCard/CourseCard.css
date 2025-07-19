@@ -50,10 +50,33 @@
 
 .see-more-container {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
+  padding: 0 1rem 1rem 1rem;
 }
 .see-more-button {
   min-width: fit-content;
+  border: none;
+  outline: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  transition: opacity 0.2s ease;
+}
+.see-more-button:hover {
+  background: transparent;
+  opacity: 0.7;
+}
+.see-more-button:focus {
+  outline: none;
+  box-shadow: none;
+}
+.see-more-arrow {
+  transition: transform 0.2s ease;
+}
+.see-more-button:hover .see-more-arrow {
+  transform: translateX(2px);
 }
 
 .carousel-container {

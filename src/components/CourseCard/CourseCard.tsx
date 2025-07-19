@@ -187,11 +187,24 @@ export const CourseCard: React.FC<CourseCardProps> = ({
               e.stopPropagation();
               handleNavigation();
             }}
-            variant="outline"
+            variant="ghost"
             size="sm"
             className="see-more-button cursor-pointer"
           >
             {t("course.seemore")}
+            <svg
+              className="see-more-arrow"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 18l6-6-6-6" />
+            </svg>
           </Button>
         }
       </CardFooter>
