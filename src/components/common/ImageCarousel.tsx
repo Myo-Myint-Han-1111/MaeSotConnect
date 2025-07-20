@@ -10,6 +10,7 @@ interface ImageCarouselProps {
   indicatorStyle?: "dots" | "bars";
   className?: string;
   aspectRatio?: "video" | "square" | "auto";
+  showSwipeHint?: boolean;
 }
 
 /**
@@ -23,6 +24,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
   indicatorStyle = "dots",
   className = "",
   aspectRatio = "video",
+  showSwipeHint = true,
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
@@ -115,7 +117,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
     width: "100%",
     overflow: "hidden",
     backgroundColor: "var(--muted, #f1f5f9)",
-    borderRadius: "8px",
+    borderRadius: variant === "card" ? "8px 8px 0 0" : "8px",
     touchAction: "pan-y",
     ...(aspectRatio === "video" ? { aspectRatio: "16/9" } : {}),
     ...(aspectRatio === "square" ? { aspectRatio: "1/1" } : {}),
@@ -349,7 +351,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
       )}
 
       {/* Visual swipe hint for mobile users */}
-      {images.length > 1 && isMounted && (
+      {images.length > 1 && isMounted && showSwipeHint && (
         <div style={swipeHintStyle}>
           <span style={swipeHintSpanStyle}>Swipe to navigate</span>
         </div>

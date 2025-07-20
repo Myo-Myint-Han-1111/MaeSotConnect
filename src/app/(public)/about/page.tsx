@@ -3,46 +3,19 @@
 import React from "react";
 import { useLanguage } from "../../../context/LanguageContext";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 import { Button } from "../../../components/ui/button";
 import { ChevronLeft } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "../../../components/ui/card";
 
 const About: React.FC = () => {
   const { t } = useLanguage();
   const router = useRouter();
 
-  // Sample team data
-  const teamMembers = [
-    {
-      name: "Peter Grunawalt",
-      role: "Main Developer",
-      bio: "",
-      image: "/team/placeholder.jpg",
-    },
-    {
-      name: "Ko Myo",
-      role: "Developer",
-      bio: "",
-      image: "/team/placeholder.jpg",
-    },
-    {
-      name: "Ko Phillip",
-      role: "Consultant",
-      bio: "",
-      image: "/team/placeholder.jpg",
-    },
-  ];
-
   return (
-    <div className="content">
+    <div className="min-h-screen bg-background">
       {/* Back Button */}
-      <div className="relative z-10 bg-background py-4 pt-6 max-w-6xl mx-auto px-4">
+      <div className="relative z-10 bg-background py-4 pt-6 max-w-4xl mx-auto px-4">
         <Button
           variant="outline"
           size="sm"
@@ -54,81 +27,86 @@ const About: React.FC = () => {
         </Button>
       </div>
 
-      <section className="max-w-6xl mx-auto px-4 py-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-3xl text-center mb-4">
-              About Us
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Mission Section */}
-            <div>
-              <h2 className="text-2xl font-semibold mb-4">
-                {t("about.mission.title")}
-              </h2>
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        {/* Hero Section */}
+        <div className="text-center mb-16 max-w-2xl mx-auto">
+          <h1 className="text-4xl md:text-5xl font-bold mb-2">
+            About Us
+          </h1>
+          <p className="text-lg text-muted-foreground leading-relaxed py-4">
+            {t("about.mission.p1")}
+          </p>
+          <p className="text-lg text-muted-foreground leading-relaxed py-2">
+            Ko Myo teamed up with Peter in 2025 to develop a web app that solves this problem by creating a centralized, user-friendly platform to search, filter, and compare vocational training programs, language courses, and skill development opportunities. It is being developed as an{" "}
+            <a 
+              href="https://github.com/Myo-Myint-Han-1111/MaeSotConnect" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary hover:text-primary/80 underline transition-colors"
+            >
+              open source project
+            </a>{" "}
+            and is currently self-funded.
+          </p>
+        </div>
+
+        {/* Team Photo Section */}
+        <div className="mb-16">
+          <div className="relative w-full max-w-2xl mx-auto">
+            <Image
+              src="/images/KoMyo_Peter_TeamPhoto.jpeg"
+              alt="Team Photo - Ko Myo and Peter"
+              width={800}
+              height={600}
+              className="rounded-lg shadow-sm object-cover w-full"
+              style={{ aspectRatio: "4/3" }}
+            />
+          </div>
+        </div>
+
+        {/* Team Profiles */}
+        <div className="space-y-12 mb-16 max-w-2xl mx-auto">
+          {/* About Ko Myo */}
+          <div>
+            <h2 className="text-2xl font-semibold mb-4 text-center">
+              {t("about.komyo.title")}
+            </h2>
+            <p className="text-muted-foreground leading-relaxed text-center">
+              {t("about.komyo.content")}
+            </p>
+          </div>
+          
+          {/* About Peter */}
+          <div>
+            <h2 className="text-2xl font-semibold mb-4 text-center">
+              {t("about.peter.title")}
+            </h2>
+            <p className="text-muted-foreground leading-relaxed text-center">
+              {t("about.peter.content")}
+            </p>
+          </div>
+          
+          {/* Contact */}
+          <div>
+            <h2 className="text-2xl font-semibold mb-4 text-center">
+              {t("about.contact.title")}
+            </h2>
+            <div className="text-center">
               <p className="text-muted-foreground mb-4">
-                {t("about.mission.p1")}
+                <a href={`mailto:${t("about.contact.email")}`} className="text-primary hover:text-primary/80 underline">
+                  {t("about.contact.email")}
+                </a>
               </p>
-
-              <div className="mt-6">
-                <h3 className="text-xl font-semibold mb-3">
-                  {t("about.platform.title")}
-                </h3>
-                <p className="text-muted-foreground">
-                  {t("about.platform.content")}
-                </p>
-              </div>
-
-              <div className="mt-6">
-                <h3 className="text-xl font-semibold mb-3">
-                  {t("about.vision.title")}
-                </h3>
-                <p className="text-muted-foreground">
-                  {t("about.vision.content")}
-                </p>
-              </div>
-            </div>
-
-            {/* Team Section */}
-            <div className="mt-12">
-              <h2 className="text-2xl font-semibold mb-4">
-                {t("about.team.title")}
-              </h2>
-              <p className="text-muted-foreground mb-6">
-                Meet the dedicated professionals behind our organization
+              <p className="text-muted-foreground leading-relaxed">
+                {t("about.contact.description")}
               </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {teamMembers.map((member, index) => (
-                  <div
-                    key={index}
-                    className="flex flex-col items-center text-center"
-                  >
-                    <div className="h-32 w-32 rounded-full bg-muted overflow-hidden mb-4">
-                      {/* Fallback div in case image fails to load */}
-                      <div className="h-full w-full flex items-center justify-center bg-primary/10 text-primary text-2xl font-bold">
-                        {member.name
-                          .split(" ")
-                          .map((name) => name[0])
-                          .join("")}
-                      </div>
-                    </div>
-                    <h3 className="text-lg font-medium">{member.name}</h3>
-                    <p className="text-sm text-primary mb-2">{member.role}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {member.bio}
-                    </p>
-                  </div>
-                ))}
-              </div>
             </div>
-          </CardContent>
-        </Card>
-      </section>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
-// Add default export for Next.js page component
 export default About;

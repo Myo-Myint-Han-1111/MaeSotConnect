@@ -3,7 +3,7 @@ import { Navbar } from "@/components/Navbar/Navbar";
 
 // Brand configuration
 const brand = {
-  name: "StudyinThailand.org",
+  name: "ThailandStudyGuide.org",
   logo: "/images/studyinthailand.svg",
 };
 

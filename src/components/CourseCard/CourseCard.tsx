@@ -28,7 +28,6 @@ export interface CourseCardProps {
 
   startDate: string;
   startDateMm: string | null;
-  address?: string | null;
   applyByDate?: string | null;
   applyByDateMm?: string | null;
   estimatedDate?: string | null;
@@ -64,6 +63,9 @@ export interface CourseCardProps {
   // TODO: Ko Myo - Add these fields when applyByDate is added to database
   // applyByDate?: string;
   // applyByDateMm?: string | null;
+  district?: string | null;
+  province?: string | null;
+  showSwipeHint?: boolean;
 }
 
 export const CourseCard: React.FC<CourseCardProps> = ({
@@ -79,7 +81,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({
 
   startDate,
   startDateMm,
-  address,
   applyByDate,
   applyByDateMm,
   estimatedDate,
@@ -94,6 +95,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   // availableDays,
   // applyByDate, // TODO: Ko Myo - Uncomment when added to database
   // applyByDateMm, // TODO: Ko Myo - Uncomment when added to database
+  district,
+  province,
+  showSwipeHint = true,
 }) => {
   const router = useRouter();
   const { language, t } = useLanguage();
@@ -125,6 +129,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           altText={getLocalizedContent(title, titleMm)}
           variant="card"
           aspectRatio="video"
+          showSwipeHint={showSwipeHint}
         />
       </div>
 
@@ -140,18 +145,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({
 
         <CourseInfoDisplay
           location={
-            address ||
-            (organizationInfo
-              ? `${organizationInfo.address}${
-                  organizationInfo.district
-                    ? `, ${organizationInfo.district}`
-                    : ""
-                }${
-                  organizationInfo.province
-                    ? `, ${organizationInfo.province}`
-                    : ""
-                }`
-              : "")
+            [district, province]
+              .filter(Boolean)
+              .join(", ") || ""
           }
           startDate={getLocalizedContent(startDate, startDateMm)}
           applyByDate={
@@ -191,9 +187,24 @@ export const CourseCard: React.FC<CourseCardProps> = ({
               e.stopPropagation();
               handleNavigation();
             }}
+            variant="ghost"
+            size="sm"
             className="see-more-button cursor-pointer"
           >
             {t("course.seemore")}
+            <svg
+              className="see-more-arrow"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 18l6-6-6-6" />
+            </svg>
           </Button>
         }
       </CardFooter>
