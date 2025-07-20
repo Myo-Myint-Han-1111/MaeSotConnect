@@ -136,7 +136,7 @@ export const translations = {
     "badge.martial art": "Martial Art",
     "badge.ged": "GED",
     "badge.ielts": "IELTS",
-    "badge.thailand": "Thailand",
+    "badge.thailand": "Thai",
     "badge.korea": "Korea",
     "badge.japan": "Japan",
     "badge.english": "English",
@@ -270,10 +270,10 @@ export const translations = {
     "badge.martial art": "ကိုယ်ခံပညာ",
     "badge.ged": "GED",
     "badge.ielts": "IELTS",
-    "badge.thailand": "ထိုင်းနိုင်ငံ",
+    "badge.thailand": "ထိုင်းဘာသာစကား",
     "badge.korea": "ကိုရီးယား",
     "badge.japan": "ဂျပန်",
-    "badge.english": "အင်္ဂလိပ်ဘာသာ",
+    "badge.english": "အင်္ဂလိပ်ဘာသာစကား",
 
     // About page
     "about.title": "ကျွန်ုပ်တို့အကြောင်း",
