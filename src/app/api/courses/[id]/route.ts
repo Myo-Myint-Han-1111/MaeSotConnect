@@ -30,9 +30,11 @@ const courseSchema = z.object({
   schedule: z.string().min(2),
   scheduleMm: z.string().optional().nullable(),
   feeAmount: z.number().nonnegative(),
-  ageMin: z.number().int().nonnegative(),
-  ageMax: z.number().int().positive(),
-  document: z.string(),
+
+  ageMin: z.number().int().nonnegative().optional().nullable(),
+  ageMax: z.number().int().nonnegative().optional().nullable(),
+
+  document: z.string().optional().nullable(),
   documentMm: z.string().optional().nullable(),
   availableDays: z.array(z.boolean()).length(7),
   description: z.string().optional().nullable(),
@@ -235,13 +237,32 @@ export async function PUT(
     // Parse the JSON data
     const parsedData = JSON.parse(jsonData);
 
+    console.log("=== RAW PARSED DATA DEBUG ===");
+    console.log("Raw ageMin:", parsedData.ageMin, typeof parsedData.ageMin);
+    console.log("Raw ageMax:", parsedData.ageMax, typeof parsedData.ageMax);
+
     // Clean and convert all data types properly
     const cleanedData = {
       ...parsedData,
       feeAmount: safeInteger(parsedData.feeAmount, 0),
       duration: safeInteger(parsedData.duration, 1),
-      ageMin: safeInteger(parsedData.ageMin, 0),
-      ageMax: safeInteger(parsedData.ageMax, 100),
+
+      ageMin:
+        parsedData.ageMin === null ||
+        parsedData.ageMin === undefined ||
+        parsedData.ageMin === "" ||
+        Number(parsedData.ageMin) <= 0
+          ? null
+          : Math.round(Number(parsedData.ageMin)),
+
+      ageMax:
+        parsedData.ageMax === null ||
+        parsedData.ageMax === undefined ||
+        parsedData.ageMax === "" ||
+        Number(parsedData.ageMax) <= 0
+          ? null
+          : Math.round(Number(parsedData.ageMax)),
+
       availableDays: Array.isArray(parsedData.availableDays)
         ? parsedData.availableDays.map(Boolean)
         : [false, false, false, false, false, false, false],
@@ -249,6 +270,9 @@ export async function PUT(
       outcomesMm: filterStringArray(parsedData.outcomesMm),
       selectionCriteria: filterStringArray(parsedData.selectionCriteria),
       selectionCriteriaMm: filterStringArray(parsedData.selectionCriteriaMm),
+      // FIXED: Properly handle how to apply fields
+      howToApply: filterStringArray(parsedData.howToApply),
+      howToApplyMm: filterStringArray(parsedData.howToApplyMm),
       titleMm: parsedData.titleMm || null,
       subtitleMm: parsedData.subtitleMm || null,
       scheduleMm: parsedData.scheduleMm || null,
@@ -256,6 +280,7 @@ export async function PUT(
       descriptionMm: parsedData.descriptionMm || null,
       scheduleDetails: parsedData.scheduleDetails || null,
       scheduleDetailsMm: parsedData.scheduleDetailsMm || null,
+      document: parsedData.document || null,
       documentMm: parsedData.documentMm || null,
       province: parsedData.province || null,
       district: parsedData.district || null,
@@ -268,7 +293,25 @@ export async function PUT(
         parsedData.applyByDateMm && parsedData.applyByDateMm.trim() !== ""
           ? parsedData.applyByDateMm
           : null,
+      applyButtonText: parsedData.applyButtonText || null,
+      applyButtonTextMm: parsedData.applyButtonTextMm || null,
+      applyLink: parsedData.applyLink || null,
+      estimatedDate: parsedData.estimatedDate || null,
+      estimatedDateMm: parsedData.estimatedDateMm || null,
     };
+
+    // 🟡 ADD THIS DEBUG CODE HERE (after cleanedData, before validation):
+    console.log("=== CLEANED DATA DEBUG ===");
+    console.log(
+      "Cleaned ageMin:",
+      cleanedData.ageMin,
+      typeof cleanedData.ageMin
+    );
+    console.log(
+      "Cleaned ageMax:",
+      cleanedData.ageMax,
+      typeof cleanedData.ageMax
+    );
 
     const validationResult = courseSchema.safeParse(cleanedData);
 
@@ -281,6 +324,19 @@ export async function PUT(
     }
 
     const validatedData = validationResult.data;
+
+    // THIS DEBUG CODE HERE (after validation, before database update):
+    console.log("=== VALIDATED DATA DEBUG ===");
+    console.log(
+      "Validated ageMin:",
+      validatedData.ageMin,
+      typeof validatedData.ageMin
+    );
+    console.log(
+      "Validated ageMax:",
+      validatedData.ageMax,
+      typeof validatedData.ageMax
+    );
 
     // Process existing images
     const existingImagesJSON = formData.get("existingImages");
@@ -356,8 +412,8 @@ export async function PUT(
             schedule: validatedData.schedule,
             scheduleMm: validatedData.scheduleMm,
             feeAmount: validatedData.feeAmount,
-            ageMin: validatedData.ageMin,
-            ageMax: validatedData.ageMax,
+            ageMin: validatedData.ageMin, // This should now be null or a valid integer
+            ageMax: validatedData.ageMax, // This should now be null or a valid integer
             document: validatedData.document,
             documentMm: validatedData.documentMm,
             availableDays: validatedData.availableDays,

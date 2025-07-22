@@ -132,10 +132,10 @@ interface CourseFormData {
   scheduleMm: string;
   feeAmount: number;
   feeAmountMm: number;
-  ageMin: number;
-  ageMinMm: number;
-  ageMax: number;
-  ageMaxMm: number;
+  ageMin?: number | null;
+  ageMax?: number | null;
+  ageMinMm?: number | null;
+  ageMaxMm?: number | null;
   document: string;
   documentMm: string;
   availableDays: boolean[];
@@ -250,8 +250,8 @@ export default function EditCoursePage() {
           feeAmount: data.feeAmount || 0,
 
           // Age fields
-          ageMin: data.ageMin || 0,
-          ageMax: data.ageMax || 0,
+          ageMin: data.ageMin && data.ageMin > 0 ? data.ageMin : null,
+          ageMax: data.ageMax && data.ageMax > 0 ? data.ageMax : null,
 
           // Document fields
           document: data.document || "",
@@ -365,7 +365,7 @@ export default function EditCoursePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Edit Course: {course.title}</h1>
+      {/* <h1 className="text-2xl font-bold mb-6">Edit Course: {course.title}</h1> */}
       <CourseForm
         mode="edit"
         initialData={course}

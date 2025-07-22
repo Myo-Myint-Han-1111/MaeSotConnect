@@ -53,8 +53,8 @@ interface CourseFormData {
   schedule: string;
   scheduleMm: string;
   feeAmount: number;
-  ageMin: number;
-  ageMax: number;
+  ageMin?: number | null;
+  ageMax?: number | null;
   document: string;
   documentMm: string;
   availableDays: boolean[];
@@ -131,10 +131,20 @@ const badgeOptions: BadgeOption[] = [
   { text: "Martial Art", color: "#fff", backgroundColor: "#607d8b" }, // Blue Gray
   { text: "GED", color: "#fff", backgroundColor: "#ff9800" }, // Amber
   { text: "IELTS", color: "#fff", backgroundColor: "#2196f3" }, // Light Blue
-  { text: "Thailand", color: "#fff", backgroundColor: "#ff6b35" }, // Coral
+  { text: "Thai", color: "#fff", backgroundColor: "#ff6b35" }, // Coral
   { text: "Korea", color: "#fff", backgroundColor: "#4ecdc4" }, // Turquoise
   { text: "Japan", color: "#fff", backgroundColor: "#e74c3c" }, // Crimson
   { text: "English", color: "#fff", backgroundColor: "#2c3e50" }, // Dark Blue
+  {
+    text: "Pre-university",
+    color: "#fff",
+    backgroundColor: "#1976d2", // Royal Blue
+  },
+  {
+    text: "Pre-career",
+    color: "#fff",
+    backgroundColor: "#388e3c", // Forest Green
+  },
 ];
 
 // Helper function to decode estimated date and preferences when loading existing data
@@ -207,8 +217,8 @@ export default function CourseForm({
       schedule: "",
       scheduleMm: "",
       feeAmount: 0,
-      ageMin: 0,
-      ageMax: 0,
+      ageMin: null,
+      ageMax: null,
       document: "",
       documentMm: "",
       availableDays: [false, false, false, false, false, false, false],
@@ -324,8 +334,14 @@ export default function CourseForm({
         schedule: initialData.schedule ?? "",
         scheduleMm: initialData.scheduleMm ?? "",
         feeAmount: initialData.feeAmount ?? 0,
-        ageMin: initialData.ageMin ?? 0,
-        ageMax: initialData.ageMax ?? 0,
+        ageMin:
+          initialData.ageMin && initialData.ageMin > 0
+            ? initialData.ageMin
+            : null,
+        ageMax:
+          initialData.ageMax && initialData.ageMax > 0
+            ? initialData.ageMax
+            : null,
         document: initialData.document ?? "",
         documentMm: initialData.documentMm ?? "",
         availableDays: initialData.availableDays ?? [
@@ -365,7 +381,10 @@ export default function CourseForm({
         estimatedDateMm: estimatedPrefsMm.estimatedDate,
         showEstimatedForStartDate: showStart,
         showEstimatedForApplyByDate: showApply,
-        organizationId: organizationId ?? initialData.organizationId ?? "",
+        organizationId:
+          initialData.organizationId ||
+          organizationId ||
+          (organizations.length > 0 ? organizations[0].id : ""),
         images: [],
         badges: initialData.badges ?? [],
         faq: initialData.faq?.length
@@ -379,7 +398,7 @@ export default function CourseForm({
       console.log("showEstimatedForStartDate set to:", showStart);
       console.log("showEstimatedForApplyByDate set to:", showApply);
     }
-  }, [initialData, organizationId, mode]);
+  }, [initialData, organizationId, mode, organizations]);
 
   // Debug effect to monitor form data changes
   useEffect(() => {
@@ -418,12 +437,52 @@ export default function CourseForm({
     e: React.ChangeEvent<HTMLInputElement>,
     fieldName: string
   ) => {
-    // For integer fields, use parseInt instead of parseFloat
-    const value = e.target.value === "" ? 0 : parseInt(e.target.value, 10) || 0;
-    setFormData((prev) => ({
-      ...prev,
-      [fieldName]: value,
-    }));
+    const inputValue = e.target.value;
+
+    // Special handling for age fields to prevent auto-fill
+    if (fieldName === "ageMin" || fieldName === "ageMax") {
+      console.log(`Age field ${fieldName} input:`, inputValue); // Debug log
+
+      // If the input is completely empty, set to null (no auto-fill)
+      if (
+        inputValue === "" ||
+        inputValue === null ||
+        inputValue === undefined
+      ) {
+        console.log(`Setting ${fieldName} to null`); // Debug log
+        setFormData((prev) => ({
+          ...prev,
+          [fieldName]: null,
+        }));
+        return;
+      }
+
+      // Parse the input value
+      const numericValue = parseInt(inputValue, 10);
+
+      // Only set the value if it's a valid positive number
+      if (!isNaN(numericValue) && numericValue > 0) {
+        console.log(`Setting ${fieldName} to:`, numericValue); // Debug log
+        setFormData((prev) => ({
+          ...prev,
+          [fieldName]: numericValue,
+        }));
+      } else {
+        // For invalid values (0, negative, or NaN), set to null
+        console.log(`Invalid value for ${fieldName}, setting to null`); // Debug log
+        setFormData((prev) => ({
+          ...prev,
+          [fieldName]: null,
+        }));
+      }
+    } else {
+      // Handle other numeric fields normally (duration, feeAmount, etc.)
+      const value = inputValue === "" ? 0 : parseInt(inputValue, 10) || 0;
+      setFormData((prev) => ({
+        ...prev,
+        [fieldName]: value,
+      }));
+    }
   };
 
   // Add this new handler for checkbox changes
@@ -656,16 +715,39 @@ export default function CourseForm({
       return;
     }
 
+    // ADD ORGANIZATION VALIDATION:
+    if (!formData.organizationId || formData.organizationId === "") {
+      setError("Organization selection is required");
+      setIsLoading(false);
+      return;
+    }
+
     // Add debugging here
     console.log("Form data before submission:", formData);
     console.log("How to Apply data:", formData.howToApply);
     console.log("How to Apply MM data:", formData.howToApplyMm);
+
+    // THIS DEBUG CODE HERE (before cleanedFormData processing):
+    console.log("=== FORM SUBMIT DEBUG ===");
+    console.log("Form ageMin:", formData.ageMin, typeof formData.ageMin);
+    console.log("Form ageMax:", formData.ageMax, typeof formData.ageMax);
 
     // IMPORTANT: Ensure howToApply arrays are properly filtered and encode estimated date preferences
     const cleanedFormData = {
       ...formData,
       howToApply: formData.howToApply.filter((step) => step.trim() !== ""),
       howToApplyMm: formData.howToApplyMm.filter((step) => step.trim() !== ""),
+      // Ensure organizationId is not null or empty
+      organizationId: formData.organizationId, // Don't allow null/empty
+      // Handle age fields - send null for empty values but ensure they're properly typed
+      ageMin:
+        formData.ageMin === null || formData.ageMin === undefined
+          ? null
+          : Number(formData.ageMin),
+      ageMax:
+        formData.ageMax === null || formData.ageMax === undefined
+          ? null
+          : Number(formData.ageMax),
       // Encode the display preferences into the estimated date field
       estimatedDate: formData.estimatedDate
         ? `${formData.estimatedDate}|${
@@ -679,6 +761,19 @@ export default function CourseForm({
         : "",
     };
 
+    // THIS DEBUG CODE HERE (after cleanedFormData processing):
+    console.log("=== FORM CLEANED DATA DEBUG ===");
+    console.log(
+      "Cleaned ageMin:",
+      cleanedFormData.ageMin,
+      typeof cleanedFormData.ageMin
+    );
+    console.log(
+      "Cleaned ageMax:",
+      cleanedFormData.ageMax,
+      typeof cleanedFormData.ageMax
+    );
+
     // Remove UI-only fields before submission
     delete (cleanedFormData as Partial<CourseFormData>)
       .showEstimatedForStartDate;
@@ -686,6 +781,7 @@ export default function CourseForm({
       .showEstimatedForApplyByDate;
 
     console.log("Cleaned form data:", cleanedFormData);
+    console.log("Final organizationId:", cleanedFormData.organizationId);
 
     try {
       const formDataToSend = new FormData();
@@ -825,10 +921,11 @@ export default function CourseForm({
             <TabsContent value="basic-info" className="space-y-4">
               {/* Organization Select - Added for Platform Admin */}
               <div className="space-y-2">
-                <Label htmlFor="organizationId">Organization</Label>
+                <Label htmlFor="organizationId">Organization *</Label>
                 <Select
-                  value={formData.organizationId}
+                  value={formData.organizationId || ""}
                   onValueChange={handleOrganizationChange}
+                  required
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select an organization" />
@@ -842,8 +939,14 @@ export default function CourseForm({
                   </SelectContent>
                 </Select>
                 {organizations.length === 0 && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-red-500">
                     No organizations found. Please create an organization first.
+                  </p>
+                )}
+                {(!formData.organizationId ||
+                  formData.organizationId === "") && (
+                  <p className="text-xs text-red-500">
+                    Organization selection is required
                   </p>
                 )}
               </div>
@@ -933,11 +1036,11 @@ export default function CourseForm({
                 key={`${formData.province}-${formData.district}`}
               />
 
-              {/* Age Requirements - REMOVE MYANMAR FIELDS */}
+              {/* Age Requirements - Fixed controlled input */}
               <div className="space-y-2">
                 <Label htmlFor="ageMin">
                   <Users className="h-4 w-4 inline mr-1" />
-                  Age Requirements
+                  Age Requirements (Optional)
                 </Label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -948,10 +1051,18 @@ export default function CourseForm({
                       id="ageMin"
                       name="ageMin"
                       type="number"
-                      min="0"
-                      value={formData.ageMin}
-                      onChange={(e) => handleNumberChange(e, "ageMin")}
-                      required
+                      min="1"
+                      value={formData.ageMin || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setFormData((prev) => ({
+                          ...prev,
+                          ageMin: value === "" ? null : parseInt(value) || null,
+                        }));
+                      }}
+                      placeholder="Leave blank for no minimum age limit"
+                      autoComplete="off"
+                      // REMOVE: required
                     />
                   </div>
                   <div>
@@ -962,20 +1073,32 @@ export default function CourseForm({
                       id="ageMax"
                       name="ageMax"
                       type="number"
-                      min="0"
-                      value={formData.ageMax}
-                      onChange={(e) => handleNumberChange(e, "ageMax")}
-                      required
+                      min="1"
+                      value={formData.ageMax || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setFormData((prev) => ({
+                          ...prev,
+                          ageMax: value === "" ? null : parseInt(value) || null,
+                        }));
+                      }}
+                      placeholder="Leave blank for no maximum age limit"
+                      autoComplete="off"
+                      // REMOVE: required
                     />
                   </div>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Leave both fields blank if there are no age restrictions for
+                  this course
+                </p>
               </div>
 
-              {/* Required Documents - English and Myanmar (NEW) */}
+              {/* Required Documents - Made Optional */}
               <div className="space-y-2">
                 <Label htmlFor="document">
                   <FileText className="h-4 w-4 inline mr-1" />
-                  Required Documents
+                  Required Documents (Optional)
                 </Label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -987,8 +1110,8 @@ export default function CourseForm({
                       name="document"
                       value={formData.document ?? ""}
                       onChange={handleTextChange}
-                      placeholder="e.g. ID card, passport photos, etc."
-                      required
+                      placeholder="e.g. ID card, passport photos, etc. Leave blank if no documents required"
+                      // REMOVED: required
                     />
                   </div>
                   <div>
@@ -1002,9 +1125,14 @@ export default function CourseForm({
                       onChange={handleTextChange}
                       placeholder="Myanmar translation..."
                       dir="auto"
+                      // REMOVED: required
                     />
                   </div>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Leave blank if no specific documents are required for this
+                  course
+                </p>
               </div>
 
               {/* Schedule - English and Myanmar */}
@@ -1136,17 +1264,6 @@ export default function CourseForm({
                     option is selected, estimated dates will not be shown on
                     course cards.
                   </p>
-
-                  {/* Debug info - remove this in production */}
-                  {mode === "edit" && (
-                    <div className="text-xs bg-yellow-100 p-2 rounded">
-                      Debug: estimatedDate=&quot;{formData.estimatedDate}&quot;,
-                      showStart=
-                      {formData.showEstimatedForStartDate ? "true" : "false"},
-                      showApply=
-                      {formData.showEstimatedForApplyByDate ? "true" : "false"}
-                    </div>
-                  )}
 
                   {/* Estimated Date Input Fields */}
                   <div className="space-y-2">
@@ -1948,9 +2065,14 @@ export default function CourseForm({
           >
             Cancel
           </Button>
+
           <Button
             type="submit"
-            disabled={isLoading || !formData.organizationId}
+            disabled={
+              isLoading ||
+              !formData.organizationId ||
+              formData.organizationId === ""
+            }
             className={isMobile ? "w-full" : ""}
           >
             {isLoading

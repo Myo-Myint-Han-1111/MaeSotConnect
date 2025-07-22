@@ -140,6 +140,8 @@ export const translations = {
     "badge.korea": "Korea",
     "badge.japan": "Japan",
     "badge.english": "English",
+    "badge.pre-university": "Pre-university",
+    "badge.pre-career": "Pre-career",
 
     // About page
     "about.title": "About Us",
@@ -277,6 +279,8 @@ export const translations = {
     "badge.korea": "ကိုရီးယား",
     "badge.japan": "ဂျပန်",
     "badge.english": "အင်္ဂလိပ်ဘာသာစကား",
+    "badge.pre-university": "တက္ကသိုလ်ပြင်ဆင်ရေး",
+    "badge.pre-career": "အလုပ်အကိုင်ပြင်ဆင်ရေး",
 
     // About page
     "about.title": "ကျွန်ုပ်တို့အကြောင်း",

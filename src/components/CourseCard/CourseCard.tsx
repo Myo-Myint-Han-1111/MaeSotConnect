@@ -103,6 +103,12 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   const { language, t } = useLanguage();
 
   const handleNavigation = () => {
+    // Save current scroll position
+    if (typeof window !== "undefined") {
+      const scrollY = window.scrollY;
+      console.log("Saving scroll position:", scrollY); // ADD THIS
+      sessionStorage.setItem("homeScrollPosition", scrollY.toString());
+    }
     router.push(`/courses/${slug}`);
   };
 
@@ -144,11 +150,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         <BadgeDisplay badges={badges} size="small" />
 
         <CourseInfoDisplay
-          location={
-            [district, province]
-              .filter(Boolean)
-              .join(", ") || ""
-          }
+          location={[district, province].filter(Boolean).join(", ") || ""}
           startDate={getLocalizedContent(startDate, startDateMm)}
           applyByDate={
             applyByDate

@@ -107,7 +107,7 @@ export default function AdminLayout({
 
       {/* Main content */}
       <div className="flex-1 pl-64">
-        <header className="h-16 bg-white shadow-sm fixed w-full z-10 pl-64 flex items-center px-6 justify-between">
+        {/* <header className="h-16 bg-white shadow-sm fixed w-full z-10 pl-64 flex items-center px-6 justify-between">
           <h2 className="text-lg font-medium">Platform Admin</h2>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">
@@ -117,8 +117,8 @@ export default function AdminLayout({
               {session?.user?.name?.charAt(0) || "U"}
             </div>
           </div>
-        </header>
-        <main className="pt-24 px-6 pb-12">{children}</main>
+        </header> */}
+        <main className="pt-5 px-6 pb-12">{children}</main>
       </div>
 
       {/* Add Sign Out Confirmation Dialog */}

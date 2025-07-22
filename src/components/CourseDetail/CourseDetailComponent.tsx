@@ -55,10 +55,10 @@ interface CourseDetail {
   scheduleMm?: string;
   feeAmount?: number;
   feeAmountMm?: number;
-  ageMin?: number;
-  ageMinMm?: number;
-  ageMax?: number;
-  ageMaxMm?: number;
+  ageMin?: number | null;
+  ageMinMm?: number | null;
+  ageMax?: number | null;
+  ageMaxMm?: number | null;
   document?: string;
   documentMm?: string;
   availableDays: boolean[];
@@ -254,18 +254,45 @@ export default function CourseDetailComponent({
     }
   };
 
-  // Format age range
-  const formatAgeRange = (min?: number, max?: number): string => {
-    if (min === undefined && max === undefined) return "";
+  // Update the formatAgeRange function to be more strict
+  const formatAgeRange = (min?: number | null, max?: number | null): string => {
+    console.log("formatAgeRange called with min:", min, "max:", max);
 
-    if (min !== undefined && max !== undefined) {
-      return `${min}-${max} ${language === "mm" ? "နှစ်" : "years"}`;
-    } else if (min !== undefined) {
-      return `${min}+ ${language === "mm" ? "နှစ်" : "years"}`;
-    } else if (max !== undefined) {
-      return `0-${max} ${language === "mm" ? "နှစ်" : "years"}`;
+    // Don't show anything if both are null/undefined or 0 or negative
+    if (
+      (min === null || min === undefined || min <= 0) &&
+      (max === null || max === undefined || max <= 0)
+    ) {
+      console.log("Both values are invalid, returning empty string");
+      return "";
     }
 
+    // If we have both min and max (both > 0)
+    if (
+      min !== null &&
+      min !== undefined &&
+      min > 0 &&
+      max !== null &&
+      max !== undefined &&
+      max > 0
+    ) {
+      console.log("Both values present:", min, max);
+      return `${min}-${max} ${language === "mm" ? "နှစ်" : "years"}`;
+    }
+    // If we only have minimum age (> 0)
+    else if (min !== null && min !== undefined && min > 0) {
+      console.log("Only min value present:", min);
+      return `${min}+ ${language === "mm" ? "နှစ်" : "years"}`;
+    }
+    // If we only have maximum age (> 0)
+    else if (max !== null && max !== undefined && max > 0) {
+      console.log("Only max value present:", max);
+      return `${language === "mm" ? "အများဆုံး" : "Up to"} ${max} ${
+        language === "mm" ? "နှစ်" : "years"
+      }`;
+    }
+
+    console.log("No valid age values, returning empty string");
     return "";
   };
 
@@ -278,7 +305,7 @@ export default function CourseDetailComponent({
             variant="outline"
             size="sm"
             className="border border-gray-300 bg-white hover:bg-gray-100 rounded-md"
-            onClick={() => router.push("/")}
+            onClick={() => router.back()}
           >
             <ChevronLeft className="mr-2 h-4 w-4" />
             {t("course.back")}
@@ -386,9 +413,13 @@ export default function CourseDetailComponent({
                   </div>
                 </div>
 
-                {/* Age Range - New field */}
-                {(course.ageMin !== undefined ||
-                  course.ageMax !== undefined) && (
+                {/* Age Range - Only show if at least one age limit is defined and greater than 0 */}
+                {((course.ageMin !== null &&
+                  course.ageMin !== undefined &&
+                  course.ageMin > 0) ||
+                  (course.ageMax !== null &&
+                    course.ageMax !== undefined &&
+                    course.ageMax > 0)) && (
                   <div className="flex items-start">
                     <Users className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
                     <div>
@@ -407,8 +438,9 @@ export default function CourseDetailComponent({
                   </div>
                 )}
 
-                {/* Required Documents - New field */}
-                {(course.document || course.documentMm) && (
+                {/* Required Documents - Only show if documents are specified */}
+                {(course.document && course.document.trim() !== "") ||
+                (course.documentMm && course.documentMm.trim() !== "") ? (
                   <div className="flex items-start">
                     <FileText className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
                     <div>
@@ -423,7 +455,7 @@ export default function CourseDetailComponent({
                       </p>
                     </div>
                   </div>
-                )}
+                ) : null}
 
                 {/* Fee - Updated to use new feeAmount field */}
                 {(course.feeAmount !== undefined ||

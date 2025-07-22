@@ -43,6 +43,16 @@ export const BADGE_STYLES: Record<string, BadgeStyle> = {
     color: "#fff",
     backgroundColor: "#6610f2", // Purple
   },
+  "Pre-university": {
+    text: "Pre-university",
+    color: "#fff",
+    backgroundColor: "#1976d2", // Royal Blue
+  },
+  "Pre-career": {
+    text: "Pre-career",
+    color: "#fff",
+    backgroundColor: "#388e3c", // Forest Green
+  },
   Cooking: {
     text: "Cooking",
     color: "#fff",
@@ -119,7 +129,7 @@ export const BADGE_STYLES: Record<string, BadgeStyle> = {
     backgroundColor: "#2196f3", // Light Blue
   },
   Thailand: {
-    text: "Thailand",
+    text: "Thai",
     color: "#fff",
     backgroundColor: "#ff6b35", // Coral
   },

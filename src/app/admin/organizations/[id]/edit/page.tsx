@@ -67,7 +67,7 @@ export default function EditOrganizationPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Edit Organization</h1>
+      {/* <h1 className="text-2xl font-bold mb-6">Edit Organization</h1> */}
       <OrganizationForm mode="edit" initialData={organization} />
     </div>
   );

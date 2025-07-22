@@ -34,10 +34,10 @@ const courseSchema = z
     scheduleMm: z.string().optional(),
     feeAmount: z.number().nonnegative(),
     feeAmountMm: z.number().nonnegative().optional().nullable(),
-    ageMin: z.number().int().nonnegative(),
+    ageMin: z.number().int().nonnegative().optional().nullable(),
     ageMinMm: z.number().int().nonnegative().optional().nullable(),
-    ageMax: z.number().int().positive(),
-    ageMaxMm: z.number().int().positive().optional().nullable(),
+    ageMax: z.number().int().nonnegative().optional().nullable(),
+    ageMaxMm: z.number().int().nonnegative().optional().nullable(),
     document: z.string(),
     documentMm: z.string().optional(),
     province: z.string().optional(),
@@ -240,17 +240,39 @@ export async function POST(request: NextRequest) {
     if (parsedData.durationMm !== undefined) {
       parsedData.durationMm = Math.round(Number(parsedData.durationMm));
     }
+
+    // Handle age fields properly - convert to null if empty/invalid
     if (parsedData.ageMin !== undefined) {
-      parsedData.ageMin = Math.round(Number(parsedData.ageMin));
+      const ageMinValue = Number(parsedData.ageMin);
+      parsedData.ageMin =
+        isNaN(ageMinValue) || ageMinValue <= 0 ? null : Math.round(ageMinValue);
     }
     if (parsedData.ageMax !== undefined) {
-      parsedData.ageMax = Math.round(Number(parsedData.ageMax));
+      const ageMaxValue = Number(parsedData.ageMax);
+      parsedData.ageMax =
+        isNaN(ageMaxValue) || ageMaxValue <= 0 ? null : Math.round(ageMaxValue);
     }
     if (parsedData.ageMinMm !== undefined) {
-      parsedData.ageMinMm = Math.round(Number(parsedData.ageMinMm));
+      const ageMinMmValue = Number(parsedData.ageMinMm);
+      parsedData.ageMinMm =
+        isNaN(ageMinMmValue) || ageMinMmValue <= 0
+          ? null
+          : Math.round(ageMinMmValue);
     }
     if (parsedData.ageMaxMm !== undefined) {
-      parsedData.ageMaxMm = Math.round(Number(parsedData.ageMaxMm));
+      const ageMaxMmValue = Number(parsedData.ageMaxMm);
+      parsedData.ageMaxMm =
+        isNaN(ageMaxMmValue) || ageMaxMmValue <= 0
+          ? null
+          : Math.round(ageMaxMmValue);
+    }
+
+    // Also handle document fields as optional
+    if (!parsedData.document || parsedData.document.trim() === "") {
+      parsedData.document = null;
+    }
+    if (!parsedData.documentMm || parsedData.documentMm.trim() === "") {
+      parsedData.documentMm = null;
     }
 
     if (!parsedData.organizationId || parsedData.organizationId === "") {
@@ -318,9 +340,9 @@ export async function POST(request: NextRequest) {
           scheduleMm: validatedData.scheduleMm || null,
           feeAmount: validatedData.feeAmount,
           feeAmountMm: validatedData.feeAmountMm || null,
-          ageMin: validatedData.ageMin,
+          ageMin: validatedData.ageMin || null,
           ageMinMm: validatedData.ageMinMm || null,
-          ageMax: validatedData.ageMax,
+          ageMax: validatedData.ageMax || null,
           ageMaxMm: validatedData.ageMaxMm || null,
           document: validatedData.document,
           documentMm: validatedData.documentMm || null,

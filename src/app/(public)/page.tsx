@@ -167,6 +167,35 @@ export default function Home() {
     fetchCourses();
   }, []);
 
+  useEffect(() => {
+    const savedPosition = sessionStorage.getItem("homeScrollPosition");
+    console.log("Restoring scroll position:", savedPosition);
+    if (savedPosition) {
+      // Increase delay and add multiple attempts
+      const scrollToPosition = () => {
+        const targetPosition = parseInt(savedPosition, 10);
+        window.scrollTo(0, targetPosition);
+
+        // Verify it actually scrolled
+        setTimeout(() => {
+          if (Math.abs(window.scrollY - targetPosition) > 50) {
+            // If not close enough, try again
+            window.scrollTo(0, targetPosition);
+          }
+        }, 50);
+      };
+
+      // Try multiple times with increasing delays
+      setTimeout(scrollToPosition, 200); // Increased from 100ms
+      setTimeout(scrollToPosition, 500); // Backup attempt
+
+      // Clean up
+      setTimeout(() => {
+        sessionStorage.removeItem("homeScrollPosition");
+      }, 600);
+    }
+  }, []);
+
   // Get all unique badge texts from courses for filter options
   const allBadges = useMemo(() => {
     const badgeSet = new Set<string>();
@@ -435,9 +464,10 @@ export default function Home() {
   const clearFilters = () => {
     setSearchTerm("");
     setActiveFilters([]);
-    // Clear from sessionStorage too
+
     if (typeof window !== "undefined") {
       sessionStorage.removeItem("courseFilters");
+      sessionStorage.removeItem("homeScrollPosition");
     }
   };
 
@@ -565,7 +595,6 @@ export default function Home() {
                 )}
               </div>
             </div>
-
           </div>
         </div>
       </div>
@@ -580,12 +609,19 @@ export default function Home() {
                 {/* Sort Dropdown - Minimalist text with arrow */}
                 <div className="w-auto">
                   <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-auto h-auto border-none bg-transparent p-0 text-sm font-medium hover:text-foreground focus:ring-0 focus:ring-offset-0 [&>span]:flex [&>span]:items-center [&>span]:gap-2 [&>svg]:ml-2" style={{ color: 'hsl(var(--muted-foreground))' }}>
+                    <SelectTrigger
+                      className="w-auto h-auto border-none bg-transparent p-0 text-sm font-medium hover:text-foreground focus:ring-0 focus:ring-offset-0 [&>span]:flex [&>span]:items-center [&>span]:gap-2 [&>svg]:ml-2"
+                      style={{ color: "hsl(var(--muted-foreground))" }}
+                    >
                       <SelectValue placeholder={t("sort.placeholder")} />
                     </SelectTrigger>
                     <SelectContent className="bg-white border border-gray-300 rounded-sm shadow-sm">
                       {sortOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value} className="text-sm hover:bg-gray-50">
+                        <SelectItem
+                          key={option.value}
+                          value={option.value}
+                          className="text-sm hover:bg-gray-50"
+                        >
                           {option.label}
                         </SelectItem>
                       ))}
