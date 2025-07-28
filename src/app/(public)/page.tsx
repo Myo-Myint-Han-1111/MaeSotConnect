@@ -208,17 +208,41 @@ export default function Home() {
   }, [courses]);
 
   // Format duration for display (convert from number to string)
-  const formatDuration = (duration: number): string => {
-    if (duration < 30) {
-      return `${duration} days`;
-    } else if (duration < 365) {
-      const months = Math.round(duration / 30);
-      return `${months} ${months === 1 ? "month" : "months"}`;
-    } else {
-      const years = Math.round((duration / 365) * 10) / 10;
-      return `${years} ${years === 1 ? "year" : "years"}`;
-    }
-  };
+  const formatDuration = useCallback(
+    (duration: number): string => {
+      if (duration < 7) {
+        return `${duration} ${
+          duration === 1
+            ? language === "mm"
+              ? "ရက်"
+              : "day"
+            : language === "mm"
+            ? "ရက်"
+            : "days"
+        }`;
+      } else if (duration < 30) {
+        const weeks = duration / 7;
+        const formattedWeeks =
+          weeks % 1 === 0 ? weeks.toString() : weeks.toFixed(1);
+
+        return `${formattedWeeks} ${language === "mm" ? "ပတ်" : "week"}`;
+      } else if (duration < 365) {
+        const months = duration / 30.44;
+        const formattedMonths =
+          months % 1 < 0.1 || months % 1 > 0.9
+            ? Math.round(months).toString()
+            : months.toFixed(1);
+
+        return `${formattedMonths} ${language === "mm" ? "လ" : "month"}`;
+      } else {
+        const years = duration / 365;
+        const formattedYears =
+          years % 1 === 0 ? years.toString() : years.toFixed(1);
+        return `${formattedYears} ${language === "mm" ? "နှစ်" : "year"}`;
+      }
+    },
+    [language]
+  );
 
   // Format date for display (convert from ISO string to localized format)
   const formatDate = (dateStr: string): string => {

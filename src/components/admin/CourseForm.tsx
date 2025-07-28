@@ -145,6 +145,7 @@ const badgeOptions: BadgeOption[] = [
     color: "#fff",
     backgroundColor: "#388e3c", // Forest Green
   },
+  { text: "Chess", color: "#fff", backgroundColor: "#8b4513" },
 ];
 
 // Helper function to decode estimated date and preferences when loading existing data
@@ -735,6 +736,8 @@ export default function CourseForm({
     // IMPORTANT: Ensure howToApply arrays are properly filtered and encode estimated date preferences
     const cleanedFormData = {
       ...formData,
+      document: formData.document || "", // Convert null/undefined to empty string
+      documentMm: formData.documentMm || "",
       howToApply: formData.howToApply.filter((step) => step.trim() !== ""),
       howToApplyMm: formData.howToApplyMm.filter((step) => step.trim() !== ""),
       // Ensure organizationId is not null or empty

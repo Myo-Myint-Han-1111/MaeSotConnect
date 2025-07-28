@@ -148,6 +148,11 @@ export const BADGE_STYLES: Record<string, BadgeStyle> = {
     color: "#fff",
     backgroundColor: "#2c3e50", // Dark Blue
   },
+  Chess: {
+    text: "Chess",
+    color: "#fff",
+    backgroundColor: "#8b4513",
+  },
 };
 
 // Helper function to create badges

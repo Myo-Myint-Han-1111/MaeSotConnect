@@ -193,36 +193,48 @@ export default function CourseDetailComponent({
           : "days"
       }`;
     } else if (durationInDays < 30) {
-      // Less than a month, show as weeks
-      const weeks = Math.round(durationInDays / 7);
-      return `${weeks} ${
-        weeks === 1
+      // Less than a month, show as weeks with decimal if needed
+      const weeks = durationInDays / 7;
+      const formattedWeeks =
+        weeks % 1 === 0 ? weeks.toString() : weeks.toFixed(1);
+      const weeksValue = parseFloat(formattedWeeks);
+
+      return `${formattedWeeks} ${
+        weeksValue === 1
           ? language === "mm"
             ? "ပတ်"
             : "week"
           : language === "mm"
           ? "ပတ်"
-          : "weeks"
+          : "week" // ← REMOVED PLURAL
       }`;
     } else if (durationInDays < 365) {
-      // Less than a year, show as months
-      const months = Math.round(durationInDays / 30);
-      return `${months} ${
-        months === 1
-          ? language === "mm"
-            ? "လ"
-            : "month"
-          : language === "mm"
-          ? "လ"
-          : "months"
+      // Less than a year, show as months with decimal precision
+      const months = durationInDays / 30.44;
+
+      // Show decimal only if it's significant
+      const formattedMonths =
+        months % 1 < 0.1 || months % 1 > 0.9
+          ? Math.round(months).toString()
+          : months.toFixed(1);
+
+      return `${formattedMonths} ${
+        language === "mm" ? "လ" : "month" // ← REMOVED PLURAL, always "month"
       }`;
     } else {
-      // Show as years and months
-      const years = Math.floor(durationInDays / 365);
-      const remainingDays = durationInDays % 365;
-      const months = Math.round(remainingDays / 30);
+      // Show as years and months with more precision
+      const totalMonths = durationInDays / 30.44;
+      const years = Math.floor(totalMonths / 12);
+      const remainingMonths = totalMonths % 12;
 
-      if (months === 0) {
+      const formattedRemainingMonths =
+        remainingMonths < 0.1
+          ? 0
+          : remainingMonths % 1 < 0.1 || remainingMonths % 1 > 0.9
+          ? Math.round(remainingMonths)
+          : parseFloat(remainingMonths.toFixed(1));
+
+      if (formattedRemainingMonths === 0) {
         return `${years} ${
           years === 1
             ? language === "mm"
@@ -230,7 +242,7 @@ export default function CourseDetailComponent({
               : "year"
             : language === "mm"
             ? "နှစ်"
-            : "years"
+            : "year" // ← REMOVED PLURAL
         }`;
       } else {
         return `${years} ${
@@ -240,15 +252,9 @@ export default function CourseDetailComponent({
               : "year"
             : language === "mm"
             ? "နှစ်"
-            : "years"
-        } ${months} ${
-          months === 1
-            ? language === "mm"
-              ? "လ"
-              : "month"
-            : language === "mm"
-            ? "လ"
-            : "months"
+            : "year" // ← REMOVED PLURAL
+        } ${formattedRemainingMonths} ${
+          language === "mm" ? "လ" : "month" // ← REMOVED PLURAL
         }`;
       }
     }
