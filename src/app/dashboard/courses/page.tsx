@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -56,6 +56,9 @@ export default function CoursesPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
 
+  // NEW: Status filter for admin dashboard
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+
   // Change the function to display full year:
   const formatDateToDDMMYYYY = (dateString: string): string => {
     try {
@@ -74,6 +77,44 @@ export default function CoursesPage() {
       return dateString;
     }
   };
+
+  // NEW: Get course status function for admin dashboard
+  const getCourseStatus = (course: Course) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const startDate = new Date(course.startDate);
+    const endDate = course.endDate ? new Date(course.endDate) : null;
+
+    if (endDate && endDate < today) {
+      return "ended";
+    }
+
+    if (startDate < today) {
+      return "started";
+    }
+
+    return "upcoming";
+  };
+
+  // NEW: Get course counts by status for admin dashboard
+  const courseCounts = useMemo(() => {
+    const counts = {
+      total: courses.length,
+      upcoming: 0,
+      started: 0,
+      ended: 0,
+    };
+
+    courses.forEach((course) => {
+      const status = getCourseStatus(course);
+      if (status === "upcoming") counts.upcoming++;
+      else if (status === "started") counts.started++;
+      else if (status === "ended") counts.ended++;
+    });
+
+    return counts;
+  }, [courses]);
 
   // Only platform admins can access this page
   useEffect(() => {
@@ -152,15 +193,27 @@ export default function CoursesPage() {
     }
   };
 
-  // Filter courses based on search term
-  const filteredCourses = courses.filter(
-    (course) =>
-      course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.subtitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (course.organization?.name || "")
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
-  );
+  // MODIFIED: Filter courses - NO DATE FILTERING for admin dashboard
+  const filteredCourses = useMemo(() => {
+    let filtered = courses.filter(
+      (course) =>
+        course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.subtitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (course.organization?.name || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())
+    );
+
+    // Apply status filter
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((course) => {
+        const status = getCourseStatus(course);
+        return status === statusFilter;
+      });
+    }
+
+    return filtered;
+  }, [courses, searchTerm, statusFilter]);
 
   if (loading) {
     return (
@@ -173,13 +226,108 @@ export default function CoursesPage() {
   return (
     <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h1 className="text-3xl font-bold">Manage Courses</h1>
+        <div>
+          <h1 className="text-3xl font-bold">Manage Courses</h1>
+          <div className="flex items-center gap-2 mt-2">
+            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+              Admin View
+            </span>
+            <span className="text-sm text-muted-foreground">
+              All courses visible for management
+            </span>
+          </div>
+        </div>
         <Link href="/dashboard/courses/new">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
             Add New Course
           </Button>
         </Link>
+      </div>
+
+      {/* NEW: Course Statistics */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-lg border text-center">
+          <div className="text-2xl font-bold text-blue-600">
+            {courseCounts.total}
+          </div>
+          <div className="text-sm text-muted-foreground">Total Courses</div>
+        </div>
+        <div className="bg-white p-4 rounded-lg border text-center">
+          <div className="text-2xl font-bold text-green-600">
+            {courseCounts.upcoming}
+          </div>
+          <div className="text-sm text-muted-foreground">Upcoming</div>
+          <div className="text-xs text-green-600 mt-1">
+            ✅ Visible to public
+          </div>
+        </div>
+        <div className="bg-white p-4 rounded-lg border text-center">
+          <div className="text-2xl font-bold text-yellow-600">
+            {courseCounts.started}
+          </div>
+          <div className="text-sm text-muted-foreground">Started</div>
+          <div className="text-xs text-red-600 mt-1">❌ Hidden from public</div>
+        </div>
+        <div className="bg-white p-4 rounded-lg border text-center">
+          <div className="text-2xl font-bold text-red-600">
+            {courseCounts.ended}
+          </div>
+          <div className="text-sm text-muted-foreground">Ended</div>
+          <div className="text-xs text-red-600 mt-1">❌ Hidden from public</div>
+        </div>
+      </div>
+
+      {/* NEW: Status Filter Buttons */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <Button
+          variant={statusFilter === "all" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setStatusFilter("all")}
+          className={
+            statusFilter === "all"
+              ? "bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-300"
+              : ""
+          }
+        >
+          All Courses ({courseCounts.total})
+        </Button>
+        <Button
+          variant={statusFilter === "upcoming" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setStatusFilter("upcoming")}
+          className={
+            statusFilter === "upcoming"
+              ? "bg-green-100 text-green-800 hover:bg-green-200 border-green-300"
+              : ""
+          }
+        >
+          Upcoming ({courseCounts.upcoming})
+        </Button>
+        <Button
+          variant={statusFilter === "started" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setStatusFilter("started")}
+          className={
+            statusFilter === "started"
+              ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-200 border-yellow-300"
+              : ""
+          }
+        >
+          Started ({courseCounts.started})
+        </Button>
+        <Button
+          variant={statusFilter === "ended" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setStatusFilter("ended")}
+          className={
+            statusFilter === "ended"
+              ? "bg-red-100 text-red-800 hover:bg-red-200 border-red-300"
+              : ""
+          }
+        >
+          Ended ({courseCounts.ended})
+        </Button>
       </div>
 
       <div className="mb-6">
@@ -205,11 +353,11 @@ export default function CoursesPage() {
           <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h2 className="text-xl font-semibold mb-2">No Courses Found</h2>
           <p className="text-muted-foreground mb-6">
-            {searchTerm
-              ? "No courses match your search criteria. Try different keywords."
+            {searchTerm || statusFilter !== "all"
+              ? "No courses match your search criteria or selected filter. Try different keywords or clear filters."
               : "You haven't created any courses yet. Get started by adding your first course."}
           </p>
-          {!searchTerm && (
+          {!searchTerm && statusFilter === "all" && (
             <Link href="/dashboard/courses/new">
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
@@ -220,107 +368,148 @@ export default function CoursesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCourses.map((course) => (
-            <Card key={course.id} className="overflow-hidden">
-              <div className="h-40 relative">
-                {course.images && course.images.length > 0 ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={course.images[0]}
-                    alt={course.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-muted flex items-center justify-center">
-                    <BookOpen className="h-10 w-10 text-muted-foreground" />
-                  </div>
-                )}
-              </div>
+          {filteredCourses.map((course) => {
+            const status = getCourseStatus(course);
 
-              <CardHeader className="pb-2">
-                <h3 className="text-xl font-semibold">{course.title}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {course.subtitle}
-                </p>
-              </CardHeader>
-
-              <CardContent className="pb-4">
-                {/* Display organization info */}
-                {course.organization && (
-                  <div className="flex items-center text-sm text-muted-foreground mb-3">
-                    <Building2 className="h-4 w-4 mr-1" />
-                    <span>{course.organization.name}</span>
-                  </div>
-                )}
-
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {course.badges.map((badge, i) => (
-                    <span
-                      key={i}
-                      className="inline-block px-2 py-1 rounded-full text-xs font-medium"
-                      style={{
-                        backgroundColor: badge.backgroundColor,
-                        color: badge.color,
-                      }}
-                    >
-                      {badge.text}
-                    </span>
-                  ))}
+            return (
+              <Card key={course.id} className="overflow-hidden relative">
+                {/* NEW: Status Badge */}
+                <div className="absolute top-2 right-2 z-10">
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      status === "upcoming"
+                        ? "bg-green-100 text-green-800"
+                        : status === "started"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
+                  >
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </span>
                 </div>
 
-                {/* Updated date display section with YY/MM/DD format */}
-                <div className="space-y-1 text-sm">
-                  <p>
-                    <strong>Start:</strong>{" "}
-                    {formatDateToDDMMYYYY(course.startDate)}
+                <div className="h-40 relative">
+                  {course.images && course.images.length > 0 ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={course.images[0]}
+                      alt={course.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                      <BookOpen className="h-10 w-10 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+
+                <CardHeader className="pb-2">
+                  <h3 className="text-xl font-semibold">{course.title}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {course.subtitle}
                   </p>
-                  {course.endDate && (
-                    <p>
-                      <strong>End:</strong>{" "}
-                      {formatDateToDDMMYYYY(course.endDate)}
-                    </p>
-                  )}
-                  {course.duration && (
-                    <p>
-                      <strong>Duration:</strong> {course.duration} days
-                    </p>
-                  )}
-                </div>
-              </CardContent>
+                </CardHeader>
 
-              <CardFooter className="flex justify-between border-t p-4 bg-gray-50">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => router.push(`/courses/${course.id}`)}
-                >
-                  View Public
-                </Button>
+                <CardContent className="pb-4">
+                  {/* Display organization info */}
+                  {course.organization && (
+                    <div className="flex items-center text-sm text-muted-foreground mb-3">
+                      <Building2 className="h-4 w-4 mr-1" />
+                      <span>{course.organization.name}</span>
+                    </div>
+                  )}
 
-                <div className="flex space-x-2">
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {course.badges.map((badge, i) => (
+                      <span
+                        key={i}
+                        className="inline-block px-2 py-1 rounded-full text-xs font-medium"
+                        style={{
+                          backgroundColor: badge.backgroundColor,
+                          color: badge.color,
+                        }}
+                      >
+                        {badge.text}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Updated date display section with status indicators */}
+                  <div className="space-y-1 text-sm">
+                    <p>
+                      <strong>Start:</strong>{" "}
+                      {formatDateToDDMMYYYY(course.startDate)}
+                    </p>
+                    {course.endDate && (
+                      <p>
+                        <strong>End:</strong>{" "}
+                        {formatDateToDDMMYYYY(course.endDate)}
+                      </p>
+                    )}
+                    {course.duration && (
+                      <p>
+                        <strong>Duration:</strong> {course.duration} days
+                      </p>
+                    )}
+                  </div>
+
+                  {/* NEW: Public Visibility Indicator */}
+                  <div className="mt-3 pt-3 border-t">
+                    {status === "upcoming" ? (
+                      <div className="flex items-center text-sm text-green-600">
+                        <span className="mr-2">✅</span>
+                        <span className="font-medium">Visible to public</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center text-sm text-red-600">
+                        <span className="mr-2">❌</span>
+                        <span className="font-medium">Hidden from public</span>
+                        <span className="ml-2 text-xs text-muted-foreground">
+                          (
+                          {status === "started"
+                            ? "Course has started"
+                            : "Course has ended"}
+                          )
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+
+                <CardFooter className="flex justify-between border-t p-4 bg-gray-50">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() =>
-                      router.push(`/dashboard/courses/${course.id}/edit`)
-                    }
+                    onClick={() => router.push(`/courses/${course.id}`)}
                   >
-                    <Pencil className="mr-2 h-4 w-4" />
-                    Edit
+                    View Public
                   </Button>
 
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => confirmDeleteCourse(course.id)}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
-          ))}
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        router.push(`/dashboard/courses/${course.id}/edit`)
+                      }
+                    >
+                      <Pencil className="mr-2 h-4 w-4" />
+                      Edit
+                    </Button>
+
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => confirmDeleteCourse(course.id)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </Button>
+                  </div>
+                </CardFooter>
+              </Card>
+            );
+          })}
         </div>
       )}
 

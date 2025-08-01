@@ -260,6 +260,20 @@ export default function Home() {
     return `฿${amount.toLocaleString()}`;
   };
 
+  // NEW: Get course status function
+  const getCourseStatus = useCallback((course: Course) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const startDate = new Date(course.startDate);
+
+    if (startDate < today) {
+      return "started";
+    }
+
+    return "upcoming";
+  }, []);
+
   // ADD THIS SORT FUNCTION after the enhancedSearch function:
   const sortCourses = useCallback(
     (courses: Course[], sortBy: string): Course[] => {
@@ -342,9 +356,15 @@ export default function Home() {
     []
   );
 
-  // Filter courses based on search term and active filters
+  // MODIFIED: Filter courses - Hide started courses automatically
   const filteredCourses = useMemo(() => {
     const filtered = courses.filter((course) => {
+      // NEW: Hide courses that have already started
+      const status = getCourseStatus(course);
+      if (status === "started") {
+        return false;
+      }
+
       // Search logic
       let matchesSearch = true;
       if (searchTerm !== "") {
@@ -473,7 +493,14 @@ export default function Home() {
 
     // Apply sorting to filtered results
     return sortCourses(filtered, sortBy);
-  }, [searchTerm, activeFilters, courses, sortBy, sortCourses]);
+  }, [
+    searchTerm,
+    activeFilters,
+    courses,
+    sortBy,
+    sortCourses,
+    getCourseStatus,
+  ]);
 
   // Toggle a filter badge
   const toggleFilter = (badge: string) => {
