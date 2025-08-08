@@ -577,6 +577,10 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
 
   // Format fee based on feeAmount if available, otherwise use legacy fee
   const formatFee = () => {
+    if (course?.feeAmount === -1) {
+      return null; // Don't display anything when -1 (hidden)
+    }
+
     if (course?.feeAmount !== undefined) {
       // Use the new numeric fee amount
       const amount = course.feeAmount;
@@ -592,7 +596,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
       return language === "mm" && course.feeMm ? course.feeMm : course.fee;
     }
 
-    return "";
+    return null;
   };
 
   // Format duration based on type
@@ -809,7 +813,11 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
                         {t("course.fee")}
                       </p>
                       <p className="text-sm text-muted-foreground" dir="auto">
-                        {formatFee()}
+                        {formatFee() && (
+                          <div className="fee-display-section">
+                            {formatFee()}
+                          </div>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -1166,20 +1174,20 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
 };
 
 export default function CoursePage() {
-  const [courses, setCourses] = useState<CourseDetailProps['courses']>([]);
+  const [courses, setCourses] = useState<CourseDetailProps["courses"]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Fetch courses data
     async function fetchCourses() {
       try {
-        const response = await fetch('/api/courses');
+        const response = await fetch("/api/courses");
         if (response.ok) {
           const data = await response.json();
           setCourses(data);
         }
       } catch (error) {
-        console.error('Error fetching courses:', error);
+        console.error("Error fetching courses:", error);
       } finally {
         setLoading(false);
       }

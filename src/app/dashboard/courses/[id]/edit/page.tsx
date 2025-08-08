@@ -247,7 +247,7 @@ export default function EditCoursePage() {
           scheduleMm: data.scheduleMm ?? "",
 
           // Fee amount fields
-          feeAmount: data.feeAmount || 0,
+          feeAmount: data.feeAmount ?? -1, // Use -1 as default if no feeAmount exists
 
           // Age fields
           ageMin: data.ageMin && data.ageMin > 0 ? data.ageMin : null,

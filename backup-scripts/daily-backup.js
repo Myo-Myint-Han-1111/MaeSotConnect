@@ -42,8 +42,9 @@ async function smartDailyBackup() {
   // 3. Create comprehensive report
   createSmartReport(backupFolder, timestamp, storageResult, databaseResult);
 
-  // 4. Clean up old backups (keep last 10 days)
-  cleanupOldBackups();
+  // 4. Clean up old backups (keep last 10 days) - DISABLED
+  // cleanupOldBackups();
+  console.log("🔒 Auto-cleanup disabled - all backups preserved");
 
   console.log("\n🎉 SMART BACKUP COMPLETED!");
   console.log(`📍 Location: ${backupFolder}`);
@@ -359,34 +360,34 @@ function getNextActions(storageResult, databaseResult) {
   return actions;
 }
 
-function cleanupOldBackups() {
-  const backupsDir = path.join(__dirname, "../backups");
-  if (!fs.existsSync(backupsDir)) return;
+// function cleanupOldBackups() {
+//   const backupsDir = path.join(__dirname, "../backups");
+//   if (!fs.existsSync(backupsDir)) return;
 
-  const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - 10); // Keep 10 days
+//   const cutoffDate = new Date();
+//   cutoffDate.setDate(cutoffDate.getDate() - 10); // Keep 10 days
 
-  const backupFolders = fs.readdirSync(backupsDir);
+//   const backupFolders = fs.readdirSync(backupsDir);
 
-  for (const folder of backupFolders) {
-    if (
-      !folder.startsWith("smart-backup-") &&
-      !folder.startsWith("auto-backup-")
-    )
-      continue;
+//   for (const folder of backupFolders) {
+//     if (
+//       !folder.startsWith("smart-backup-") &&
+//       !folder.startsWith("auto-backup-")
+//     )
+//       continue;
 
-    const folderPath = path.join(backupsDir, folder);
-    try {
-      const stats = fs.statSync(folderPath);
-      if (stats.isDirectory() && stats.mtime < cutoffDate) {
-        fs.rmSync(folderPath, { recursive: true, force: true });
-        console.log(`🗑️ Cleaned up old backup: ${folder}`);
-      }
-    } catch (err) {
-      // Ignore cleanup errors
-    }
-  }
-}
+//     const folderPath = path.join(backupsDir, folder);
+//     try {
+//       const stats = fs.statSync(folderPath);
+//       if (stats.isDirectory() && stats.mtime < cutoffDate) {
+//         fs.rmSync(folderPath, { recursive: true, force: true });
+//         console.log(`🗑️ Cleaned up old backup: ${folder}`);
+//       }
+//     } catch (err) {
+//       // Ignore cleanup errors
+//     }
+//   }
+// }
 
 function showResults(storageResult, databaseResult) {
   console.log("\n📊 BACKUP RESULTS:");

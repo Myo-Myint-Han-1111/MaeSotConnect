@@ -117,9 +117,7 @@ export async function GET() {
       applyLink: course.applyLink,
       // Build location from course district/province only
       location:
-        [course.district, course.province]
-          .filter(Boolean)
-          .join(", ") || "",
+        [course.district, course.province].filter(Boolean).join(", ") || "",
       locationMm: null, // Keep for backward compatibility
       // Add empty fee fields for backward compatibility
       fee: course.feeAmount ? course.feeAmount.toString() : "",

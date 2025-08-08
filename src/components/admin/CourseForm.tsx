@@ -334,7 +334,7 @@ export default function CourseForm({
         duration: initialData.duration ?? 0,
         schedule: initialData.schedule ?? "",
         scheduleMm: initialData.scheduleMm ?? "",
-        feeAmount: initialData.feeAmount ?? 0,
+        feeAmount: initialData.feeAmount ?? -1,
         ageMin:
           initialData.ageMin && initialData.ageMin > 0
             ? initialData.ageMin
@@ -1392,15 +1392,28 @@ export default function CourseForm({
                   id="feeAmount"
                   name="feeAmount"
                   type="number"
-                  min="0"
+                  min="-1"
                   step="0.01"
-                  value={formData.feeAmount}
-                  onChange={(e) => handleNumberChange(e, "feeAmount")}
-                  required
-                  placeholder="e.g. 500.00"
+                  value={formData.feeAmount === -1 ? "" : formData.feeAmount}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "") {
+                      setFormData((prev) => ({ ...prev, feeAmount: -1 }));
+                    } else {
+                      const numValue = parseFloat(value);
+                      if (!isNaN(numValue) && numValue >= 0) {
+                        setFormData((prev) => ({
+                          ...prev,
+                          feeAmount: numValue,
+                        }));
+                      }
+                    }
+                  }}
+                  placeholder="Leave blank to hide, 0 for free, or enter amount"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Enter 0 for free courses
+                  Leave blank to hide fee, enter 0 for free courses, or enter
+                  amount for paid courses
                 </p>
               </div>
             </TabsContent>

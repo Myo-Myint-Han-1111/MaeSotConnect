@@ -32,7 +32,7 @@ const courseSchema = z
     durationMm: z.number().int().positive().optional().nullable(),
     schedule: z.string().min(2, "Schedule must be at least 2 characters"),
     scheduleMm: z.string().optional(),
-    feeAmount: z.number().nonnegative(),
+    feeAmount: z.number().min(-1), // Allow -1 for hidden fee, 0 for free, positive for paid
     feeAmountMm: z.number().nonnegative().optional().nullable(),
     ageMin: z.number().int().nonnegative().optional().nullable(),
     ageMinMm: z.number().int().nonnegative().optional().nullable(),

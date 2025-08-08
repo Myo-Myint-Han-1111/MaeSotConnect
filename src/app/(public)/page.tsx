@@ -196,70 +196,6 @@ export default function Home() {
     }
   }, []);
 
-  // Get all unique badge texts from courses for filter options
-  const allBadges = useMemo(() => {
-    const badgeSet = new Set<string>();
-    courses.forEach((course) => {
-      course.badges.forEach((badge) => {
-        badgeSet.add(badge.text);
-      });
-    });
-    return Array.from(badgeSet);
-  }, [courses]);
-
-  // Format duration for display (convert from number to string)
-  const formatDuration = useCallback(
-    (duration: number): string => {
-      if (duration < 7) {
-        return `${duration} ${
-          duration === 1
-            ? language === "mm"
-              ? "ရက်"
-              : "day"
-            : language === "mm"
-            ? "ရက်"
-            : "days"
-        }`;
-      } else if (duration < 30) {
-        const weeks = duration / 7;
-        const formattedWeeks =
-          weeks % 1 === 0 ? weeks.toString() : weeks.toFixed(1);
-
-        return `${formattedWeeks} ${language === "mm" ? "ပတ်" : "week"}`;
-      } else if (duration < 365) {
-        const months = duration / 30.44;
-        const formattedMonths =
-          months % 1 < 0.1 || months % 1 > 0.9
-            ? Math.round(months).toString()
-            : months.toFixed(1);
-
-        return `${formattedMonths} ${language === "mm" ? "လ" : "month"}`;
-      } else {
-        const years = duration / 365;
-        const formattedYears =
-          years % 1 === 0 ? years.toString() : years.toFixed(1);
-        return `${formattedYears} ${language === "mm" ? "နှစ်" : "year"}`;
-      }
-    },
-    [language]
-  );
-
-  // Format date for display (convert from ISO string to localized format)
-  const formatDate = (dateStr: string): string => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString(language === "mm" ? "my-MM" : "en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  // Format fee for display
-  const formatFee = (amount: number | undefined): string => {
-    if (amount === undefined || amount === 0) return "Free";
-    return `฿${amount.toLocaleString()}`;
-  };
-
   // NEW: Get course status function
   const getCourseStatus = useCallback((course: Course) => {
     const today = new Date();
@@ -274,101 +210,17 @@ export default function Home() {
     return "upcoming";
   }, []);
 
-  // ADD THIS SORT FUNCTION after the enhancedSearch function:
-  const sortCourses = useCallback(
-    (courses: Course[], sortBy: string): Course[] => {
-      if (sortBy === "default") return courses;
-
-      return [...courses].sort((a, b) => {
-        switch (sortBy) {
-          case "startDate-asc":
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            const dateA = new Date(a.startDate);
-            const dateB = new Date(b.startDate);
-
-            const isAFuture = dateA >= today;
-            const isBFuture = dateB >= today;
-
-            // If both are future dates, sort by earliest
-            if (isAFuture && isBFuture) {
-              return dateA.getTime() - dateB.getTime();
-            }
-
-            // If both are past dates, sort by most recent past first
-            if (!isAFuture && !isBFuture) {
-              return dateB.getTime() - dateA.getTime();
-            }
-
-            // If one is future and one is past, future comes first
-            if (isAFuture && !isBFuture) return -1;
-            if (!isAFuture && isBFuture) return 1;
-
-            return 0;
-
-          case "startDate-desc":
-            return (
-              new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
-            );
-
-          case "applyByDate-asc":
-            if (!a.applyByDate && !b.applyByDate) return 0;
-            if (!a.applyByDate) return 1;
-            if (!b.applyByDate) return -1;
-
-            const todayApply = new Date();
-            todayApply.setHours(0, 0, 0, 0);
-
-            const applyDateA = new Date(a.applyByDate);
-            const applyDateB = new Date(b.applyByDate);
-
-            const isAApplyFuture = applyDateA >= todayApply;
-            const isBApplyFuture = applyDateB >= todayApply;
-
-            if (isAApplyFuture && isBApplyFuture) {
-              return applyDateA.getTime() - applyDateB.getTime();
-            }
-
-            if (!isAApplyFuture && !isBApplyFuture) {
-              return applyDateB.getTime() - applyDateA.getTime();
-            }
-
-            if (isAApplyFuture && !isBApplyFuture) return -1;
-            if (!isAApplyFuture && isBApplyFuture) return 1;
-
-            return 0;
-
-          case "applyByDate-desc":
-            if (!a.applyByDate && !b.applyByDate) return 0;
-            if (!a.applyByDate) return 1;
-            if (!b.applyByDate) return -1;
-            return (
-              new Date(b.applyByDate).getTime() -
-              new Date(a.applyByDate).getTime()
-            );
-
-          default:
-            return 0;
-        }
-      });
-    },
-    []
-  );
-
-  // MODIFIED: Filter courses - Hide started courses automatically
-  const filteredCourses = useMemo(() => {
-    const filtered = courses.filter((course) => {
-      // NEW: Hide courses that have already started
+  // STEP 1: Filter courses available for filtering (without badge filtering)
+  const coursesAvailableForFiltering = useMemo(() => {
+    return courses.filter((course) => {
+      // Hide courses that have already started
       const status = getCourseStatus(course);
       if (status === "started") {
         return false;
       }
 
-      // Search logic
-      let matchesSearch = true;
+      // Apply search filtering but NOT badge filtering yet
       if (searchTerm !== "") {
-        // Convert search term to lowercase for case-insensitive search
         const searchTermLower = searchTerm.toLowerCase();
 
         // Organization name search
@@ -465,7 +317,7 @@ export default function Home() {
         );
 
         // Combine all search results
-        matchesSearch =
+        const matchesSearch =
           organizationMatch ||
           basicFieldsMatch ||
           descriptionMatch ||
@@ -474,33 +326,181 @@ export default function Home() {
           scheduleDetailsMatch ||
           faqMatch ||
           badgesMatch;
+
+        return matchesSearch;
       }
 
-      // Badge filter logic
-      let matchesFilters = true;
-      if (activeFilters.length > 0) {
-        matchesFilters = activeFilters.every((filterBadge) => {
+      return true; // If no search term, include all non-started courses
+    });
+  }, [courses, searchTerm, getCourseStatus]);
+
+  // STEP 2: FIXED - Get all unique badge texts from courses available for filtering
+  const allBadges = useMemo(() => {
+    const badgeSet = new Set<string>();
+    coursesAvailableForFiltering.forEach((course) => {
+      course.badges.forEach((badge) => {
+        badgeSet.add(badge.text);
+      });
+    });
+    return Array.from(badgeSet);
+  }, [coursesAvailableForFiltering]);
+
+  // Format duration for display (convert from number to string)
+  const formatDuration = useCallback(
+    (duration: number): string => {
+      if (duration < 7) {
+        return `${duration} ${
+          duration === 1
+            ? language === "mm"
+              ? "ရက်"
+              : "day"
+            : language === "mm"
+            ? "ရက်"
+            : "days"
+        }`;
+      } else if (duration < 30) {
+        const weeks = duration / 7;
+        const formattedWeeks =
+          weeks % 1 === 0 ? weeks.toString() : weeks.toFixed(1);
+
+        return `${formattedWeeks} ${language === "mm" ? "ပတ်" : "week"}`;
+      } else if (duration < 365) {
+        const months = duration / 30.44;
+        const formattedMonths =
+          months % 1 < 0.1 || months % 1 > 0.9
+            ? Math.round(months).toString()
+            : months.toFixed(1);
+
+        return `${formattedMonths} ${language === "mm" ? "လ" : "month"}`;
+      } else {
+        const years = duration / 365;
+        const formattedYears =
+          years % 1 === 0 ? years.toString() : years.toFixed(1);
+        return `${formattedYears} ${language === "mm" ? "နှစ်" : "year"}`;
+      }
+    },
+    [language]
+  );
+
+  // Format date for display (convert from ISO string to localized format)
+  const formatDate = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString(language === "mm" ? "my-MM" : "en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  // Format fee for display
+  const formatFee = (amount: number | undefined): string | null => {
+    if (amount === -1 || amount === undefined) return null; // Hide fee when -1 or undefined
+    if (amount === 0) return "Free";
+    return `฿${amount.toLocaleString()}`;
+  };
+
+  // ADD THIS SORT FUNCTION after the enhancedSearch function:
+  const sortCourses = useCallback(
+    (courses: Course[], sortBy: string): Course[] => {
+      if (sortBy === "default") return courses;
+
+      return [...courses].sort((a, b) => {
+        switch (sortBy) {
+          case "startDate-asc":
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const dateA = new Date(a.startDate);
+            const dateB = new Date(b.startDate);
+
+            const isAFuture = dateA >= today;
+            const isBFuture = dateB >= today;
+
+            // If both are future dates, sort by earliest
+            if (isAFuture && isBFuture) {
+              return dateA.getTime() - dateB.getTime();
+            }
+
+            // If both are past dates, sort by most recent past first
+            if (!isAFuture && !isBFuture) {
+              return dateB.getTime() - dateA.getTime();
+            }
+
+            // If one is future and one is past, future comes first
+            if (isAFuture && !isBFuture) return -1;
+            if (!isAFuture && isBFuture) return 1;
+
+            return 0;
+
+          case "startDate-desc":
+            return (
+              new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+            );
+
+          case "applyByDate-asc":
+            if (!a.applyByDate && !b.applyByDate) return 0;
+            if (!a.applyByDate) return 1;
+            if (!b.applyByDate) return -1;
+
+            const todayApply = new Date();
+            todayApply.setHours(0, 0, 0, 0);
+
+            const applyDateA = new Date(a.applyByDate);
+            const applyDateB = new Date(b.applyByDate);
+
+            const isAApplyFuture = applyDateA >= todayApply;
+            const isBApplyFuture = applyDateB >= todayApply;
+
+            if (isAApplyFuture && isBApplyFuture) {
+              return applyDateA.getTime() - applyDateB.getTime();
+            }
+
+            if (!isAApplyFuture && !isBApplyFuture) {
+              return applyDateB.getTime() - applyDateA.getTime();
+            }
+
+            if (isAApplyFuture && !isBApplyFuture) return -1;
+            if (!isAApplyFuture && isBApplyFuture) return 1;
+
+            return 0;
+
+          case "applyByDate-desc":
+            if (!a.applyByDate && !b.applyByDate) return 0;
+            if (!a.applyByDate) return 1;
+            if (!b.applyByDate) return -1;
+            return (
+              new Date(b.applyByDate).getTime() -
+              new Date(a.applyByDate).getTime()
+            );
+
+          default:
+            return 0;
+        }
+      });
+    },
+    []
+  );
+
+  // STEP 3: FIXED - Apply badge filtering to the pre-filtered courses
+  const filteredCourses = useMemo(() => {
+    let filtered = coursesAvailableForFiltering;
+
+    // Apply badge filter logic
+    if (activeFilters.length > 0) {
+      filtered = filtered.filter((course) => {
+        return activeFilters.every((filterBadge) => {
           const filterBadgeText = filterBadge.toLowerCase().trim();
           return course.badges.some((courseBadge) => {
             const courseBadgeText = courseBadge.text.toLowerCase().trim();
             return courseBadgeText === filterBadgeText;
           });
         });
-      }
-
-      return matchesSearch && matchesFilters;
-    });
+      });
+    }
 
     // Apply sorting to filtered results
     return sortCourses(filtered, sortBy);
-  }, [
-    searchTerm,
-    activeFilters,
-    courses,
-    sortBy,
-    sortCourses,
-    getCourseStatus,
-  ]);
+  }, [coursesAvailableForFiltering, activeFilters, sortBy, sortCourses]);
 
   // Toggle a filter badge
   const toggleFilter = (badge: string) => {
@@ -745,12 +745,14 @@ export default function Home() {
 
               {/* Clear All Filters button */}
               {(searchTerm || activeFilters.length > 0) && (
-                <button
-                  onClick={clearFilters}
-                  className="px-3 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors mt-2 ml-1"
-                >
-                  {t("home.filter.clear")}
-                </button>
+                <div className="flex justify-start">
+                  <button
+                    onClick={clearFilters}
+                    className="px-4 py-2 rounded-full text-xs font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors w-auto"
+                  >
+                    {t("home.filter.clear")}
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -814,8 +816,8 @@ export default function Home() {
                     estimatedDate={course.estimatedDate || null} // Add this line
                     estimatedDateMm={course.estimatedDateMm || null}
                     fee={
-                      course.feeAmount ? formatFee(course.feeAmount) : undefined
-                    }
+  course.feeAmount !== -1 ? formatFee(course.feeAmount) : undefined
+}
                     feeMm={
                       course.feeAmountMm ? formatFee(course.feeAmountMm) : null
                     }

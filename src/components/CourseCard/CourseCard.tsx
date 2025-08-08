@@ -37,7 +37,7 @@ export interface CourseCardProps {
   durationMm: string | null;
   // schedule: string;
   // scheduleMm: string | null;
-  fee?: string;
+  fee?: string | null;
   feeMm?: string | null;
   availableDays: boolean[];
   badges: {

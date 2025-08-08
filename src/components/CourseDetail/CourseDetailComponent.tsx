@@ -463,9 +463,8 @@ export default function CourseDetailComponent({
                   </div>
                 ) : null}
 
-                {/* Fee - Updated to use new feeAmount field */}
-                {(course.feeAmount !== undefined ||
-                  course.feeAmountMm !== undefined) && (
+                {/* Fee - Updated to handle three conditions */}
+                {course.feeAmount !== -1 && course.feeAmount !== undefined && (
                   <div className="flex items-start">
                     <div className="h-5 w-5 mr-2 mt-0.5 flex items-center justify-center text-muted-foreground">
                       ฿

@@ -29,7 +29,7 @@ const courseSchema = z.object({
   duration: z.number().int().positive(),
   schedule: z.string().min(2),
   scheduleMm: z.string().optional().nullable(),
-  feeAmount: z.number().nonnegative(),
+ feeAmount: z.number().min(-1), // Allow -1 for hidden fee, 0 for free, positive for paid
 
   ageMin: z.number().int().nonnegative().optional().nullable(),
   ageMax: z.number().int().nonnegative().optional().nullable(),
