@@ -3,8 +3,8 @@ import { Navbar } from "@/components/Navbar/Navbar";
 
 // Brand configuration
 const brand = {
-  name: "ThailandStudyGuide.org",
-  logo: "/images/studyinthailand.svg",
+  name: "JumpStudy.org",
+  logo: "/images/JumpStudyLogo.svg",
 };
 
 // Navigation items (now used in footer, not in Navbar)

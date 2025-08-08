@@ -869,7 +869,7 @@ export default function Home() {
             <div className="mb-4 md:mb-0">
               <Link href="/" className="flex items-center space-x-2">
                 <span className="font-semibold text-gray-700">
-                  ThailandStudyGuide.org
+                  JumpStudy.org
                 </span>
               </Link>
             </div>
@@ -892,7 +892,7 @@ export default function Home() {
 
           <div className="mt-6 pt-6 border-t border-gray-200">
             <p className="text-xs text-gray-500 text-center">
-              © {new Date().getFullYear()} ThailandStudyGuide.org. All rights
+              © {new Date().getFullYear()} JumpStudy.org. All rights
               reserved.
             </p>
           </div>

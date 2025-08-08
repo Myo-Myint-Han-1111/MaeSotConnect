@@ -148,7 +148,7 @@ export const translations = {
     // About page
     "about.title": "About Us",
     "about.mission.p1":
-      "ThailandStudyGuide began as a simple idea to help solve an all-too common problem: many migrant and refugee youth feel stuck, unable to progress their education or begin a career. While Thailand has a wealth of education resources, the information is scattered across dozens of Facebook pages, Signal and WhatsApp groups, and is not easily searchable. Posts often exclude important information that allow youth to plan around a busy work schedule and personal commitments.",
+      "JumpStudy.org began as a simple idea to help solve an all-too common problem: many migrant and refugee youth feel stuck, unable to progress their education or begin a career. While Thailand has a wealth of education resources, the information is scattered across dozens of Facebook pages, Signal and WhatsApp groups, and is not easily searchable. Posts often exclude important information that allow youth to plan around a busy work schedule and personal commitments.",
     "about.mission.p2":
       "Ko Myo teamed up with Peter in 2025 to develop a web app that solves this problem by creating a centralized, user-friendly platform to search, filter, and compare vocational training programs, language courses, and skill development opportunities. It is being developed as an open source project and is currently self-funded. Our approach is to work with organizations that support youth to make the discovery process more accessible, transparent, and user-centered.",
     "about.komyo.title": "About Ko Myo",
@@ -157,10 +157,10 @@ export const translations = {
 
     "about.peter.title": "About Peter",
     "about.peter.content":
-      "Peter is currently a graduate student in Boston supporting the development of ThailandStudyGuide part-time. He works to build bi-partisan constituencies that support education in conflict-affected settings. Peter worked in Mae Sot for several years, supporting local education organizations and teaching research and computer science part-time to youth.",
+      "Peter is currently a graduate student in Boston supporting the development of JumpStudy part-time. He works to build bi-partisan constituencies that support education in conflict-affected settings. Peter worked in Mae Sot for several years, supporting local education organizations and teaching research and computer science part-time to youth.",
 
     "about.contact.title": "Contact",
-    "about.contact.email": "contact@thailandstudyguide.com",
+    "about.contact.email": "contact@jumpstudy.org",
     "about.contact.description":
       "We're currently looking to partner with organizations and individuals who share our mission of supporting migrant and refugee youth education in Thailand. If you have feedback about the app, or would like to collaborate, please don't hesitate to send us an email.",
 
@@ -300,10 +300,10 @@ export const translations = {
 
     "about.peter.title": "Peter အကြောင်း",
     "about.peter.content":
-      "Peter သည် လောလောဆယ် Boston တွင် ဘွဲ့လွန်ကျောင်းသားတစ်ဦးဖြစ်ပြီး ThailandStudyGuide ၏ တိုးတက်မှုကို အချိန်ပိုင်းအားဖြင့် ပံ့ပိုးနေပါသည်။ သူသည် ပဋိပက္ခကျရောက်သော နေရာများတွင် လူငယ်ပညာရေးကို ထောက်ပံ့သည့် နှစ်ဖက်စလုံးပူးပေါင်း အုပ်စုများကို တည်ဆောက်ရန် ကြိုးပမ်းနေပါသည်။ Peter သည် Mae Sot တွင် နှစ်ပေါင်းများစွာ လုပ်ဆောင်ခဲ့ပြီး ပြည်သူ့ပညာရေးအဖွဲ့အစည်းများကို ပံ့ပိုးခဲ့သည်အပြင် လူငယ်များအား သုတေသနနှင့် computer science ကို အချိန်ပိုင်းဆရာအဖြစ် သင်ကြားပေးခဲ့ပါသည်။",
+      "Peter သည် လောလောဆယ် Boston တွင် ဘွဲ့လွန်ကျောင်းသားတစ်ဦးဖြစ်ပြီး JumpStudy.org ၏ တိုးတက်မှုကို အချိန်ပိုင်းအားဖြင့် ပံ့ပိုးနေပါသည်။ သူသည် ပဋိပက္ခကျရောက်သော နေရာများတွင် လူငယ်ပညာရေးကို ထောက်ပံ့သည့် နှစ်ဖက်စလုံးပူးပေါင်း အုပ်စုများကို တည်ဆောက်ရန် ကြိုးပမ်းနေပါသည်။ Peter သည် Mae Sot တွင် နှစ်ပေါင်းများစွာ လုပ်ဆောင်ခဲ့ပြီး ပြည်သူ့ပညာရေးအဖွဲ့အစည်းများကို ပံ့ပိုးခဲ့သည်အပြင် လူငယ်များအား သုတေသနနှင့် computer science ကို အချိန်ပိုင်းဆရာအဖြစ် သင်ကြားပေးခဲ့ပါသည်။",
 
     "about.contact.title": "ဆက်သွယ်ရန်",
-    "about.contact.email": "contact@thailandstudyguide.com",
+    "about.contact.email": "contact@jumpstudy.org",
     "about.contact.description":
       "ကျွန်ုပ်တို့သည် လောလောဆယ် ထိုင်းနိုင်ငံမှ လူငယ်ပညာရေးကို ပံ့ပိုးရန် ကျွန်ုပ်တို့၏ ရည်မှန်းချက်နှင့် သဘောထားတူသော အဖွဲ့အစည်းများနှင့် တစ်ဦးချင်းပုဂ္ဂိုလ်များကို ရှာဖွေနေပါသည်။ အကယ်၍ သင်တွင် app နှင့် ပတ်သတ်သော အကြံပြုချက်များရှိပါက သို့မဟုတ် ပူးပေါင်းဆောင်ရွက်လိုပါက ကျွန်ုပ်တို့ထံ email ပို့ရန် မဝန်လျတ် ပါ။",
     "about.team.title": "ကျွန်ုပ်တို့၏အဖွဲ့နှင့် တွေ့ဆုံပါ",

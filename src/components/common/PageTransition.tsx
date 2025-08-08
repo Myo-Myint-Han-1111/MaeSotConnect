@@ -8,8 +8,7 @@ interface PageTransitionProps {
 }
 
 export const PageTransition: React.FC<PageTransitionProps> = ({ children }) => {
-  // We're removing the animation effects but keeping the component
-  // for easy addition of swipe navigation
+
   return <div className="page-content">{children}</div>;
 };
 
