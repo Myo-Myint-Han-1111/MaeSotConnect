@@ -101,7 +101,7 @@ export default function Home() {
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<string>("default");
+  const [sortBy, setSortBy] = useState<string>("startDate-asc");
 
   // ADD THESE SORT OPTIONS:
   const sortOptions = [
