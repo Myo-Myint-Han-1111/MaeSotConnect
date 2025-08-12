@@ -11,13 +11,12 @@ export async function createSupabaseServerClient() {
   if (!session) return null;
   
   try {
-    // Create JWT payload - MAKE SURE ROLE IS EXACTLY AS EXPECTED IN POLICY
     const payload = {
       aud: 'authenticated',
       exp: Math.floor(Date.now() / 1000) + 60 * 60,
       sub: session.user.id,
       email: session.user.email,
-      role: 'PLATFORM_ADMIN', // Explicitly set to match policy expectation
+      role: session.user.role,
       user_metadata: {
         role: session.user.role
       }
@@ -25,12 +24,10 @@ export async function createSupabaseServerClient() {
     
     console.log("Creating JWT with payload:", JSON.stringify(payload));
     
-    // Sign JWT with the correct secret
     const token = jwt.sign(payload, process.env.SUPABASE_JWT_SECRET || '');
     
     console.log("JWT created successfully");
     
-    // Create Supabase client
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL as string,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string,
