@@ -3,25 +3,29 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id             String        @id @default(cuid())
+  id             String         @id @default(cuid())
   name           String
-  email          String        @unique
+  email          String         @unique
   password       String?
   image          String?
-  role           Role          @default(ORGANIZATION_ADMIN)
+  role           Role           @default(ORGANIZATION_ADMIN)
   emailVerified  DateTime?
   organizationId String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  invitedAt      DateTime?
+  invitedBy      String?
+  lastLoginAt    DateTime?
+  status         UserStatus     @default(ACTIVE)
   accounts       Account[]
+  ContentDraft   ContentDraft[]
   sessions       Session[]
-  organization   Organization? @relation(fields: [organizationId], references: [id])
+  organization   Organization?  @relation(fields: [organizationId], references: [id])
 }
 
 model Account {
@@ -103,10 +107,10 @@ model Course {
   applyButtonText     String?
   applyButtonTextMm   String?
   applyLink           String?
-  badges              Badge[]
-  organizationInfo    Organization? @relation(fields: [organizationId], references: [id])
   estimatedDate       String?
   estimatedDateMm     String?
+  badges              Badge[]
+  organizationInfo    Organization? @relation(fields: [organizationId], references: [id])
   faq                 FAQ[]
   images              Image[]
 }
@@ -138,21 +142,23 @@ model FAQ {
 }
 
 model Organization {
-  id           String   @id @default(cuid())
-  name         String
-  description  String
-  phone        String
-  email        String
-  address      String?
-  facebookPage String?
-  latitude     Float
-  longitude    Float
-  district     String?
-  province     String?
-  logoImage    String?
-  slug         String   @unique
-  courses      Course[]
-  users        User[]
+  id             String           @id @default(cuid())
+  name           String
+  description    String
+  phone          String
+  email          String
+  address        String?
+  facebookPage   String?
+  latitude       Float
+  longitude      Float
+  district       String?
+  province       String?
+  logoImage      String?
+  slug           String           @unique
+  ContentDraft   ContentDraft[]
+  courses        Course[]
+  users          User[]
+  UserInvitation UserInvitation[]
 }
 
 model AdminAllowList {
@@ -163,7 +169,62 @@ model AdminAllowList {
   notes   String?
 }
 
+model ContentDraft {
+  id             String        @id
+  title          String
+  type           DraftType
+  content        Json
+  status         DraftStatus   @default(PENDING)
+  createdBy      String
+  organizationId String?
+  submittedAt    DateTime      @default(now())
+  reviewedAt     DateTime?
+  reviewedBy     String?
+  reviewNotes    String?
+  User           User          @relation(fields: [createdBy], references: [id])
+  Organization   Organization? @relation(fields: [organizationId], references: [id])
+}
+
+model UserInvitation {
+  id             String           @id
+  email          String           @unique
+  role           Role             @default(YOUTH_ADVOCATE)
+  organizationId String?
+  invitedBy      String
+  invitedAt      DateTime         @default(now())
+  expiresAt      DateTime
+  status         InvitationStatus @default(PENDING)
+  notes          String?
+  Organization   Organization?    @relation(fields: [organizationId], references: [id])
+}
+
 enum Role {
   PLATFORM_ADMIN
   ORGANIZATION_ADMIN
+  YOUTH_ADVOCATE
+}
+
+enum DraftStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  DRAFT
+}
+
+enum DraftType {
+  COURSE
+  ORGANIZATION_UPDATE
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
 }
