@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
     // Create the allowlist entry
     const adminEntry = await prisma.adminAllowList.create({
       data: {
+        id: crypto.randomUUID(),
         email,
         notes,
         addedBy: session.user.id,

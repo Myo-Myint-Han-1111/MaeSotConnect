@@ -7,27 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id             String         @id @default(cuid())
-  name           String
-  email          String         @unique
-  password       String?
-  image          String?
-  role           Role           @default(ORGANIZATION_ADMIN)
-  emailVerified  DateTime?
-  organizationId String?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  invitedAt      DateTime?
-  invitedBy      String?
-  lastLoginAt    DateTime?
-  status         UserStatus     @default(ACTIVE)
-  accounts       Account[]
-  ContentDraft   ContentDraft[]
-  sessions       Session[]
-  organization   Organization?  @relation(fields: [organizationId], references: [id])
-}
-
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -46,24 +26,28 @@ model Account {
   @@unique([provider, providerAccountId])
 }
 
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model AdminAllowList {
+  id      String   @id
+  email   String   @unique
+  addedBy String?
+  addedAt DateTime @default(now())
+  notes   String?
 }
 
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Badge {
+  id              String @id
+  text            String
+  color           String
+  backgroundColor String
+  courseId        String
+  Course          Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 }
 
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Course {
-  id                  String        @id @default(cuid())
+  id                  String        @id
   title               String
   titleMm             String?
   subtitle            String
@@ -95,7 +79,7 @@ model Course {
   selectionCriteriaMm String[]
   organizationId      String?
   createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
+  updatedAt           DateTime
   district            String?
   province            String?
   address             String?
@@ -109,30 +93,19 @@ model Course {
   applyLink           String?
   estimatedDate       String?
   estimatedDateMm     String?
+  startByDate         DateTime?
+  startByDateMm       DateTime?
   badges              Badge[]
   organizationInfo    Organization? @relation(fields: [organizationId], references: [id])
   faq                 FAQ[]
   images              Image[]
+
+  @@index([startByDate])
 }
 
-model Image {
-  id       String @id @default(cuid())
-  url      String
-  courseId String
-  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-}
-
-model Badge {
-  id              String @id @default(cuid())
-  text            String
-  color           String
-  backgroundColor String
-  courseId        String
-  course          Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-}
-
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model FAQ {
-  id         String  @id @default(uuid())
+  id         String  @id
   question   String
   questionMm String?
   answer     String
@@ -141,61 +114,87 @@ model FAQ {
   course     Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
 }
 
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Image {
+  id       String @id
+  url      String
+  courseId String
+  Course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Organization {
-  id             String           @id @default(cuid())
-  name           String
-  description    String
-  phone          String
-  email          String
-  address        String?
-  facebookPage   String?
-  latitude       Float
-  longitude      Float
-  district       String?
-  province       String?
-  logoImage      String?
-  slug           String           @unique
-  ContentDraft   ContentDraft[]
-  courses        Course[]
-  users          User[]
-  UserInvitation UserInvitation[]
+  id                         String                       @id
+  name                       String
+  description                String
+  phone                      String
+  email                      String
+  address                    String?
+  facebookPage               String?
+  latitude                   Float
+  longitude                  Float
+  district                   String?
+  province                   String?
+  logoImage                  String?
+  slug                       String                       @unique
+  courses                    Course[]
+  OrganizationAdminAllowList OrganizationAdminAllowList[]
+  users                      User[]
+  invitations                UserInvitation[]
+  drafts                     ContentDraft[]
 }
 
-model AdminAllowList {
-  id      String   @id @default(cuid())
-  email   String   @unique
-  addedBy String?
-  addedAt DateTime @default(now())
-  notes   String?
-}
-
-model ContentDraft {
-  id             String        @id
-  title          String
-  type           DraftType
-  content        Json
-  status         DraftStatus   @default(PENDING)
-  createdBy      String
-  organizationId String?
-  submittedAt    DateTime      @default(now())
-  reviewedAt     DateTime?
-  reviewedBy     String?
-  reviewNotes    String?
-  User           User          @relation(fields: [createdBy], references: [id])
-  Organization   Organization? @relation(fields: [organizationId], references: [id])
-}
-
-model UserInvitation {
-  id             String           @id
-  email          String           @unique
-  role           Role             @default(YOUTH_ADVOCATE)
-  organizationId String?
-  invitedBy      String
-  invitedAt      DateTime         @default(now())
-  expiresAt      DateTime
-  status         InvitationStatus @default(PENDING)
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model OrganizationAdminAllowList {
+  id             String       @id @default(dbgenerated("gen_random_uuid()"))
+  email          String       @unique
+  organizationId String
   notes          String?
-  Organization   Organization?    @relation(fields: [organizationId], references: [id])
+  addedBy        String?
+  addedAt        DateTime     @default(now())
+  Organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model User {
+  id             String        @id
+  name           String
+  email          String        @unique
+  password       String?
+  image          String?
+  role           Role          @default(ORGANIZATION_ADMIN)
+  emailVerified  DateTime?
+  organizationId String?
+  status         UserStatus    @default(ACTIVE)
+  lastLoginAt    DateTime?
+  invitedBy      String?
+  invitedAt      DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime
+  accounts       Account[]
+  sessions       Session[]
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  drafts         ContentDraft[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 enum Role {
@@ -204,16 +203,33 @@ enum Role {
   YOUTH_ADVOCATE
 }
 
-enum DraftStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  DRAFT
+model UserInvitation {
+  id             String            @id @default(cuid())
+  email          String            @unique
+  role           Role              @default(YOUTH_ADVOCATE)
+  organizationId String?
+  invitedBy      String
+  invitedAt      DateTime          @default(now())
+  expiresAt      DateTime
+  status         InvitationStatus  @default(PENDING)
+  notes          String?
+  Organization   Organization?     @relation(fields: [organizationId], references: [id])
 }
 
-enum DraftType {
-  COURSE
-  ORGANIZATION_UPDATE
+model ContentDraft {
+  id             String       @id @default(cuid())
+  title          String
+  type           DraftType
+  content        Json
+  status         DraftStatus  @default(PENDING)
+  createdBy      String
+  organizationId String?
+  submittedAt    DateTime     @default(now())
+  reviewedAt     DateTime?
+  reviewedBy     String?
+  reviewNotes    String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  author         User         @relation(fields: [createdBy], references: [id])
 }
 
 enum InvitationStatus {
@@ -221,6 +237,18 @@ enum InvitationStatus {
   ACCEPTED
   EXPIRED
   REVOKED
+}
+
+enum DraftType {
+  COURSE
+  ORGANIZATION_UPDATE
+}
+
+enum DraftStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  DRAFT
 }
 
 enum UserStatus {

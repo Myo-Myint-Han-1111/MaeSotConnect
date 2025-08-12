@@ -107,6 +107,8 @@ interface CourseFormProps {
   mode: "create" | "edit";
   organizationId?: string;
   existingImages?: string[];
+  draftMode?: boolean; // For advocates/org admins to submit as drafts
+  backUrl?: string; // Custom back URL
 }
 
 const badgeOptions: BadgeOption[] = [
@@ -189,6 +191,8 @@ export default function CourseForm({
   mode,
   organizationId,
   existingImages = [],
+  draftMode = false,
+  backUrl = "/dashboard/courses",
 }: CourseFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -703,28 +707,39 @@ export default function CourseForm({
     setIsLoading(true);
     setError(null);
 
-    // ADD THIS VALIDATION BEFORE SUBMISSION:
-    if (!formData.startDate || formData.startDate === "") {
-      setError("Start date is required");
-      setIsLoading(false);
-      return;
-    }
+    // Different validation for draft mode vs regular course creation
+    if (!draftMode) {
+      // Full validation for regular course creation
+      if (!formData.startDate || formData.startDate === "") {
+        setError("Start date is required");
+        setIsLoading(false);
+        return;
+      }
 
-    if (!formData.endDate || formData.endDate === "") {
-      setError("End date is required");
-      setIsLoading(false);
-      return;
-    }
+      if (!formData.endDate || formData.endDate === "") {
+        setError("End date is required");
+        setIsLoading(false);
+        return;
+      }
 
-    // ADD ORGANIZATION VALIDATION:
-    if (!formData.organizationId || formData.organizationId === "") {
-      setError("Organization selection is required");
-      setIsLoading(false);
-      return;
+      // ADD ORGANIZATION VALIDATION:
+      if (!formData.organizationId || formData.organizationId === "") {
+        setError("Organization selection is required");
+        setIsLoading(false);
+        return;
+      }
+    } else {
+      // Basic validation for draft submissions
+      if (!formData.title || formData.title.trim() === "") {
+        setError("Course title is required");
+        setIsLoading(false);
+        return;
+      }
     }
 
     // Add debugging here
     console.log("Form data before submission:", formData);
+    console.log("Draft mode:", draftMode);
     console.log("How to Apply data:", formData.howToApply);
     console.log("How to Apply MM data:", formData.howToApplyMm);
 
@@ -787,56 +802,95 @@ export default function CourseForm({
     console.log("Final organizationId:", cleanedFormData.organizationId);
 
     try {
-      const formDataToSend = new FormData();
-      const jsonData = {
-        ...cleanedFormData,
-        images: undefined,
-      };
+      if (draftMode) {
+        // Submit as draft to the drafts API
+        const draftData = {
+          title: cleanedFormData.title,
+          type: "COURSE",
+          content: cleanedFormData,
+          status: "PENDING", // Submit directly for review
+        };
 
-      console.log("JSON data being sent:", jsonData);
-      formDataToSend.append("data", JSON.stringify(jsonData));
+        const response = await fetch("/api/drafts", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(draftData),
+        });
 
-      // Append new images
-      formData.images.forEach((file, index) => {
-        formDataToSend.append(`image_${index}`, file);
-      });
-
-      // Append existing images that were kept
-      formDataToSend.append(
-        "existingImages",
-        JSON.stringify(existingImageList)
-      );
-
-      const url =
-        mode === "create" ? "/api/courses" : `/api/courses/${initialData?.id}`;
-      const method = mode === "create" ? "POST" : "PUT";
-
-      const response = await fetch(url, {
-        method,
-        body: formDataToSend,
-      });
-
-      if (!response.ok) {
-        let errorMessage = "Something went wrong";
-        try {
-          const data = await response.json();
-          if (data.error) {
-            errorMessage = data.error;
-          } else if (Array.isArray(data) && data.length > 0) {
-            // Handle validation errors array
-            errorMessage = data.map((err) => err.message || err).join(", ");
-          } else if (data.message) {
-            errorMessage = data.message;
+        if (!response.ok) {
+          let errorMessage = "Something went wrong";
+          try {
+            const data = await response.json();
+            if (data.error) {
+              errorMessage = data.error;
+            } else if (data.message) {
+              errorMessage = data.message;
+            }
+          } catch (parseError) {
+            console.error("Error parsing response:", parseError);
+            errorMessage = `Server error (${response.status}): ${response.statusText}`;
           }
-        } catch (parseError) {
-          console.error("Error parsing response:", parseError);
-          errorMessage = `Server error (${response.status}): ${response.statusText}`;
+          throw new Error(errorMessage);
         }
-        throw new Error(errorMessage);
-      }
 
-      router.push("/dashboard/courses");
-      router.refresh();
+        // Redirect to advocate dashboard with success message
+        router.push(backUrl || "/advocate?submitted=true");
+        router.refresh();
+      } else {
+        // Regular course submission
+        const formDataToSend = new FormData();
+        const jsonData = {
+          ...cleanedFormData,
+          images: undefined,
+        };
+
+        console.log("JSON data being sent:", jsonData);
+        formDataToSend.append("data", JSON.stringify(jsonData));
+
+        // Append new images
+        formData.images.forEach((file, index) => {
+          formDataToSend.append(`image_${index}`, file);
+        });
+
+        // Append existing images that were kept
+        formDataToSend.append(
+          "existingImages",
+          JSON.stringify(existingImageList)
+        );
+
+        const url =
+          mode === "create" ? "/api/courses" : `/api/courses/${initialData?.id}`;
+        const method = mode === "create" ? "POST" : "PUT";
+
+        const response = await fetch(url, {
+          method,
+          body: formDataToSend,
+        });
+
+        if (!response.ok) {
+          let errorMessage = "Something went wrong";
+          try {
+            const data = await response.json();
+            if (data.error) {
+              errorMessage = data.error;
+            } else if (Array.isArray(data) && data.length > 0) {
+              // Handle validation errors array
+              errorMessage = data.map((err) => err.message || err).join(", ");
+            } else if (data.message) {
+              errorMessage = data.message;
+            }
+          } catch (parseError) {
+            console.error("Error parsing response:", parseError);
+            errorMessage = `Server error (${response.status}): ${response.statusText}`;
+          }
+          throw new Error(errorMessage);
+        }
+
+        router.push(backUrl || "/dashboard/courses");
+        router.refresh();
+      }
     } catch (err) {
       console.error("Error submitting course:", err);
 
@@ -878,7 +932,11 @@ export default function CourseForm({
       <Card>
         <CardHeader>
           <CardTitle>
-            {mode === "create" ? "Create New Course" : "Edit Course"}
+            {draftMode
+              ? "Submit Course Proposal"
+              : mode === "create"
+              ? "Create New Course"
+              : "Edit Course"}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -2075,7 +2133,7 @@ export default function CourseForm({
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push("/dashboard/courses")}
+            onClick={() => router.push(backUrl || "/dashboard/courses")}
             disabled={isLoading}
             className={isMobile ? "w-full" : ""}
           >
@@ -2086,13 +2144,17 @@ export default function CourseForm({
             type="submit"
             disabled={
               isLoading ||
-              !formData.organizationId ||
-              formData.organizationId === ""
+              (!draftMode &&
+                (!formData.organizationId || formData.organizationId === ""))
             }
             className={isMobile ? "w-full" : ""}
           >
             {isLoading
-              ? "Saving..."
+              ? draftMode
+                ? "Submitting..."
+                : "Saving..."
+              : draftMode
+              ? "Submit Course Proposal"
               : mode === "create"
               ? "Create Course"
               : "Update Course"}

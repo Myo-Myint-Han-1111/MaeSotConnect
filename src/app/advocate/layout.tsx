@@ -1,39 +1,30 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { LogOut, Building2, BookOpen, LayoutDashboard, Users, FileText } from "lucide-react";
+import { LogOut, FileText, Send, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/common/ConfirmationDialog";
+import { Role } from "@/lib/auth/roles";
 
-export default function AdminLayout({
+export default function AdvocateLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
   const { data: session, status } = useSession({
     required: true,
     onUnauthenticated() {
       router.push("/auth/signin");
     },
   });
+  const router = useRouter();
   const pathname = usePathname();
 
-  // Add state for sign out confirmation dialog
   const [isSignOutDialogOpen, setIsSignOutDialogOpen] = useState(false);
 
-  // Handle role-based redirect in useEffect to avoid render-time state updates
-  useEffect(() => {
-    if (session && session.user?.role !== "PLATFORM_ADMIN") {
-      router.push("/auth/signin");
-    }
-  }, [session, router]);
-
-  // This effect will run when the component mounts
-  // Add these functions for sign out confirmation
   const confirmSignOut = () => {
     setIsSignOutDialogOpen(true);
   };
@@ -50,45 +41,30 @@ export default function AdminLayout({
     );
   }
 
-  // Only Platform Admins can access the dashboard
-  if (session?.user?.role !== "PLATFORM_ADMIN") {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="h-16 w-16 border-t-4 border-primary border-solid rounded-full animate-spin"></div>
-      </div>
-    );
+  // Only Youth Advocates can access this section
+  if (session?.user?.role !== Role.YOUTH_ADVOCATE) {
+    router.push("/auth/signin");
+    return null;
   }
 
   const sidebarLinks = [
     {
       label: "Dashboard",
-      href: "/dashboard",
+      href: "/advocate",
       icon: <LayoutDashboard className="h-5 w-5" />,
-      active: pathname === "/dashboard",
+      active: pathname === "/advocate",
     },
     {
-      label: "Organizations",
-      href: "/admin/organizations",
-      icon: <Building2 className="h-5 w-5" />,
-      active: pathname.startsWith("/admin/organizations"),
-    },
-    {
-      label: "Courses",
-      href: "/dashboard/courses",
-      icon: <BookOpen className="h-5 w-5" />,
-      active: pathname.startsWith("/dashboard/courses"),
-    },
-    {
-      label: "Draft Reviews",
-      href: "/admin/drafts",
+      label: "My Drafts",
+      href: "/advocate/drafts",
       icon: <FileText className="h-5 w-5" />,
-      active: pathname.startsWith("/admin/drafts"),
+      active: pathname.startsWith("/advocate/drafts"),
     },
     {
-      label: "User Management",
-      href: "/admin/users",
-      icon: <Users className="h-5 w-5" />,
-      active: pathname.startsWith("/admin/users"),
+      label: "Submit Content",
+      href: "/advocate/submit",
+      icon: <Send className="h-5 w-5" />,
+      active: pathname.startsWith("/advocate/submit"),
     },
   ];
 
@@ -98,7 +74,7 @@ export default function AdminLayout({
       <div className="w-64 bg-white shadow-sm fixed h-full z-10">
         <div className="p-6 border-b">
           <h1 className="text-xl font-bold">Mae Sot Connect</h1>
-          <p className="text-sm text-muted-foreground">Admin Dashboard</p>
+          <p className="text-sm text-muted-foreground">Youth Advocate</p>
         </div>
         <nav className="p-4 space-y-1">
           {sidebarLinks.map((link) => (
@@ -115,7 +91,6 @@ export default function AdminLayout({
               {link.label}
             </Link>
           ))}
-          {/* Update Sign Out button to use confirmSignOut */}
           <Button
             variant="ghost"
             className="w-full justify-start text-muted-foreground hover:bg-gray-100 px-3 py-2 rounded-md text-sm"
@@ -129,21 +104,9 @@ export default function AdminLayout({
 
       {/* Main content */}
       <div className="flex-1 pl-64">
-        {/* <header className="h-16 bg-white shadow-sm fixed w-full z-10 pl-64 flex items-center px-6 justify-between">
-          <h2 className="text-lg font-medium">Platform Admin</h2>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
-              {session?.user?.name}
-            </span>
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium">
-              {session?.user?.name?.charAt(0) || "U"}
-            </div>
-          </div>
-        </header> */}
         <main className="pt-5 px-6 pb-12">{children}</main>
       </div>
 
-      {/* Add Sign Out Confirmation Dialog */}
       <ConfirmationDialog
         isOpen={isSignOutDialogOpen}
         onClose={() => setIsSignOutDialogOpen(false)}

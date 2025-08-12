@@ -1,4 +1,30 @@
 export enum Role {
   PLATFORM_ADMIN = "PLATFORM_ADMIN",
   ORGANIZATION_ADMIN = "ORGANIZATION_ADMIN",
+  YOUTH_ADVOCATE = "YOUTH_ADVOCATE",
+}
+
+export enum UserStatus {
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE", 
+  SUSPENDED = "SUSPENDED",
+}
+
+export enum InvitationStatus {
+  PENDING = "PENDING",
+  ACCEPTED = "ACCEPTED",
+  EXPIRED = "EXPIRED",
+  REVOKED = "REVOKED",
+}
+
+export enum DraftStatus {
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
+  DRAFT = "DRAFT",
+}
+
+export enum DraftType {
+  COURSE = "COURSE",
+  ORGANIZATION_UPDATE = "ORGANIZATION_UPDATE",
 }

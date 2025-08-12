@@ -32,22 +32,26 @@ const About: React.FC = () => {
         {/* Hero Section */}
         <div className="text-center mb-16 max-w-2xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold mb-2">
-            About Us
+            {t("about.title")}
           </h1>
+          
+          {/* FIRST PARAGRAPH */}
           <p className="text-lg text-muted-foreground leading-relaxed py-4">
             {t("about.mission.p1")}
           </p>
+          
+          {/* SECOND PARAGRAPH (with the link) */}
           <p className="text-lg text-muted-foreground leading-relaxed py-2">
-            Ko Myo teamed up with Peter in 2025 to develop a web app that solves this problem by creating a centralized, user-friendly platform to search, filter, and compare vocational training programs, language courses, and skill development opportunities. It is being developed as an{" "}
+            {t("about.mission.p2.part1")}{" "}
             <a 
               href="https://github.com/Myo-Myint-Han-1111/MaeSotConnect" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-primary hover:text-primary/80 underline transition-colors"
             >
-              open source project
+              {t("about.mission.p2.link")}
             </a>{" "}
-            and is currently self-funded.
+            {t("about.mission.p2.part2")}
           </p>
         </div>
 

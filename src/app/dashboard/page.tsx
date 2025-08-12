@@ -3,12 +3,13 @@
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2, BookOpen } from "lucide-react";
+import { Building2, BookOpen, FileText, Clock } from "lucide-react";
 import Link from "next/link";
 
 interface DashboardStats {
   organizations: number;
   courses: number;
+  pendingDrafts: number;
 }
 
 export default function DashboardPage() {
@@ -16,6 +17,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats>({
     organizations: 0,
     courses: 0,
+    pendingDrafts: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -30,9 +32,15 @@ export default function DashboardPage() {
         const courseResponse = await fetch("/api/courses");
         const courses = await courseResponse.json();
 
+        // Fetch pending drafts count
+        const draftsResponse = await fetch("/api/admin/drafts");
+        const drafts = await draftsResponse.json();
+        const pendingDrafts = Array.isArray(drafts) ? drafts.filter(draft => draft.status === "PENDING").length : 0;
+
         setStats({
           organizations: organizations.length,
           courses: courses.length,
+          pendingDrafts,
         });
       } catch (error) {
         console.error("Error fetching stats:", error);
@@ -48,7 +56,7 @@ export default function DashboardPage() {
     <div>
       <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Organizations</CardTitle>
@@ -86,6 +94,25 @@ export default function DashboardPage() {
             </p>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Pending Reviews</CardTitle>
+            <Clock className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? (
+                <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
+              ) : (
+                stats.pendingDrafts
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Course proposals awaiting review
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="bg-white rounded-lg p-6 shadow-sm">
@@ -103,7 +130,7 @@ export default function DashboardPage() {
 
         <div className="mt-6">
           <h3 className="font-medium mb-2">Quick Links</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link href="/admin/organizations">
               <Card className="hover:bg-gray-50 cursor-pointer">
                 <CardContent className="p-4 flex items-center gap-3">
@@ -117,6 +144,21 @@ export default function DashboardPage() {
                 <CardContent className="p-4 flex items-center gap-3">
                   <BookOpen className="h-5 w-5 text-purple-500" />
                   <span>Manage Courses</span>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/admin/drafts">
+              <Card className="hover:bg-gray-50 cursor-pointer">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <FileText className="h-5 w-5 text-yellow-500" />
+                  <div className="flex flex-col items-start">
+                    <span>Review Proposals</span>
+                    {stats.pendingDrafts > 0 && (
+                      <span className="text-xs text-yellow-600 font-medium">
+                        {stats.pendingDrafts} pending
+                      </span>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </Link>

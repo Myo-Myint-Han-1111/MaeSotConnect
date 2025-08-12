@@ -30,8 +30,8 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
     }
 
-    // Only platform admins can list organizations
-    if (session.user.role !== "PLATFORM_ADMIN") {
+    // Platform admins and youth advocates can list organizations
+    if (session.user.role !== "PLATFORM_ADMIN" && session.user.role !== "YOUTH_ADVOCATE") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -178,6 +178,7 @@ export async function POST(request: NextRequest) {
     // Create the organization with new fields including logoImage and slug
     const organization = await prisma.organization.create({
       data: {
+        id: crypto.randomUUID(),
         name,
         description,
         phone,

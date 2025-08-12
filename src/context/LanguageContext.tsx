@@ -148,9 +148,10 @@ export const translations = {
     // About page
     "about.title": "About Us",
     "about.mission.p1":
-      "JumpStudy.org began as a simple idea to help solve an all-too common problem: many migrant and refugee youth feel stuck, unable to progress their education or begin a career. While Thailand has a wealth of education resources, the information is scattered across dozens of Facebook pages, Signal and WhatsApp groups, and is not easily searchable. Posts often exclude important information that allow youth to plan around a busy work schedule and personal commitments.",
-    "about.mission.p2":
-      "Ko Myo teamed up with Peter in 2025 to develop a web app that solves this problem by creating a centralized, user-friendly platform to search, filter, and compare vocational training programs, language courses, and skill development opportunities. It is being developed as an open source project and is currently self-funded. Our approach is to work with organizations that support youth to make the discovery process more accessible, transparent, and user-centered.",
+    "JumpStudy.org began as a simple idea to help solve an all-too common problem: many migrant and refugee youth feel stuck, unable to progress their education or begin a career. While Thailand has a wealth of education resources, the information is scattered across dozens of Facebook pages, Signal and WhatsApp groups, and is not easily searchable. Posts often exclude important information that allow youth to plan around a busy work schedule and personal commitments.",
+    "about.mission.p2.part1": "Ko Myo teamed up with Peter in 2025 to develop a web app that solves this problem by creating a centralized, user-friendly platform to search, filter, and compare vocational training programs, language courses, and skill development opportunities. It is being developed as an",
+    "about.mission.p2.link": "open source project", 
+    "about.mission.p2.part2": "and is currently self-funded. Our approach is to work with organizations that support youth to make the discovery process more accessible, transparent, and user-centered.",
     "about.komyo.title": "About Ko Myo",
     "about.komyo.content":
       "Ko Myo is a fullstack developer sharpening his skills through open-source projects that benefit Thai and Myanmar youth. He holds a bachelors in electrical engineering and is currently attending online classes in React, Javascript, and modern backend frameworks. He is passionate about education and technology and supporting digital literacy in rural communities.",
@@ -290,10 +291,11 @@ export const translations = {
     // About page
     "about.title": "ကျွန်ုပ်တို့အကြောင်း",
     "about.subtitle": "ကျွန်ုပ်တို့၏ ရည်မှန်းချက်နှင့် အဖွဲ့အကြောင်း လေ့လာပါ",
-    "about.mission.title": "ကျွန်ုပ်တို့၏ ရည်မှန်းချက်",
     "about.mission.p1":
       "ယခုဝက်ဆိုဒ်သည် ပညာရေးအခွင့်အလမ်းများကို လွယ်ကူထိရောက်စွာ ရှာဖွေရယူနိုင်သော အချိန်သက်သာသည့် စနစ်တစ်ခုပေးအပ်ခြင်းဖြင့် လူငယ်များကို စွမ်းဆောင်ရည်မြှင့်တင်ပေးပါသည်။ ကျွန်ုပ်တို့သည် သင်ယူရရှိနိုင်သော သင်တန်းအချက်အလက်များအား တစ်နေရာတည်းတွင် ဖော်ပြသော၊ အသုံးပြုရလွယ်ကူသည့် အက်ပလီကေးရှင်းတစ်ခုဖန်တီးခြင်းဖြင့် လူငယ်များအား ၎င်းတို့၏ အသက်မွေးဝမ်းကြောင်းရည်မှန်းချက်များနှင့် အချိန်ဇယားများနှင့်ကိုက်ညီသော အသက်မွေးပညာလေ့ကျင့်ရေးအစီအစဉ်များ၊ ဘာသာစကားသင်တန်းများနှင့် ကျွမ်းကျင်မှုတိုးတက်ရေးအခွင့်အလမ်းများကို လွယ်ကူစွာ နှိုင်းယှဉ်၊  စစ်ထုတ်၊ ရှာဖွေ နိုင်စေပါသည်။",
-
+    "about.mission.p2.part1": "Ko Myo နှင့် Peter တို့သည် ၂၀၂၅ ခုနှစ်တွင် ပူးပေါင်းကာ ဤပြဿနာကို ဖြေရှင်းရန် ဗဟိုချုပ်ကိုင်သော၊ အသုံးပြုရလွယ်ကူသည့် ပလပ်ဖောင်းတစ်ခုကို တည်ဆောက်ခဲ့ပြီး အသက်မွေးပညာလေ့ကျင့်ရေးအစီအစဉ်များ၊ ဘာသာစကားသင်တန်းများနှင့် ကျွမ်းကျင်မှုတိုးတက်ရေးအခွင့်အလမ်းများကို ရှာဖွေ၊ စစ်ထုတ်၊ နှိုင်းယှဉ်နိုင်စေပါသည်။ ၎င်းကို",
+    "about.mission.p2.link": "အများသုံး ပရိုဂျက်တစ်ခု",
+    "about.mission.p2.part2": "အဖြစ် တည်ဆောက်နေပြီး လောလောဆယ် ကိုယ်ပိုင်ရန်ပုံငွေဖြင့် လုပ်ဆောင်နေပါသည်။ ကျွန်ုပ်တို့၏ ချဉ်းကပ်နည်းမှာ လူငယ်များကို ပံ့ပိုးသည့် အဖွဲ့အစည်းများနှင့် ပူးပေါင်းကာ ရှာဖွေတွေ့ရှိခြင်းလုပ်ငန်းစဉ်ကို ပိုမိုလက်လှမ်းမီစေရန်၊ ပွင့်လင်းစေရန်နှင့် အသုံးပြုသူဗဟိုပြုစေရန်ဖြစ်ပါသည်။",
     "about.komyo.title": "Ko Myo အကြောင်း",
     "about.komyo.content":
       "Ko Myo သည် ထိုင်းနှင့် မြန်မာလူငယ်များအတွက် အကျိုးပြုသော open-source projects များမှတစ်ဆင့် ကျွမ်းကျင်မှုများကို တိုးတက်စေနေသော fullstack developer တစ်ဦးဖြစ်သည်။ သူသည် လျှပ်စစ်အင်ဂျင်နီယာဘွဲ့ရရှိထားပြီး လောလောဆယ် React၊ Javascript နှင့် ခေတ်မီ backend frameworks များကို အွန်လိုင်း class များတက်နေပါသည်။ သူသည် ပညာရေးနှင့် နည်းပညာကို စိတ်ရောက်ရောက် ခံယူထားပြီး ကျေးလက်ရှိ လူမှုအသိုင်းအဝိုင်းများတွင် ဒီဂျစ်တယ်ပညာရေးကို ထောက်ပံ့နေပါသည်။",
