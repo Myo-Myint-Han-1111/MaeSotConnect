@@ -443,6 +443,7 @@ export async function PUT(
         if (allImageUrls.length > 0) {
           await tx.image.createMany({
             data: allImageUrls.map((url) => ({
+              id: crypto.randomUUID(),
               url,
               courseId: id,
             })),
@@ -455,6 +456,7 @@ export async function PUT(
         if (validatedData.badges.length > 0) {
           await tx.badge.createMany({
             data: validatedData.badges.map((badge) => ({
+              id: crypto.randomUUID(),
               text: badge.text,
               color: badge.color,
               backgroundColor: badge.backgroundColor,
@@ -472,6 +474,7 @@ export async function PUT(
         if (validFaqs.length > 0) {
           await tx.fAQ.createMany({
             data: validFaqs.map((faq) => ({
+              id: crypto.randomUUID(),
               question: faq.question,
               questionMm: faq.questionMm || null,
               answer: faq.answer,

@@ -115,6 +115,12 @@ export async function GET() {
       include: {
         images: true,
         badges: true,
+        organizationInfo: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -157,12 +163,16 @@ export async function GET() {
       selectionCriteria: course.selectionCriteria,
       selectionCriteriaMm: course.selectionCriteriaMm || [],
       organizationId: course.organizationId,
-      images: course.images.map((img) => img.url),
-      badges: course.badges.map((badge) => ({
+      organization: course.organizationInfo ? {
+        id: course.organizationInfo.id,
+        name: course.organizationInfo.name,
+      } : null,
+      images: course.images?.map((img) => img.url) || [],
+      badges: course.badges?.map((badge) => ({
         text: badge.text,
         color: badge.color,
         backgroundColor: badge.backgroundColor,
-      })),
+      })) || [],
     }));
 
     return NextResponse.json(formattedCourses);
@@ -326,6 +336,7 @@ export async function POST(request: NextRequest) {
       // Create the course with temporary slug
       const newCourse = await tx.course.create({
         data: {
+          id: crypto.randomUUID(),
           title: validatedData.title,
           titleMm: validatedData.titleMm || null,
           subtitle: validatedData.subtitle,
@@ -369,6 +380,7 @@ export async function POST(request: NextRequest) {
           estimatedDateMm: validatedData.estimatedDateMm || null,
           organizationId: validatedData.organizationId || null,
           slug: `${initialBaseSlug}-temp-${Date.now()}`,
+          updatedAt: new Date(),
         },
       });
 
@@ -395,6 +407,7 @@ export async function POST(request: NextRequest) {
       for (const imageUrl of imageUrls) {
         await tx.image.create({
           data: {
+            id: crypto.randomUUID(),
             url: imageUrl,
             courseId: newCourse.id,
           },
@@ -405,6 +418,7 @@ export async function POST(request: NextRequest) {
       for (const badge of validatedData.badges) {
         await tx.badge.create({
           data: {
+            id: crypto.randomUUID(),
             text: badge.text,
             color: badge.color,
             backgroundColor: badge.backgroundColor,
@@ -418,6 +432,7 @@ export async function POST(request: NextRequest) {
         if (faq.question && faq.answer) {
           await tx.fAQ.create({
             data: {
+              id: crypto.randomUUID(),
               question: faq.question,
               questionMm: faq.questionMm || null,
               answer: faq.answer,
