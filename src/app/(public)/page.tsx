@@ -167,35 +167,6 @@ export default function Home() {
     fetchCourses();
   }, []);
 
-  useEffect(() => {
-    const savedPosition = sessionStorage.getItem("homeScrollPosition");
-    console.log("Restoring scroll position:", savedPosition);
-    if (savedPosition) {
-      // Increase delay and add multiple attempts
-      const scrollToPosition = () => {
-        const targetPosition = parseInt(savedPosition, 10);
-        window.scrollTo(0, targetPosition);
-
-        // Verify it actually scrolled
-        setTimeout(() => {
-          if (Math.abs(window.scrollY - targetPosition) > 50) {
-            // If not close enough, try again
-            window.scrollTo(0, targetPosition);
-          }
-        }, 50);
-      };
-
-      // Try multiple times with increasing delays
-      setTimeout(scrollToPosition, 200); // Increased from 100ms
-      setTimeout(scrollToPosition, 500); // Backup attempt
-
-      // Clean up
-      setTimeout(() => {
-        sessionStorage.removeItem("homeScrollPosition");
-      }, 600);
-    }
-  }, []);
-
   // NEW: Get course status function
   const getCourseStatus = useCallback((course: Course) => {
     const today = new Date();
@@ -502,6 +473,62 @@ export default function Home() {
     return sortCourses(filtered, sortBy);
   }, [coursesAvailableForFiltering, activeFilters, sortBy, sortCourses]);
 
+  // Card-based scroll restoration
+  useEffect(() => {
+    const restoreToTargetCard = async () => {
+      const targetSlug = sessionStorage.getItem("targetCourseSlug");
+
+      if (!targetSlug || loading || filteredCourses.length === 0) {
+        return;
+      }
+
+      console.log("Looking for target course:", targetSlug);
+
+      // Wait a bit for the cards to render
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      // Find the target card element
+      const targetCard = document.querySelector(
+        `[data-course-slug="${targetSlug}"]`
+      );
+
+      if (targetCard) {
+        console.log("Found target card, scrolling to it");
+
+        // Scroll to the card with some offset for better UX
+        targetCard.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+
+        // Clean up
+        sessionStorage.removeItem("targetCourseSlug");
+      } else {
+        console.log("Target card not found, trying again...");
+
+        // If card not found, try again after more delay
+        setTimeout(() => {
+          const retryCard = document.querySelector(
+            `[data-course-slug="${targetSlug}"]`
+          );
+          if (retryCard) {
+            console.log("Found target card on retry");
+            retryCard.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+            sessionStorage.removeItem("targetCourseSlug");
+          } else {
+            console.log("Target card still not found, cleaning up");
+            sessionStorage.removeItem("targetCourseSlug");
+          }
+        }, 500);
+      }
+    };
+
+    restoreToTargetCard();
+  }, [loading, filteredCourses.length]);
+
   // Toggle a filter badge
   const toggleFilter = (badge: string) => {
     setActiveFilters((prevFilters) =>
@@ -518,7 +545,7 @@ export default function Home() {
 
     if (typeof window !== "undefined") {
       sessionStorage.removeItem("courseFilters");
-      sessionStorage.removeItem("homeScrollPosition");
+      sessionStorage.removeItem("targetCourseSlug");
     }
   };
 
@@ -782,7 +809,11 @@ export default function Home() {
           {filteredCourses.length > 0 ? (
             <div className="course-grid-flex mt-4">
               {filteredCourses.map((course, index) => (
-                <div key={course.id} className="course-card-flex">
+                <div
+                  key={course.id}
+                  className="course-card-flex"
+                  data-course-slug={course.slug}
+                >
                   <CourseCard
                     id={course.id}
                     slug={course.slug}
@@ -816,8 +847,10 @@ export default function Home() {
                     estimatedDate={course.estimatedDate || null} // Add this line
                     estimatedDateMm={course.estimatedDateMm || null}
                     fee={
-  course.feeAmount !== -1 ? formatFee(course.feeAmount) : undefined
-}
+                      course.feeAmount !== -1
+                        ? formatFee(course.feeAmount)
+                        : undefined
+                    }
                     feeMm={
                       course.feeAmountMm ? formatFee(course.feeAmountMm) : null
                     }
@@ -892,8 +925,7 @@ export default function Home() {
 
           <div className="mt-6 pt-6 border-t border-gray-200">
             <p className="text-xs text-gray-500 text-center">
-              © {new Date().getFullYear()} JumpStudy.org. All rights
-              reserved.
+              © {new Date().getFullYear()} JumpStudy.org. All rights reserved.
             </p>
           </div>
         </div>
