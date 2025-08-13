@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { redirect, useSearchParams } from "next/navigation";
 import CourseForm from "@/components/admin/CourseForm";
@@ -9,9 +9,16 @@ type DraftData = {
   id: string;
   title: string;
   type: string;
+  status: string;
   content: {
     imageUrls?: string[];
     [key: string]: unknown;
+  };
+  submittedAt: string;
+  reviewedAt?: string;
+  reviewNotes?: string;
+  organization?: {
+    name: string;
   };
 } | null;
 
@@ -28,18 +35,12 @@ export default function SubmitCoursePage() {
   const [draftData, setDraftData] = useState<DraftData>(null);
   const [loading, setLoading] = useState(!!editDraftId);
 
-  useEffect(() => {
-    if (editDraftId) {
-      fetchDraftData();
-    }
-  }, [editDraftId]);
-
-  const fetchDraftData = async () => {
+  const fetchDraftData = useCallback(async () => {
     try {
       const response = await fetch(`/api/drafts/${editDraftId}`);
       if (response.ok) {
         const draft = await response.json();
-        setDraftData(draft.content);
+        setDraftData(draft);
       } else {
         console.error("Failed to fetch draft data");
       }
@@ -48,7 +49,13 @@ export default function SubmitCoursePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [editDraftId]);
+
+  useEffect(() => {
+    if (editDraftId) {
+      fetchDraftData();
+    }
+  }, [editDraftId, fetchDraftData]);
 
   if (status === "loading" || loading) {
     return (
@@ -76,8 +83,8 @@ export default function SubmitCoursePage() {
         mode={editDraftId ? "edit" : "create"}
         draftMode={true}
         backUrl="/advocate"
-        initialData={draftData || undefined}
-        existingImages={draftData?.content?.imageUrls || []}
+        initialData={draftData?.content as Partial<Record<string, unknown>> || undefined}
+        existingImages={Array.isArray(draftData?.content?.imageUrls) ? draftData.content.imageUrls : []}
         editDraftId={editDraftId || undefined}
       />
     </div>

@@ -293,9 +293,7 @@ export default function CourseForm({
   }, []);
 
   useEffect(() => {
-    if (existingImages.length > 0) {
-      setExistingImageList(existingImages);
-    }
+    setExistingImageList(existingImages);
   }, [existingImages]);
 
   useEffect(() => {
