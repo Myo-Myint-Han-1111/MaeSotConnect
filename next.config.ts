@@ -277,7 +277,7 @@ const nextConfig: NextConfig = {
 
   // Experimental features for better performance
   experimental: {
-    optimizeCss: true, // Optimize CSS for production
+    // optimizeCss: true, // Disabled - was causing critters dependency issues
   },
 
   async redirects() {
