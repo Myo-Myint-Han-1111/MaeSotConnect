@@ -213,6 +213,19 @@ export async function PATCH(
           }
         }
 
+        // Create images if they exist in the draft
+        if (courseData.imageUrls && Array.isArray(courseData.imageUrls)) {
+          for (const imageUrl of courseData.imageUrls as string[]) {
+            await tx.image.create({
+              data: {
+                id: crypto.randomUUID(),
+                url: imageUrl,
+                courseId: courseId,
+              },
+            });
+          }
+        }
+
         return { updatedDraft, course };
       });
 

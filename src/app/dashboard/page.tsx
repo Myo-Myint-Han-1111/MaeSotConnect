@@ -109,7 +109,7 @@ export default function DashboardPage() {
               )}
             </div>
             <p className="text-xs text-muted-foreground">
-              Course proposals awaiting review
+              Course drafts awaiting review
             </p>
           </CardContent>
         </Card>
@@ -152,7 +152,7 @@ export default function DashboardPage() {
                 <CardContent className="p-4 flex items-center gap-3">
                   <FileText className="h-5 w-5 text-yellow-500" />
                   <div className="flex flex-col items-start">
-                    <span>Review Proposals</span>
+                    <span>Review Drafts</span>
                     {stats.pendingDrafts > 0 && (
                       <span className="text-xs text-yellow-600 font-medium">
                         {stats.pendingDrafts} pending

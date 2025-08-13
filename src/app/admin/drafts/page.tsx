@@ -121,7 +121,7 @@ export default function AdminDraftsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Course Draft Reviews</h1>
           <p className="text-muted-foreground">
-            Review and manage course proposals submitted by Youth Advocates.
+            Review and manage course drafts submitted by Youth Advocates.
           </p>
         </div>
         {getPendingCount() > 0 && (
@@ -213,7 +213,7 @@ export default function AdminDraftsPage() {
               <div className="text-center py-8">
                 <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                 {drafts.length === 0 ? (
-                  <p className="text-muted-foreground">No course proposals have been submitted yet.</p>
+                  <p className="text-muted-foreground">No course drafts have been submitted yet.</p>
                 ) : (
                   <p className="text-muted-foreground">No drafts match your current filters.</p>
                 )}
@@ -260,7 +260,7 @@ export default function AdminDraftsPage() {
                   </div>
                   
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" asChild>
+                    <Button variant="outline" size="sm" asChild className="hover:bg-gray-50 hover:text-gray-700">
                       <Link href={`/admin/drafts/${draft.id}`}>
                         <Eye className="h-4 w-4 mr-2" />
                         Review
@@ -277,7 +277,7 @@ export default function AdminDraftsPage() {
       {/* Summary */}
       {filteredDrafts.length > 0 && (
         <div className="text-center text-sm text-muted-foreground">
-          Showing {filteredDrafts.length} of {drafts.length} course proposals
+          Showing {filteredDrafts.length} of {drafts.length} course drafts
         </div>
       )}
     </div>

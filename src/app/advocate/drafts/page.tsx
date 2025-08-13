@@ -6,9 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Clock, CheckCircle, XCircle, Plus, ArrowLeft, Search } from "lucide-react";
+import { FileText, Clock, CheckCircle, XCircle, Plus, ArrowLeft, Search, Undo2, Edit, Trash2, Copy } from "lucide-react";
 import Link from "next/link";
 import { DraftStatus } from "@/lib/auth/roles";
+import { ConfirmationDialog } from "@/components/common/ConfirmationDialog";
 
 type Draft = {
   id: string;
@@ -28,6 +29,9 @@ export default function AllDraftsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [pullBackDialogOpen, setPullBackDialogOpen] = useState(false);
+  const [selectedDraftId, setSelectedDraftId] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     fetchDrafts();
@@ -44,6 +48,97 @@ export default function AllDraftsPage() {
       console.error("Error fetching drafts:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePullBack = (draftId: string) => {
+    setSelectedDraftId(draftId);
+    setPullBackDialogOpen(true);
+  };
+
+  const confirmPullBack = async () => {
+    if (!selectedDraftId) return;
+    
+    setIsProcessing(true);
+    try {
+      const response = await fetch(`/api/drafts/${selectedDraftId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: "DRAFT"
+        }),
+      });
+
+      if (response.ok) {
+        // Refresh the drafts list
+        await fetchDrafts();
+        setPullBackDialogOpen(false);
+        setSelectedDraftId(null);
+      } else {
+        const error = await response.json();
+        alert(`Error pulling back draft: ${error.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error("Error pulling back draft:", error);
+      alert("Error pulling back draft. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDelete = async (draftId: string, draftTitle: string) => {
+    if (isProcessing) return;
+    
+    if (!confirm(`Delete "${draftTitle}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const response = await fetch(`/api/drafts/${draftId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        // Refresh the drafts
+        await fetchDrafts();
+      } else {
+        const error = await response.json();
+        alert(`Error deleting draft: ${error.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error("Error deleting draft:", error);
+      alert("Error deleting draft. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleCopy = async (draftId: string) => {
+    if (isProcessing) return;
+
+    setIsProcessing(true);
+    try {
+      const response = await fetch(`/api/drafts/${draftId}/copy`, {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        // Refresh the drafts to show the new copy
+        await fetchDrafts();
+        alert(`Draft copied successfully as "${result.draft.title}"`);
+      } else {
+        const error = await response.json();
+        alert(`Error copying draft: ${error.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error("Error copying draft:", error);
+      alert("Error copying draft. Please try again.");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -91,23 +186,25 @@ export default function AllDraftsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Back Button */}
+      <div>
+        <Button variant="ghost" size="sm" asChild className="hover:text-gray-500">
+          <Link href="/advocate">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Link>
+        </Button>
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/advocate">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">All Course Submissions</h1>
-            <p className="text-muted-foreground">
-              View and manage all your course proposals.
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">All Course Submissions</h1>
+          <p className="text-muted-foreground">
+            View and manage all your course drafts.
+          </p>
         </div>
-        <Button asChild>
+        <Button asChild className="bg-blue-700 hover:bg-blue-600 text-white">
           <Link href="/advocate/submit">
             <Plus className="mr-2 h-4 w-4" />
             Submit New Course
@@ -195,15 +292,78 @@ export default function AllDraftsPage() {
                     {draft.reviewNotes && (
                       <div className="mt-3 p-3 bg-muted rounded-md">
                         <p className="text-sm font-medium mb-1">Review Notes:</p>
-                        <p className="text-sm">{draft.reviewNotes}</p>
+                        <p className="text-sm italic">{draft.reviewNotes}</p>
                       </div>
                     )}
                   </div>
                   
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="sm" asChild>
+                  <div className="flex gap-1 flex-wrap">
+                    {/* Primary Edit Actions */}
+                    {draft.status === "DRAFT" && (
+                      <Button 
+                        size="sm" 
+                        asChild
+                        className="hover:bg-blue-700 hover:text-white"
+                      >
+                        <Link href={`/advocate/submit?edit=${draft.id}`}>
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Link>
+                      </Button>
+                    )}
+                    {draft.status === "REJECTED" && (
+                      <Button 
+                        size="sm" 
+                        asChild
+                        className="hover:bg-blue-700 hover:text-white"
+                      >
+                        <Link href={`/advocate/submit?edit=${draft.id}`}>
+                          <Edit className="h-4 w-4 mr-1" />
+                          Revise
+                        </Link>
+                      </Button>
+                    )}
+                    {draft.status === "PENDING" && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-300"
+                        onClick={() => handlePullBack(draft.id)}
+                        disabled={isProcessing}
+                      >
+                        <Undo2 className="h-4 w-4 mr-1" />
+                        Withdraw
+                      </Button>
+                    )}
+                    
+                    {/* Copy Action - Available for all statuses */}
+                    <Button 
+                      size="sm" 
+                      className="hover:bg-green-50 hover:text-green-700"
+                      onClick={() => handleCopy(draft.id)}
+                      disabled={isProcessing}
+                      title="Copy this draft"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    
+                    {/* Delete Action - Only for non-approved drafts */}
+                    {draft.status !== "APPROVED" && (
+                      <Button 
+                        size="sm" 
+                        className="hover:bg-red-50 hover:text-red-700"
+                        onClick={() => handleDelete(draft.id, draft.title)}
+                        disabled={isProcessing}
+                        title="Delete this draft"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                    
+                    {/* Secondary View Action */}
+                    <Button variant="ghost" size="sm" asChild className="hover:bg-gray-50 hover:text-gray-500">
                       <Link href={`/advocate/drafts/${draft.id}`}>
-                        View Details
+                        View
                       </Link>
                     </Button>
                   </div>
@@ -220,6 +380,18 @@ export default function AllDraftsPage() {
           Showing {filteredDrafts.length} of {drafts.length} course submissions
         </div>
       )}
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={pullBackDialogOpen}
+        onClose={() => !isProcessing && setPullBackDialogOpen(false)}
+        onConfirm={confirmPullBack}
+        title="Withdraw Draft to Edit"
+        description="This will remove your draft from the review queue so you can make changes. You can edit and resubmit it later. Are you sure you want to continue?"
+        confirmText={isProcessing ? "Withdrawing..." : "Withdraw to Edit"}
+        cancelText="Cancel"
+        variant="default"
+      />
     </div>
   );
 }

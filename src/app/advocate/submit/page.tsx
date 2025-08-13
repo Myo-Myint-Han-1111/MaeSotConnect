@@ -1,9 +1,19 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { redirect } from "next/navigation";
+import { redirect, useSearchParams } from "next/navigation";
 import CourseForm from "@/components/admin/CourseForm";
+
+type DraftData = {
+  id: string;
+  title: string;
+  type: string;
+  content: {
+    imageUrls?: string[];
+    [key: string]: unknown;
+  };
+} | null;
 
 export default function SubmitCoursePage() {
   const { data: session, status } = useSession({
@@ -13,7 +23,34 @@ export default function SubmitCoursePage() {
     },
   });
 
-  if (status === "loading") {
+  const searchParams = useSearchParams();
+  const editDraftId = searchParams.get("edit");
+  const [draftData, setDraftData] = useState<DraftData>(null);
+  const [loading, setLoading] = useState(!!editDraftId);
+
+  useEffect(() => {
+    if (editDraftId) {
+      fetchDraftData();
+    }
+  }, [editDraftId]);
+
+  const fetchDraftData = async () => {
+    try {
+      const response = await fetch(`/api/drafts/${editDraftId}`);
+      if (response.ok) {
+        const draft = await response.json();
+        setDraftData(draft.content);
+      } else {
+        console.error("Failed to fetch draft data");
+      }
+    } catch (error) {
+      console.error("Error fetching draft:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (status === "loading" || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="h-16 w-16 border-t-4 border-primary border-solid rounded-full animate-spin"></div>
@@ -27,7 +64,7 @@ export default function SubmitCoursePage() {
       <div className="text-center py-12">
         <h2 className="text-2xl font-semibold mb-2">Access Denied</h2>
         <p className="text-muted-foreground">
-          You must be a youth advocate to submit course proposals.
+          You must be a youth advocate to submit course drafts.
         </p>
       </div>
     );
@@ -36,9 +73,12 @@ export default function SubmitCoursePage() {
   return (
     <div>
       <CourseForm
-        mode="create"
+        mode={editDraftId ? "edit" : "create"}
         draftMode={true}
         backUrl="/advocate"
+        initialData={draftData || undefined}
+        existingImages={draftData?.content?.imageUrls || []}
+        editDraftId={editDraftId || undefined}
       />
     </div>
   );

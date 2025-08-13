@@ -113,33 +113,37 @@ export default function DraftDetailsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Back Button */}
+      <div>
+        <Button className="hover:text-gray-500" variant="ghost" size="sm" asChild>
+          <Link href="/advocate/drafts">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to All Submissions
+          </Link>
+        </Button>
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/advocate/drafts">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to All Submissions
-            </Link>
-          </Button>
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              {getStatusIcon(draft.status)}
-              <h1 className="text-3xl font-bold tracking-tight">{draft.title}</h1>
-              <Badge className={getStatusBadgeColor(draft.status)}>
-                {draft.status === DraftStatus.REJECTED ? "Needs Revision" : draft.status}
-              </Badge>
-            </div>
-            <p className="text-muted-foreground">
-              Course submission details and status
-            </p>
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            {getStatusIcon(draft.status)}
+            <h1 className="text-3xl font-bold tracking-tight">{draft.title}</h1>
+            <Badge className={getStatusBadgeColor(draft.status)}>
+              {draft.status === DraftStatus.REJECTED ? "Needs Revision" : draft.status}
+            </Badge>
           </div>
+          <p className="text-muted-foreground">
+            Course submission details and status
+          </p>
         </div>
         
-        {draft.status === DraftStatus.REJECTED && (
-          <Button>
-            <Edit className="mr-2 h-4 w-4" />
-            Revise Submission
+        {(draft.status === DraftStatus.REJECTED || draft.status === DraftStatus.DRAFT) && (
+          <Button asChild className="hover:bg-blue-700 hover:text-white">
+            <Link href={`/advocate/submit?edit=${draft.id}`}>
+              <Edit className="mr-2 h-4 w-4" />
+              {draft.status === DraftStatus.REJECTED ? "Revise Submission" : "Edit Draft"}
+            </Link>
           </Button>
         )}
       </div>
@@ -187,7 +191,7 @@ export default function DraftDetailsPage() {
         <CardHeader>
           <CardTitle>Course Details</CardTitle>
           <CardDescription>
-            The content of your submitted course proposal
+            The content of your submitted course draft
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">

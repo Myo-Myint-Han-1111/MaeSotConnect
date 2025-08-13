@@ -66,8 +66,55 @@ export async function PATCH(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { title, content, status, reviewNotes } = body;
+    // Handle both JSON and FormData updates
+    let title, content, status, reviewNotes;
+    let imageUrls: string[] = [];
+
+    const contentType = request.headers.get("content-type");
+    if (contentType?.includes("multipart/form-data")) {
+      // Handle FormData (with images) - for draft updates
+      const formData = await request.formData();
+      const jsonData = formData.get("data");
+      
+      if (!jsonData || typeof jsonData !== "string") {
+        return NextResponse.json(
+          { message: "Invalid form data" },
+          { status: 400 }
+        );
+      }
+
+      const parsedData = JSON.parse(jsonData);
+      title = parsedData.title;
+      content = parsedData.content;
+      status = parsedData.status;
+      reviewNotes = parsedData.reviewNotes;
+
+      // Process uploaded images
+      const { saveFile } = await import("@/lib/upload");
+      for (const [key, value] of formData.entries()) {
+        if (key.startsWith("image_") && value instanceof File) {
+          const imageUrl = await saveFile(value, undefined, "course");
+          imageUrls.push(imageUrl);
+        }
+      }
+
+      // Merge new images with existing ones if they exist in content
+      if (content?.imageUrls && Array.isArray(content.imageUrls)) {
+        imageUrls = [...content.imageUrls, ...imageUrls];
+      }
+
+      // Update content with all images
+      if (imageUrls.length > 0) {
+        content.imageUrls = imageUrls;
+      }
+    } else {
+      // Handle JSON updates (for admin reviews)
+      const body = await request.json();
+      title = body.title;
+      content = body.content;
+      status = body.status;
+      reviewNotes = body.reviewNotes;
+    }
 
     const { id } = await params;
 
@@ -82,7 +129,7 @@ export async function PATCH(
     // Check permissions for editing
     const canEdit = 
       draft.createdBy === session.user.id && 
-      [DraftStatus.DRAFT, DraftStatus.REJECTED].includes(draft.status as DraftStatus);
+      [DraftStatus.DRAFT, DraftStatus.REJECTED, DraftStatus.PENDING].includes(draft.status as DraftStatus);
 
     // Check permissions for reviewing
     const canReview = 

@@ -109,6 +109,7 @@ interface CourseFormProps {
   existingImages?: string[];
   draftMode?: boolean; // For advocates/org admins to submit as drafts
   backUrl?: string; // Custom back URL
+  editDraftId?: string; // ID of existing draft being edited
 }
 
 const badgeOptions: BadgeOption[] = [
@@ -193,6 +194,7 @@ export default function CourseForm({
   existingImages = [],
   draftMode = false,
   backUrl = "/dashboard/courses",
+  editDraftId,
 }: CourseFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -803,7 +805,9 @@ export default function CourseForm({
 
     try {
       if (draftMode) {
-        // Submit as draft to the drafts API
+        // Submit as draft to the drafts API with image support
+        const formDataToSend = new FormData();
+        
         const draftData = {
           title: cleanedFormData.title,
           type: "COURSE",
@@ -811,12 +815,31 @@ export default function CourseForm({
           status: "PENDING", // Submit directly for review
         };
 
-        const response = await fetch("/api/drafts", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(draftData),
+        formDataToSend.append("data", JSON.stringify(draftData));
+
+        // Append images for draft submissions
+        formData.images.forEach((file, index) => {
+          formDataToSend.append(`image_${index}`, file);
+        });
+
+        // Include existing images that were kept
+        if (existingImageList.length > 0) {
+          const existingImages = existingImageList.filter(url => 
+            !url.startsWith('blob:') // Exclude blob URLs (new uploads)
+          );
+          if (existingImages.length > 0) {
+            Object.assign(cleanedFormData, { imageUrls: existingImages });
+            draftData.content = cleanedFormData;
+            formDataToSend.set("data", JSON.stringify(draftData));
+          }
+        }
+
+        const url = editDraftId ? `/api/drafts/${editDraftId}` : "/api/drafts";
+        const method = editDraftId ? "PATCH" : "POST";
+
+        const response = await fetch(url, {
+          method: method,
+          body: formDataToSend, // Send FormData instead of JSON
         });
 
         if (!response.ok) {
@@ -836,7 +859,8 @@ export default function CourseForm({
         }
 
         // Redirect to advocate dashboard with success message
-        router.push(backUrl || "/advocate?submitted=true");
+        const successParam = editDraftId ? "updated=true" : "submitted=true";
+        router.push(backUrl || `/advocate?${successParam}`);
         router.refresh();
       } else {
         // Regular course submission
@@ -933,7 +957,7 @@ export default function CourseForm({
         <CardHeader>
           <CardTitle>
             {draftMode
-              ? "Submit Course Proposal"
+              ? "Submit Course Draft"
               : mode === "create"
               ? "Create New Course"
               : "Edit Course"}
@@ -2154,7 +2178,7 @@ export default function CourseForm({
                 ? "Submitting..."
                 : "Saving..."
               : draftMode
-              ? "Submit Course Proposal"
+              ? "Submit Course Draft"
               : mode === "create"
               ? "Create Course"
               : "Update Course"}

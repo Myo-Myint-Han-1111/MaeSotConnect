@@ -185,11 +185,11 @@ export default function UserManagementPage() {
   const getRoleBadgeColor = (role: Role) => {
     switch (role) {
       case Role.PLATFORM_ADMIN:
-        return "bg-red-100 text-red-800 border-red-200";
+        return "bg-indigo-100 text-indigo-800 border-indigo-200";
       case Role.ORGANIZATION_ADMIN:
         return "bg-blue-100 text-blue-800 border-blue-200";
       case Role.YOUTH_ADVOCATE:
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-cyan-100 text-cyan-800 border-cyan-200";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
@@ -234,12 +234,12 @@ export default function UserManagementPage() {
         </div>
         <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="hover:text-gray-500">
               <UserPlus className="mr-2 h-4 w-4" />
               Invite User
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="bg-white">
             <DialogHeader>
               <DialogTitle>Invite New User</DialogTitle>
               <DialogDescription>
@@ -267,8 +267,8 @@ export default function UserManagementPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={Role.YOUTH_ADVOCATE}>Youth Advocate</SelectItem>
-                    <SelectItem value={Role.ORGANIZATION_ADMIN}>Organization Admin</SelectItem>
+                    <SelectItem className="hover:bg-gray-100" value={Role.YOUTH_ADVOCATE}>Youth Advocate</SelectItem>
+                    <SelectItem className="hover:bg-gray-100" value={Role.ORGANIZATION_ADMIN}>Organization Admin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -282,9 +282,9 @@ export default function UserManagementPage() {
                     <SelectValue placeholder="Select organization" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">No organization</SelectItem>
+                    <SelectItem className="hover:bg-gray-50" value="none">No organization</SelectItem>
                     {organizations.map((org) => (
-                      <SelectItem key={org.id} value={org.id}>
+                      <SelectItem className="hover:bg-gray-50" key={org.id} value={org.id}>
                         {org.name}
                       </SelectItem>
                     ))}
@@ -302,10 +302,10 @@ export default function UserManagementPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsInviteDialogOpen(false)}>
+              <Button className="hover:bg-gray-100" variant="outline" onClick={() => setIsInviteDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleSendInvitation}>Send Invitation</Button>
+              <Button className="hover:text-gray-500" onClick={handleSendInvitation}>Send Invitation</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -392,7 +392,7 @@ export default function UserManagementPage() {
                       {user.status === UserStatus.ACTIVE && (
                         <DropdownMenuItem
                           onClick={() => handleUpdateUserStatus(user.id, UserStatus.SUSPENDED)}
-                          className="text-orange-600"
+                          className="text-orange-600 bg-white hover:bg-gray-50"
                         >
                           <AlertTriangle className="mr-2 h-4 w-4" />
                           Suspend User
@@ -401,7 +401,7 @@ export default function UserManagementPage() {
                       {user.status === UserStatus.SUSPENDED && (
                         <DropdownMenuItem
                           onClick={() => handleUpdateUserStatus(user.id, UserStatus.ACTIVE)}
-                          className="text-green-600"
+                          className="text-green-600 bg-white hover:bg-gray-50"
                         >
                           <Shield className="mr-2 h-4 w-4" />
                           Activate User

@@ -100,7 +100,7 @@ export default function AdminDraftReviewPage() {
     if (!draft) return;
     
     if (!reviewNotes.trim()) {
-      alert("Please provide review notes explaining why this proposal is being rejected.");
+      alert("Please provide review notes explaining why this draft is being rejected.");
       return;
     }
 
@@ -201,7 +201,7 @@ export default function AdminDraftReviewPage() {
       <div className="text-center py-12">
         <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
         <h2 className="text-xl font-semibold mb-2">Draft not found</h2>
-        <p className="text-muted-foreground mb-4">The course proposal you&apos;re looking for doesn&apos;t exist.</p>
+        <p className="text-muted-foreground mb-4">The course draft you&apos;re looking for doesn&apos;t exist.</p>
         <Button asChild>
           <Link href="/admin/drafts">Back to Draft Reviews</Link>
         </Button>
@@ -213,27 +213,29 @@ export default function AdminDraftReviewPage() {
 
   return (
     <div className="space-y-6">
+      {/* Back Button */}
+      <div>
+        <Button variant="ghost" size="sm" asChild className="hover:text-gray-500">
+          <Link href="/admin/drafts">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Draft Reviews
+          </Link>
+        </Button>
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/admin/drafts">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Draft Reviews
-            </Link>
-          </Button>
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              {getStatusIcon(draft.status)}
-              <h1 className="text-3xl font-bold tracking-tight">{draft.title}</h1>
-              <Badge className={getStatusBadgeColor(draft.status)}>
-                {draft.status === DraftStatus.REJECTED ? "Needs Revision" : draft.status}
-              </Badge>
-            </div>
-            <p className="text-muted-foreground">
-              Course proposal review and approval
-            </p>
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            {getStatusIcon(draft.status)}
+            <h1 className="text-3xl font-bold tracking-tight">{draft.title}</h1>
+            <Badge className={getStatusBadgeColor(draft.status)}>
+              {draft.status === DraftStatus.REJECTED ? "Needs Revision" : draft.status}
+            </Badge>
           </div>
+          <p className="text-muted-foreground">
+            Course draft review and approval
+          </p>
         </div>
       </div>
 
@@ -275,7 +277,7 @@ export default function AdminDraftReviewPage() {
           {/* Course Content */}
           <Card>
             <CardHeader>
-              <CardTitle>Course Proposal Details</CardTitle>
+              <CardTitle>Course Draft Details</CardTitle>
               <CardDescription>
                 Complete information about the proposed course
               </CardDescription>
@@ -326,6 +328,38 @@ export default function AdminDraftReviewPage() {
 
               {renderContentField("Required Documents", draft.content.document)}
 
+              {/* Course Images */}
+              {Array.isArray(draft.content.imageUrls) && draft.content.imageUrls.length > 0 && (
+                <div className="mb-4">
+                  <h4 className="font-medium mb-3">Course Images</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {(draft.content.imageUrls as string[]).map((imageUrl, index) => (
+                      <div
+                        key={index}
+                        className="relative h-32 border rounded-md overflow-hidden bg-gray-50"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={imageUrl}
+                          alt={`Course image ${index + 1}`}
+                          className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                          onClick={() => {
+                            // Open image in new tab for full view
+                            window.open(imageUrl, '_blank', 'noopener,noreferrer');
+                          }}
+                        />
+                        <div className="absolute bottom-0 left-0 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-tr-md">
+                          {index + 1} of {(draft.content.imageUrls as string[]).length}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Click on any image to view it in full size
+                  </p>
+                </div>
+              )}
+
               {/* Badges */}
               {Array.isArray(draft.content.badges) && draft.content.badges.length > 0 && (
                 <div className="mb-4">
@@ -374,7 +408,7 @@ export default function AdminDraftReviewPage() {
               <CardHeader>
                 <CardTitle>Review Actions</CardTitle>
                 <CardDescription>
-                  Approve or reject this course proposal
+                  Approve or reject this course draft
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -394,7 +428,7 @@ export default function AdminDraftReviewPage() {
 
                 <div className="space-y-2">
                   <Button 
-                    className="w-full bg-green-600 hover:bg-green-700" 
+                    className="w-full bg-green-600 hover:bg-green-700 text-white" 
                     onClick={() => setApproveDialogOpen(true)}
                     disabled={isProcessing}
                   >
@@ -403,12 +437,12 @@ export default function AdminDraftReviewPage() {
                   </Button>
                   <Button 
                     variant="destructive" 
-                    className="w-full"
+                    className="w-full hover:bg-red-700 transition-colors hover:text-white"
                     onClick={() => setRejectDialogOpen(true)}
                     disabled={isProcessing}
                   >
                     <XCircle className="h-4 w-4 mr-2" />
-                    Reject Proposal
+                    Reject Draft
                   </Button>
                 </div>
               </CardContent>
@@ -456,8 +490,8 @@ export default function AdminDraftReviewPage() {
         isOpen={approveDialogOpen}
         onClose={() => setApproveDialogOpen(false)}
         onConfirm={handleApprove}
-        title="Approve Course Proposal"
-        description="This will approve the course proposal and create a published course. The author will be notified of the approval."
+        title="Approve Course Draft"
+        description="This will approve the course draft and create a published course. The author will be notified of the approval."
         confirmText="Approve & Create Course"
         cancelText="Cancel"
         variant="default"
@@ -467,9 +501,9 @@ export default function AdminDraftReviewPage() {
         isOpen={rejectDialogOpen}
         onClose={() => setRejectDialogOpen(false)}
         onConfirm={handleReject}
-        title="Reject Course Proposal"
-        description="This will reject the course proposal and notify the author. Make sure you have provided clear feedback in the review notes."
-        confirmText="Reject Proposal"
+        title="Reject Course Draft"
+        description="This will reject the course draft and notify the author. Make sure you have provided clear feedback in the review notes."
+        confirmText="Reject Draft"
         cancelText="Cancel"
         variant="destructive"
       />
