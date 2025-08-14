@@ -45,7 +45,24 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(draft);
+    // Fetch reviewer information if the draft has been reviewed
+    let reviewedByUser = null;
+    if (draft.reviewedBy) {
+      reviewedByUser = await prisma.user.findUnique({
+        where: { id: draft.reviewedBy },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+        },
+      });
+    }
+
+    return NextResponse.json({
+      ...draft,
+      reviewedByUser,
+    });
   } catch (error) {
     console.error("Error fetching draft:", error);
     return NextResponse.json(
@@ -195,7 +212,24 @@ export async function PATCH(
       },
     });
 
-    return NextResponse.json(updatedDraft);
+    // Fetch reviewer information if the draft has been reviewed
+    let reviewedByUser = null;
+    if (updatedDraft.reviewedBy) {
+      reviewedByUser = await prisma.user.findUnique({
+        where: { id: updatedDraft.reviewedBy },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+        },
+      });
+    }
+
+    return NextResponse.json({
+      ...updatedDraft,
+      reviewedByUser,
+    });
   } catch (error) {
     console.error("Error updating draft:", error);
     return NextResponse.json(

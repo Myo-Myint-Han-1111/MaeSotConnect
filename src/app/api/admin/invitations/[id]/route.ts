@@ -28,23 +28,20 @@ export async function DELETE(
       );
     }
 
-    // Only allow revoking pending invitations
-    if (invitation.status !== InvitationStatus.PENDING) {
+    // Allow deleting pending and expired invitations, but not accepted ones
+    if (invitation.status === InvitationStatus.ACCEPTED) {
       return NextResponse.json(
-        { message: "Can only revoke pending invitations" },
+        { message: "Cannot delete accepted invitations" },
         { status: 400 }
       );
     }
 
-    // Update invitation status to revoked
-    await prisma.userInvitation.update({
+    // Completely delete the invitation record
+    await prisma.userInvitation.delete({
       where: { id },
-      data: {
-        status: InvitationStatus.REVOKED,
-      },
     });
 
-    return NextResponse.json({ message: "Invitation revoked successfully" });
+    return NextResponse.json({ message: "Invitation deleted successfully" });
   } catch (error) {
     console.error("Error revoking invitation:", error);
     return NextResponse.json(

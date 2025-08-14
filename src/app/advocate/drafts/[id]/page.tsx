@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Clock, CheckCircle, XCircle, ArrowLeft, Edit } from "lucide-react";
+import { FileText, Clock, CheckCircle, XCircle, ArrowLeft, Edit, MessageSquare, User } from "lucide-react";
 import Link from "next/link";
 import { DraftStatus } from "@/lib/auth/roles";
 
@@ -31,6 +31,12 @@ type Draft = {
   organization?: {
     name: string;
   };
+  reviewedByUser?: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  };
 };
 
 export default function DraftDetailsPage() {
@@ -48,7 +54,8 @@ export default function DraftDetailsPage() {
 
   const fetchDraft = async () => {
     try {
-      const response = await fetch(`/api/drafts/${params.id}`);
+      const cacheBuster = process.env.NODE_ENV === "development" ? `?t=${Date.now()}` : "";
+      const response = await fetch(`/api/drafts/${params.id}${cacheBuster}`);
       if (response.ok) {
         const data = await response.json();
         setDraft(data);
@@ -178,9 +185,47 @@ export default function DraftDetailsPage() {
           </div>
           
           {draft.reviewNotes && (
-            <div className="mt-6 p-4 bg-muted rounded-lg">
-              <h4 className="font-medium mb-2">Review Notes</h4>
-              <p className="text-sm">{draft.reviewNotes}</p>
+            <div className="mt-6">
+              <div className="border-l-4 border-blue-500 bg-blue-50 p-6 rounded-r-lg">
+                <div className="flex items-start gap-3">
+                  <MessageSquare className="h-6 w-6 text-blue-600 mt-0.5" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-3">
+                      <h4 className="text-lg font-semibold text-blue-900">Admin Review Feedback</h4>
+                      {draft.status === DraftStatus.REJECTED && (
+                        <Badge className="bg-red-100 text-red-800 border-red-200">Action Required</Badge>
+                      )}
+                    </div>
+                    
+                    {draft.reviewedByUser && (
+                      <div className="flex items-center gap-2 mb-3 text-sm text-blue-700">
+                        <User className="h-4 w-4" />
+                        <span>Reviewed by {draft.reviewedByUser.name}</span>
+                        <span className="text-blue-600">•</span>
+                        <span>{draft.reviewedByUser.role.replace('_', ' ')}</span>
+                        {draft.reviewedAt && (
+                          <>
+                            <span className="text-blue-600">•</span>
+                            <span>{new Date(draft.reviewedAt).toLocaleDateString()}</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                    
+                    <div className="bg-white p-4 rounded-lg border border-blue-200">
+                      <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">{draft.reviewNotes}</p>
+                    </div>
+                    
+                    {draft.status === DraftStatus.REJECTED && (
+                      <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p className="text-sm text-yellow-800">
+                          <strong>Next Steps:</strong> Please review the feedback above and revise your submission using the &ldquo;Revise Submission&rdquo; button.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </CardContent>

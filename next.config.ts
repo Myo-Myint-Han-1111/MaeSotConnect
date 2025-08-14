@@ -169,6 +169,25 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // Dashboard pages - no cache for real-time updates in development
+        source: "/dashboard/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: process.env.NODE_ENV === "development" 
+              ? "private, no-cache, no-store, must-revalidate" 
+              : "private, max-age=60, must-revalidate", // 1 minute cache in production
+          },
+          ...(process.env.NODE_ENV === "development" ? [{
+            key: "Pragma",
+            value: "no-cache",
+          }, {
+            key: "Expires",
+            value: "0",
+          }] : []),
+        ],
+      },
+      {
         // Static assets (JS/CSS bundles) - cache but with revalidation
         source: "/_next/static/:path*",
         headers: [

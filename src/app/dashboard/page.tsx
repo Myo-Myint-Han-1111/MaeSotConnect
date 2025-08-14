@@ -24,16 +24,19 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchStats() {
       try {
+        // Add cache-busting timestamp in development
+        const cacheBuster = process.env.NODE_ENV === "development" ? `?t=${Date.now()}` : "";
+        
         // Fetch organization count
-        const orgResponse = await fetch("/api/organizations");
+        const orgResponse = await fetch(`/api/organizations${cacheBuster}`);
         const organizations = await orgResponse.json();
 
         // Fetch course count
-        const courseResponse = await fetch("/api/courses");
+        const courseResponse = await fetch(`/api/courses${cacheBuster}`);
         const courses = await courseResponse.json();
 
         // Fetch pending drafts count
-        const draftsResponse = await fetch("/api/admin/drafts");
+        const draftsResponse = await fetch(`/api/admin/drafts${cacheBuster}`);
         const drafts = await draftsResponse.json();
         const pendingDrafts = Array.isArray(drafts) ? drafts.filter(draft => draft.status === "PENDING").length : 0;
 

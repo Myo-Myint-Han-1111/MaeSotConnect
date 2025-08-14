@@ -48,6 +48,7 @@ export async function GET(request: NextRequest) {
         id: true,
         title: true,
         type: true,
+        content: true,
         status: true,
         createdBy: true,
         organizationId: true,

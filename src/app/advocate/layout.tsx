@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { LogOut, FileText, Send, LayoutDashboard } from "lucide-react";
+import { LogOut, FileText, Send, LayoutDashboard, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/common/ConfirmationDialog";
 import { Role } from "@/lib/auth/roles";
@@ -61,20 +61,26 @@ export default function AdvocateLayout({
       active: pathname.startsWith("/advocate/drafts"),
     },
     {
-      label: "Submit Content",
+      label: "Create Course",
       href: "/advocate/submit",
       icon: <Send className="h-5 w-5" />,
       active: pathname.startsWith("/advocate/submit"),
+    },
+    {
+      label: "My Profile",
+      href: "/advocate/profile",
+      icon: <User className="h-5 w-5" />,
+      active: pathname.startsWith("/advocate/profile"),
     },
   ];
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-sm fixed h-full z-10">
-        <div className="p-6 border-b">
-          <h1 className="text-xl font-bold">Mae Sot Connect</h1>
-          <p className="text-sm text-muted-foreground">Youth Advocate</p>
+      <div className="w-64 bg-gray-100 shadow-sm fixed h-full z-10">
+        <div className="p-6 border-b border-gray-200">
+          <h1 className="text-xl font-bold text-gray-900">JumpStudy.org</h1>
+          <p className="text-sm text-gray-600">Youth Advocate</p>
         </div>
         <nav className="p-4 space-y-1">
           {sidebarLinks.map((link) => (
@@ -83,8 +89,8 @@ export default function AdvocateLayout({
               href={link.href}
               className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
                 link.active
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-gray-100"
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                  : "text-gray-600 hover:bg-gray-200"
               }`}
             >
               {link.icon}
@@ -93,7 +99,7 @@ export default function AdvocateLayout({
           ))}
           <Button
             variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:bg-gray-100 px-3 py-2 rounded-md text-sm"
+            className="w-full justify-start text-gray-600 hover:bg-gray-200 px-3 py-2 rounded-md text-sm"
             onClick={confirmSignOut}
           >
             <LogOut className="h-5 w-5 mr-3" />

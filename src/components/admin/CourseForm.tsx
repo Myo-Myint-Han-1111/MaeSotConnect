@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Checkbox } from "@/components/ui/checkbox";
+// import { Checkbox } from "@/components/ui/checkbox";
 import LocationSelector from "@/components/admin/LocationSelector";
 import {
   Select,
@@ -949,7 +949,84 @@ export default function CourseForm({
     "Saturday",
   ];
 
+  const handleSaveDraft = async () => {
+    if (!formData.title || formData.title.trim() === "") {
+      setError("Course title is required to save draft");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const draftData = {
+        title: formData.title,
+        type: "COURSE",
+        content: formData,
+        status: "DRAFT", // Save as draft, not submitted for review
+      };
+
+      const formDataToSend = new FormData();
+      formDataToSend.append("data", JSON.stringify(draftData));
+
+      // Append images for draft submissions
+      formData.images.forEach((file, index) => {
+        formDataToSend.append(`image_${index}`, file);
+      });
+
+      // Include existing images that were kept
+      if (existingImageList.length > 0) {
+        const existingImages = existingImageList.filter(url => 
+          !url.startsWith('blob:') // Exclude blob URLs (new uploads)
+        );
+        if (existingImages.length > 0) {
+          Object.assign(formData, { imageUrls: existingImages });
+          draftData.content = formData;
+          formDataToSend.set("data", JSON.stringify(draftData));
+        }
+      }
+
+      const url = editDraftId ? `/api/drafts/${editDraftId}` : "/api/drafts";
+      const method = editDraftId ? "PATCH" : "POST";
+
+      const response = await fetch(url, {
+        method: method,
+        body: formDataToSend,
+      });
+
+      if (!response.ok) {
+        let errorMessage = "Something went wrong";
+        try {
+          const data = await response.json();
+          if (data.error) {
+            errorMessage = data.error;
+          } else if (data.message) {
+            errorMessage = data.message;
+          }
+        } catch (parseError) {
+          console.error("Error parsing response:", parseError);
+          errorMessage = `Server error (${response.status}): ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      // Show success message but stay on the form
+      alert("Draft saved successfully! You can continue editing or submit it later for review.");
+      
+    } catch (err) {
+      console.error("Error saving draft:", err);
+      let errorMessage = "An unexpected error occurred";
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
+    <div className="[&_input]:bg-white [&_textarea]:bg-white [&_button[role=combobox]]:bg-white">
     <form onSubmit={handleSubmit}>
       <Card>
         <CardHeader>
@@ -976,27 +1053,36 @@ export default function CourseForm({
             <TabsList
               className={`${
                 isMobile ? "flex flex-col space-y-1" : "grid grid-cols-5"
-              } mb-8`}
+              } mb-8 bg-gray-100 p-1 rounded-lg max-w-3xl mx-auto h-auto`}
             >
               <TabsTrigger
                 value="basic-info"
-                className={isMobile ? "w-full" : ""}
+                className={`${isMobile ? "w-full" : ""} h-9 text-sm data-[state=active]:bg-white rounded-md`}
               >
                 Basic Info
               </TabsTrigger>
               <TabsTrigger
                 value="dates-fees"
-                className={isMobile ? "w-full" : ""}
+                className={`${isMobile ? "w-full" : ""} h-9 text-sm data-[state=active]:bg-white rounded-md`}
               >
                 Dates & Fees
               </TabsTrigger>
-              <TabsTrigger value="content" className={isMobile ? "w-full" : ""}>
+              <TabsTrigger
+                value="content"
+                className={`${isMobile ? "w-full" : ""} h-9 text-sm data-[state=active]:bg-white rounded-md`}
+              >
                 Content
               </TabsTrigger>
-              <TabsTrigger value="images" className={isMobile ? "w-full" : ""}>
+              <TabsTrigger
+                value="images"
+                className={`${isMobile ? "w-full" : ""} h-9 text-sm data-[state=active]:bg-white rounded-md`}
+              >
                 Images & Badges
               </TabsTrigger>
-              <TabsTrigger value="faq" className={isMobile ? "w-full" : ""}>
+              <TabsTrigger
+                value="faq"
+                className={`${isMobile ? "w-full" : ""} h-9 text-sm data-[state=active]:bg-white rounded-md`}
+              >
                 FAQ
               </TabsTrigger>
             </TabsList>
@@ -1048,6 +1134,7 @@ export default function CourseForm({
                       value={formData.title ?? ""}
                       onChange={handleTextChange}
                       required
+                      className="bg-white"
                     />
                   </div>
                   <div>
@@ -1060,6 +1147,7 @@ export default function CourseForm({
                       value={formData.titleMm ?? ""}
                       onChange={handleTextChange}
                       dir="auto"
+                      className="bg-white"
                     />
                   </div>
                 </div>
@@ -1079,6 +1167,7 @@ export default function CourseForm({
                       value={formData.subtitle ?? ""}
                       onChange={handleTextChange}
                       required
+                      className="bg-white"
                     />
                   </div>
                   <div>
@@ -1091,6 +1180,7 @@ export default function CourseForm({
                       value={formData.subtitleMm ?? ""}
                       onChange={handleTextChange}
                       dir="auto"
+                      className="bg-white"
                     />
                   </div>
                 </div>
@@ -1263,10 +1353,12 @@ export default function CourseForm({
                 >
                   {dayNames.map((day, index) => (
                     <div key={day} className="flex items-center space-x-2">
-                      <Checkbox
+                      <input
+                        type="checkbox"
                         id={`day-${index}`}
                         checked={formData.availableDays[index] || false}
                         onChange={() => handleDayChange(index)}
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                       />
                       <label
                         htmlFor={`day-${index}`}
@@ -1390,12 +1482,14 @@ export default function CourseForm({
                       </Label>
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2">
-                          <Checkbox
+                          <input
+                            type="checkbox"
                             id="showEstimatedForStartDate"
                             checked={formData.showEstimatedForStartDate}
                             onChange={() =>
                               handleCheckboxChange("showEstimatedForStartDate")
                             }
+                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                           />
                           <label
                             htmlFor="showEstimatedForStartDate"
@@ -1407,7 +1501,8 @@ export default function CourseForm({
                         </div>
 
                         <div className="flex items-center space-x-2">
-                          <Checkbox
+                          <input
+                            type="checkbox"
                             id="showEstimatedForApplyByDate"
                             checked={formData.showEstimatedForApplyByDate}
                             onChange={() =>
@@ -1415,6 +1510,7 @@ export default function CourseForm({
                                 "showEstimatedForApplyByDate"
                               )
                             }
+                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                           />
                           <label
                             htmlFor="showEstimatedForApplyByDate"
@@ -2162,27 +2258,42 @@ export default function CourseForm({
             Cancel
           </Button>
 
-          <Button
-            type="submit"
-            disabled={
-              isLoading ||
-              (!draftMode &&
-                (!formData.organizationId || formData.organizationId === ""))
-            }
-            className={isMobile ? "w-full" : ""}
-          >
-            {isLoading
-              ? draftMode
-                ? "Submitting..."
-                : "Saving..."
-              : draftMode
-              ? "Submit Course Draft"
-              : mode === "create"
-              ? "Create Course"
-              : "Update Course"}
-          </Button>
+          <div className={`flex gap-2 ${isMobile ? "w-full" : ""}`}>
+            {draftMode && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleSaveDraft}
+                disabled={isLoading || !formData.title || formData.title.trim() === ""}
+                className={`${isMobile ? "flex-1" : ""} bg-gray-50 hover:bg-gray-100 border-gray-300`}
+              >
+                {isLoading ? "Saving..." : "Save Draft"}
+              </Button>
+            )}
+            
+            <Button
+              type="submit"
+              disabled={
+                isLoading ||
+                (!draftMode &&
+                  (!formData.organizationId || formData.organizationId === ""))
+              }
+              className={`${isMobile ? "flex-1" : ""} bg-blue-600 hover:bg-blue-700 text-white`}
+            >
+              {isLoading
+                ? draftMode
+                  ? "Submitting..."
+                  : "Saving..."
+                : draftMode
+                ? "Submit for Review"
+                : mode === "create"
+                ? "Create Course"
+                : "Update Course"}
+            </Button>
+          </div>
         </CardFooter>
       </Card>
     </form>
+    </div>
   );
 }

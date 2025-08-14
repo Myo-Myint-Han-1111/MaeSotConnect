@@ -19,6 +19,8 @@
   "dependencies": {
     "@auth/core": "^0.39.1",
     "@auth/prisma-adapter": "^2.9.1",
+    "@dicebear/collection": "^9.2.3",
+    "@dicebear/core": "^9.2.3",
     "@prisma/client": "^6.8.2",
     "@radix-ui/react-accordion": "^1.2.7",
     "@radix-ui/react-dialog": "^1.1.10",

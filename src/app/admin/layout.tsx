@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { LogOut, Building2, BookOpen, LayoutDashboard, Users, FileText } from "lucide-react";
+import { LogOut, Building2, BookOpen, LayoutDashboard, Users, FileText, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/common/ConfirmationDialog";
 
@@ -89,6 +89,12 @@ export default function AdminLayout({
       href: "/admin/users",
       icon: <Users className="h-5 w-5" />,
       active: pathname.startsWith("/admin/users"),
+    },
+    {
+      label: "Profile Reviews",
+      href: "/admin/profiles",
+      icon: <UserCheck className="h-5 w-5" />,
+      active: pathname.startsWith("/admin/profiles"),
     },
   ];
 

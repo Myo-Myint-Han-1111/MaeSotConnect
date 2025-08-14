@@ -12,6 +12,12 @@ export async function GET(_request: NextRequest) {
     }
 
     const invitations = await prisma.userInvitation.findMany({
+      where: {
+        // Only show pending and expired invitations (not accepted or revoked)
+        status: {
+          in: ["PENDING", "EXPIRED"],
+        },
+      },
       select: {
         id: true,
         email: true,

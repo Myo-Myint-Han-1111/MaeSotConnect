@@ -57,6 +57,14 @@ export default function UserManagementPage() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [isDeleteInviteDialogOpen, setIsDeleteInviteDialogOpen] = useState(false);
+  const [inviteToDelete, setInviteToDelete] = useState<UserInvitation | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeletingInvite, setIsDeletingInvite] = useState(false);
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState<string | null>(null);
   const [inviteForm, setInviteForm] = useState({
     email: "",
     role: Role.YOUTH_ADVOCATE,
@@ -75,7 +83,8 @@ export default function UserManagementPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch("/api/admin/users");
+      const cacheBuster = process.env.NODE_ENV === "development" ? `?t=${Date.now()}` : "";
+      const response = await fetch(`/api/admin/users${cacheBuster}`);
       if (response.ok) {
         const data = await response.json();
         setUsers(data);
@@ -87,7 +96,8 @@ export default function UserManagementPage() {
 
   const fetchInvitations = async () => {
     try {
-      const response = await fetch("/api/admin/invitations");
+      const cacheBuster = process.env.NODE_ENV === "development" ? `?t=${Date.now()}` : "";
+      const response = await fetch(`/api/admin/invitations${cacheBuster}`);
       if (response.ok) {
         const data = await response.json();
         setInvitations(data);
@@ -99,7 +109,8 @@ export default function UserManagementPage() {
 
   const fetchOrganizations = async () => {
     try {
-      const response = await fetch("/api/admin/organizations");
+      const cacheBuster = process.env.NODE_ENV === "development" ? `?t=${Date.now()}` : "";
+      const response = await fetch(`/api/admin/organizations${cacheBuster}`);
       if (response.ok) {
         const data = await response.json();
         setOrganizations(data);
@@ -110,6 +121,9 @@ export default function UserManagementPage() {
   };
 
   const handleSendInvitation = async () => {
+    if (isSendingInvite) return;
+    setIsSendingInvite(true);
+    
     try {
       // Convert "none" to null for organizationId
       const formData = {
@@ -141,10 +155,15 @@ export default function UserManagementPage() {
       }
     } catch (_error) {
       showToast("Failed to send invitation", "Please try again", "error");
+    } finally {
+      setIsSendingInvite(false);
     }
   };
 
   const handleUpdateUserStatus = async (userId: string, status: UserStatus) => {
+    if (isUpdatingStatus === userId) return;
+    setIsUpdatingStatus(userId);
+    
     try {
       const response = await fetch(`/api/admin/users/${userId}`, {
         method: "PATCH",
@@ -162,27 +181,71 @@ export default function UserManagementPage() {
       }
     } catch (_error) {
       showToast("Failed to update user status", "Please try again", "error");
+    } finally {
+      setIsUpdatingStatus(null);
     }
   };
 
-  const handleRevokeInvitation = async (invitationId: string) => {
+  const handleDeleteInvitation = async () => {
+    if (!inviteToDelete || isDeletingInvite) return;
+    setIsDeletingInvite(true);
+    
     try {
-      const response = await fetch(`/api/admin/invitations/${invitationId}`, {
+      const response = await fetch(`/api/admin/invitations/${inviteToDelete.id}`, {
         method: "DELETE",
       });
 
       if (response.ok) {
-        showToast("Invitation revoked successfully!", "", "success");
+        showToast("Invitation deleted successfully!", "", "success");
         fetchInvitations();
+        setIsDeleteInviteDialogOpen(false);
+        setInviteToDelete(null);
       } else {
-        showToast("Failed to revoke invitation", "Please try again", "error");
+        const error = await response.json();
+        showToast("Failed to delete invitation", error.message || "Please try again", "error");
       }
     } catch (_error) {
-      showToast("Failed to revoke invitation", "Please try again", "error");
+      showToast("Failed to delete invitation", "Please try again", "error");
+    } finally {
+      setIsDeletingInvite(false);
     }
   };
 
-  const getRoleBadgeColor = (role: Role) => {
+  const openDeleteInviteDialog = (invitation: UserInvitation) => {
+    setInviteToDelete(invitation);
+    setIsDeleteInviteDialogOpen(true);
+  };
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete || isDeleting) return;
+    setIsDeleting(true);
+    
+    try {
+      const response = await fetch(`/api/admin/users/${userToDelete.id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        showToast("User deleted successfully!", "", "success");
+        fetchUsers();
+        setIsDeleteDialogOpen(false);
+        setUserToDelete(null);
+      } else {
+        showToast("Failed to delete user", "Please try again", "error");
+      }
+    } catch (_error) {
+      showToast("Failed to delete user", "Please try again", "error");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const openDeleteDialog = (user: User) => {
+    setUserToDelete(user);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const _getRoleBadgeColor = (role: Role) => {
     switch (role) {
       case Role.PLATFORM_ADMIN:
         return "bg-indigo-100 text-indigo-800 border-indigo-200";
@@ -229,7 +292,7 @@ export default function UserManagementPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
           <p className="text-muted-foreground">
-            Manage Youth Advocates and user access to the platform
+            Manage Youth Advocates and Organization Admins
           </p>
         </div>
         <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
@@ -302,10 +365,83 @@ export default function UserManagementPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button className="hover:bg-gray-100" variant="outline" onClick={() => setIsInviteDialogOpen(false)}>
+              <Button 
+                className="hover:bg-gray-100" 
+                variant="outline" 
+                onClick={() => setIsInviteDialogOpen(false)}
+                disabled={isSendingInvite}
+              >
                 Cancel
               </Button>
-              <Button className="hover:text-gray-500" onClick={handleSendInvitation}>Send Invitation</Button>
+              <Button 
+                className="hover:text-gray-500" 
+                onClick={handleSendInvitation}
+                disabled={isSendingInvite}
+              >
+                {isSendingInvite ? "Sending..." : "Send Invitation"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Delete User Confirmation Dialog */}
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogContent className="bg-white">
+            <DialogHeader>
+              <DialogTitle>Delete User</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete {userToDelete?.name}? This action cannot be undone and will permanently remove all user data.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIsDeleteDialogOpen(false);
+                  setUserToDelete(null);
+                }}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleDeleteUser}
+                className="bg-red-600 hover:bg-red-700 text-white"
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Delete Invitation Confirmation Dialog */}
+        <Dialog open={isDeleteInviteDialogOpen} onOpenChange={setIsDeleteInviteDialogOpen}>
+          <DialogContent className="bg-white">
+            <DialogHeader>
+              <DialogTitle>Delete Invitation</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete the invitation for {inviteToDelete?.email}? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIsDeleteInviteDialogOpen(false);
+                  setInviteToDelete(null);
+                }}
+                disabled={isDeletingInvite}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleDeleteInvitation}
+                className="bg-red-600 hover:bg-red-700 text-white"
+                disabled={isDeletingInvite}
+              >
+                {isDeletingInvite ? "Deleting..." : "Delete"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -355,25 +491,27 @@ export default function UserManagementPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {users.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">No users found</p>
+              <p className="text-center text-muted-foreground py-8 col-span-full">No users found</p>
             ) : (
               users.map((user) => (
                 <div
                   key={user.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
+                  className="flex flex-col p-4 border rounded-lg space-y-3 max-w-sm bg-white"
                 >
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-medium">{user.name}</h3>
-                      <Badge className={getRoleBadgeColor(user.role)}>{user.role}</Badge>
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 className="font-medium truncate">{user.name}</h3>
+                        <span className="text-sm font-semibold text-gray-700">{user.role}</span>
+                      </div>
                       <Badge className={getStatusBadgeColor(user.status)}>{user.status}</Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                    <p className="text-sm text-muted-foreground truncate">{user.email}</p>
                     {user.organization && (
-                      <p className="text-sm text-muted-foreground">
-                        Organization: {user.organization.name}
+                      <p className="text-sm text-muted-foreground truncate">
+                        Org: {user.organization.name}
                       </p>
                     )}
                     {user.lastLoginAt && (
@@ -382,33 +520,45 @@ export default function UserManagementPage() {
                       </p>
                     )}
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
+                  <div className="flex justify-end">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       {user.status === UserStatus.ACTIVE && (
                         <DropdownMenuItem
                           onClick={() => handleUpdateUserStatus(user.id, UserStatus.SUSPENDED)}
                           className="text-orange-600 bg-white hover:bg-gray-50"
+                          disabled={isUpdatingStatus === user.id}
                         >
                           <AlertTriangle className="mr-2 h-4 w-4" />
-                          Suspend User
+                          {isUpdatingStatus === user.id ? "Suspending..." : "Suspend User"}
                         </DropdownMenuItem>
                       )}
                       {user.status === UserStatus.SUSPENDED && (
                         <DropdownMenuItem
                           onClick={() => handleUpdateUserStatus(user.id, UserStatus.ACTIVE)}
                           className="text-green-600 bg-white hover:bg-gray-50"
+                          disabled={isUpdatingStatus === user.id}
                         >
                           <Shield className="mr-2 h-4 w-4" />
-                          Activate User
+                          {isUpdatingStatus === user.id ? "Activating..." : "Activate User"}
                         </DropdownMenuItem>
                       )}
+                      <DropdownMenuItem
+                        onClick={() => openDeleteDialog(user)}
+                        className="text-red-600 bg-white hover:bg-gray-50"
+                        disabled={isUpdatingStatus === user.id || isDeleting}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete User
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
-                  </DropdownMenu>
+                    </DropdownMenu>
+                  </div>
                 </div>
               ))
             )}
@@ -419,34 +569,34 @@ export default function UserManagementPage() {
       {/* Invitations Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Pending Invitations</CardTitle>
+          <CardTitle>Invitations</CardTitle>
           <CardDescription>
-            Manage pending invitations and their status
+            Manage pending and expired invitations. Accepted invitations automatically move to the Users section.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {invitations.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">No pending invitations</p>
+              <p className="text-center text-muted-foreground py-8 col-span-full">No pending or expired invitations</p>
             ) : (
               invitations.map((invitation) => (
                 <div
                   key={invitation.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
+                  className="flex flex-col p-4 border rounded-lg space-y-3 max-w-sm bg-white"
                 >
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-medium">{invitation.email}</h3>
-                      <Badge className={getRoleBadgeColor(invitation.role)}>
-                        {invitation.role}
-                      </Badge>
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 className="font-medium truncate">{invitation.email}</h3>
+                        <span className="text-sm font-semibold text-gray-700">{invitation.role}</span>
+                      </div>
                       <Badge className={getStatusBadgeColor(invitation.status)}>
                         {invitation.status}
                       </Badge>
                     </div>
                     {invitation.organization && (
-                      <p className="text-sm text-muted-foreground">
-                        Organization: {invitation.organization.name}
+                      <p className="text-sm text-muted-foreground truncate">
+                        Org: {invitation.organization.name}
                       </p>
                     )}
                     <p className="text-xs text-muted-foreground">
@@ -456,18 +606,23 @@ export default function UserManagementPage() {
                       Expires: {new Date(invitation.expiresAt).toLocaleDateString()}
                     </p>
                     {invitation.notes && (
-                      <p className="text-sm text-muted-foreground mt-1">{invitation.notes}</p>
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{invitation.notes}</p>
                     )}
                   </div>
-                  {invitation.status === InvitationStatus.PENDING && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRevokeInvitation(invitation.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                  {(invitation.status === InvitationStatus.PENDING || invitation.status === InvitationStatus.EXPIRED) && (
+                    <div className="flex justify-end">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openDeleteInviteDialog(invitation)}
+                        className="text-red-600 hover:text-red-700 flex items-center gap-2"
+                        title="Delete invitation"
+                        disabled={isDeletingInvite}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="text-xs">Revoke invitation</span>
+                      </Button>
+                    </div>
                   )}
                 </div>
               ))
