@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FileText, Clock, CheckCircle, XCircle, Plus, Edit, Undo2, Trash2, Copy, User, EyeOff, AlertTriangle } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { DraftStatus } from "@/lib/auth/roles";
 
 type DraftSummary = {
@@ -289,9 +290,11 @@ export default function AdvocateDashboard() {
       <div className="flex items-center gap-6">
         {profile?.avatarUrl && (
           <div className="flex-shrink-0">
-            <img
+            <Image
               src={profile.avatarUrl}
               alt="Profile Avatar"
+              width={96}
+              height={96}
               className="w-24 h-24 rounded-full border-2 border-gray-200 shadow-sm"
             />
           </div>
@@ -401,9 +404,11 @@ export default function AdvocateDashboard() {
                 >
                   {firstImage && (
                     <div className="mb-3">
-                      <img
+                      <Image
                         src={firstImage}
                         alt={draft.title}
+                        width={400}
+                        height={128}
                         className="w-full h-32 object-cover rounded-md"
                       />
                     </div>
@@ -523,9 +528,11 @@ export default function AdvocateDashboard() {
             <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-white">
               <div className="flex items-center gap-4">
                 {profile.avatarUrl && (
-                  <img
+                  <Image
                     src={profile.avatarUrl}
                     alt="Profile Avatar"
+                    width={48}
+                    height={48}
                     className="w-12 h-12 rounded-full border border-gray-200"
                   />
                 )}

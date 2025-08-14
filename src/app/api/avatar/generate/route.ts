@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const avatar = createAvatar(avatarStyle as any, {
       seed,
       size,

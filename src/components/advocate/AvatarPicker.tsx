@@ -78,7 +78,7 @@ export default function AvatarPicker({ value: _value, onChange, seed = "", class
     } finally {
       setIsGenerating(false);
     }
-  }, []);
+  }, [onChange]);
 
   // Generate initial avatar on component mount
   useEffect(() => {
