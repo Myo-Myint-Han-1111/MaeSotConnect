@@ -331,7 +331,7 @@ export async function POST(request: NextRequest) {
       undefined
     );
 
-    // Create the course with all related entities in a transaction
+    // Create the course with all related entities in a transaction (excluding images)
     const course = await prisma.$transaction(async (tx) => {
       // Create the course with temporary slug
       const newCourse = await tx.course.create({
@@ -403,17 +403,6 @@ export async function POST(request: NextRequest) {
         data: { slug: finalSlug },
       });
 
-      // Create images
-      for (const imageUrl of imageUrls) {
-        await tx.image.create({
-          data: {
-            id: crypto.randomUUID(),
-            url: imageUrl,
-            courseId: newCourse.id,
-          },
-        });
-      }
-
       // Create badges
       for (const badge of validatedData.badges) {
         await tx.badge.create({
@@ -445,6 +434,17 @@ export async function POST(request: NextRequest) {
 
       return updatedCourse;
     });
+
+    // Create images separately (outside transaction to avoid timeout)
+    for (const imageUrl of imageUrls) {
+      await prisma.image.create({
+        data: {
+          id: crypto.randomUUID(),
+          url: imageUrl,
+          courseId: course.id,
+        },
+      });
+    }
 
     // Format the response
     const formattedCourse = {

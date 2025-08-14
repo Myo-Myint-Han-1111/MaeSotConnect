@@ -90,28 +90,31 @@ const nextConfig: NextConfig = {
               protocol: "https" as const,
               hostname: supabaseUrl,
               port: "",
-              pathname: "/storage/v1/object/public/**",
+              pathname: "/storage/v1/object/public/course-images/**", // Specific to course images only
+            },
+            {
+              protocol: "https" as const,
+              hostname: supabaseUrl,
+              port: "",
+              pathname: "/storage/v1/object/public/logo-images/**", // Specific to logo images only
             },
           ]
         : []),
       {
         protocol: "https" as const,
-        hostname: "storage.googleapis.com",
-        port: "",
-        pathname: "**",
-      },
-      {
-        protocol: "https" as const,
-        hostname: "lh3.googleusercontent.com",
+        hostname: "lh3.googleusercontent.com", // Google profile images only
         port: "",
         pathname: "**",
       },
     ],
-    // Optimization for mobile
-    deviceSizes: [320, 420, 640, 768, 1024],
-    imageSizes: [16, 32, 48, 64, 96],
-    formats: ["image/webp"],
-    minimumCacheTTL: 60 * 60 * 24, // 24 hours cache for images (not course data); 12 hour validation
+    // Optimized sizes for your course image use cases
+    deviceSizes: [640, 768, 1024, 1280], // Removed smaller sizes, course images don't need 320px
+    imageSizes: [32, 64, 128, 256], // Reduced options, focused on common thumbnail/preview sizes
+    formats: ["image/webp"], // Single format to reduce transformations
+    minimumCacheTTL: 2678400, // 31 days cache (Vercel recommendation for static content)
+    
+    // Disable optimization for small images and development previews
+    unoptimized: process.env.NODE_ENV === "development", // Skip optimization in dev for faster builds
   },
 
   // Ensure Prisma client works in serverless environment

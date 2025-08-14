@@ -121,7 +121,7 @@ export default function AdminDraftsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Course Draft Reviews</h1>
           <p className="text-muted-foreground">
-            Review and manage course drafts submitted by Youth Advocates.
+            Review and manage course drafts submitted by Youth Advocates and Organization Admins.
           </p>
         </div>
         {getPendingCount() > 0 && (

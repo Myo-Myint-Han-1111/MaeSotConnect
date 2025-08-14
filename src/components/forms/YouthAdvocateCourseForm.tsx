@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 // import { Checkbox } from "@/components/ui/checkbox";
 import LocationSelector from "@/components/forms/LocationSelector";
+import Image from "next/image";
 import {
   Select,
   SelectContent,
@@ -39,7 +40,9 @@ import {
   DollarSign,
   Users,
   Info,
+  Loader2,
 } from "lucide-react";
+import { compressImage, validateImageFile, formatFileSize } from "@/lib/imageCompression";
 
 interface CourseFormData {
   id?: string;
@@ -209,6 +212,7 @@ export default function CourseForm({
   const [existingImageList, setExistingImageList] =
     useState<string[]>(existingImages);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [isCompressing, setIsCompressing] = useState(false);
 
   // Initialize form data with default values
   const [formData, setFormData] = useState<CourseFormData>(() => {
@@ -257,6 +261,12 @@ export default function CourseForm({
       faq: [{ question: "", questionMm: "", answer: "", answerMm: "" }],
     };
   });
+
+  // Calculate total file size for Vercel limit warning
+  const totalFileSize = formData.images.reduce((total, file) => total + file.size, 0);
+  const VERCEL_LIMIT = 4 * 1024 * 1024; // 4MB in bytes
+  const isNearLimit = totalFileSize > VERCEL_LIMIT * 0.8; // Warning at 80% of limit
+  const isOverLimit = totalFileSize > VERCEL_LIMIT;
 
   useEffect(() => {
     const checkIfMobile = () => {
@@ -660,15 +670,55 @@ export default function CourseForm({
     });
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const newImages = Array.from(files);
-    setFormData((prev) => ({
-      ...prev,
-      images: [...prev.images, ...newImages],
-    }));
+    const fileArray = Array.from(files);
+    setIsCompressing(true);
+
+    try {
+      const compressedImages: File[] = [];
+
+      for (const file of fileArray) {
+        // Validate file
+        const validationError = validateImageFile(file);
+        if (validationError) {
+          alert(`${file.name}: ${validationError}`);
+          continue;
+        }
+
+        try {
+          // Compress image
+          const result = await compressImage(file, {
+            maxWidth: 1200,
+            maxHeight: 800,
+            quality: 0.8,
+            maxSizeKB: 500
+          });
+
+          compressedImages.push(result.file);
+        } catch (compressionError) {
+          console.error(`Failed to compress ${file.name}:`, compressionError);
+          alert(`Failed to compress ${file.name}. Please try a different image.`);
+        }
+      }
+
+      // Update form data with compressed images
+      setFormData(prev => ({
+        ...prev,
+        images: [...prev.images, ...compressedImages]
+      }));
+
+    } catch (error) {
+      console.error('Error during image upload:', error);
+      alert('Failed to process images. Please try again.');
+    } finally {
+      setIsCompressing(false);
+    }
+
+    // Clear the input
+    e.target.value = '';
   };
 
   const removeImage = (index: number) => {
@@ -2105,6 +2155,27 @@ export default function CourseForm({
             <TabsContent value="images" className="space-y-5">
               <div className="space-y-3">
                 <Label>Course Images</Label>
+                
+                {/* File Size Warning */}
+                {formData.images.length > 0 && (
+                  <div className={`p-3 rounded-md border ${
+                    isOverLimit 
+                      ? 'bg-red-50 border-red-200 text-red-800' 
+                      : isNearLimit 
+                      ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
+                      : 'bg-gray-50 border-gray-200 text-gray-600'
+                  }`}>
+                    <div className="text-sm">
+                      <span className="font-medium">Total image size:</span> {formatFileSize(totalFileSize)} of 4MB limit
+                      {isOverLimit && (
+                        <div className="mt-1 text-xs">⚠️ Size exceeds upload limit. Please remove some images.</div>
+                      )}
+                      {isNearLimit && !isOverLimit && (
+                        <div className="mt-1 text-xs">⚠️ Approaching upload limit.</div>
+                      )}
+                    </div>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                   {/* Display existing images */}
                   {existingImageList.map((url, index) => (
@@ -2112,11 +2183,12 @@ export default function CourseForm({
                       key={`existing-image-${index}`}
                       className="relative h-40 border rounded-md overflow-hidden"
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={url}
-                        alt={`Existing course image ${index + 1}`}
-                        className="w-full h-full object-cover"
+                      <Image 
+                        src={url} 
+                        alt={`Existing course image ${index + 1}`} 
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                       />
                       <div className="absolute top-0 left-0 bg-black bg-opacity-20 text-white text-xs px-2 py-1 rounded-br-md">
                         Existing
@@ -2184,8 +2256,16 @@ export default function CourseForm({
                       onClick={() =>
                         document.getElementById("image-upload")?.click()
                       }
+                      disabled={isCompressing}
                     >
-                      Select Files
+                      {isCompressing ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          Processing...
+                        </>
+                      ) : (
+                        'Select Files'
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -2366,6 +2446,7 @@ export default function CourseForm({
               type="submit"
               disabled={
                 isLoading ||
+                isOverLimit ||
                 (!draftMode &&
                   (!formData.organizationId || formData.organizationId === ""))
               }
@@ -2375,6 +2456,8 @@ export default function CourseForm({
                 ? draftMode
                   ? "Submitting..."
                   : "Saving..."
+                : isOverLimit
+                ? "Images too large"
                 : draftMode
                 ? "Submit for Review"
                 : mode === "create"
