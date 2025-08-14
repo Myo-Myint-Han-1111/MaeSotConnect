@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { redirect, useSearchParams } from "next/navigation";
-import CourseForm from "@/components/admin/CourseForm";
+import YouthAdvocateCourseForm from "@/components/forms/YouthAdvocateCourseForm";
 
 type DraftData = {
   id: string;
@@ -79,7 +79,7 @@ export default function SubmitCoursePage() {
 
   return (
     <div>
-      <CourseForm
+      <YouthAdvocateCourseForm
         mode={editDraftId ? "edit" : "create"}
         draftMode={true}
         backUrl="/advocate"

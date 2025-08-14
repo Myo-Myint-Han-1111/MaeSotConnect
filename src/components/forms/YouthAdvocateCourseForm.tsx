@@ -1,5 +1,3 @@
-// src/components/admin/CourseForm.tsx
-
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
@@ -16,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 // import { Checkbox } from "@/components/ui/checkbox";
-import LocationSelector from "@/components/admin/LocationSelector";
+import LocationSelector from "@/components/forms/LocationSelector";
 import {
   Select,
   SelectContent,
@@ -24,6 +22,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   X,
   Plus,
@@ -34,6 +38,7 @@ import {
   Calendar,
   DollarSign,
   Users,
+  Info,
 } from "lucide-react";
 
 interface CourseFormData {
@@ -1026,7 +1031,8 @@ export default function CourseForm({
   };
 
   return (
-    <div className="[&_input]:bg-white [&_textarea]:bg-white [&_button[role=combobox]]:bg-white">
+    <TooltipProvider delayDuration={200}>
+      <div className="[&_input]:bg-white [&_textarea]:bg-white [&_button[role=combobox]]:bg-white bg-white">
     <form onSubmit={handleSubmit}>
       <Card>
         <CardHeader>
@@ -1090,7 +1096,7 @@ export default function CourseForm({
             <TabsContent value="basic-info" className="space-y-4">
               {/* Organization Select - Added for Platform Admin */}
               <div className="space-y-2">
-                <Label htmlFor="organizationId">Organization *</Label>
+                <Label htmlFor="organizationId">Organization*</Label>
                 <Select
                   value={formData.organizationId || ""}
                   onValueChange={handleOrganizationChange}
@@ -1122,7 +1128,18 @@ export default function CourseForm({
 
               {/* Title - English and Myanmar */}
               <div className="space-y-2">
-                <Label htmlFor="title">Course Title</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="title">Course Title*</Label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-sm">
+                      <p>Enter the program name as youth would recognize it.</p>
+                      <p className="mt-1 text-xs text-gray-600"><strong>Example:</strong> &quot;Youth Champions Program&quot;</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <div className="text-xs text-muted-foreground mb-1">
@@ -1155,7 +1172,18 @@ export default function CourseForm({
 
               {/* Subtitle - English and Myanmar */}
               <div className="space-y-2">
-                <Label htmlFor="subtitle">Subtitle</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="subtitle">Subtitle*</Label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-sm">
+                      <p>Write a brief description of what the program offers. Keep it concise.</p>
+                      <p className="mt-1 text-xs text-gray-600"><strong>Example:</strong> &quot;Pre-university and early career skill development&quot;</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <div className="text-xs text-muted-foreground mb-1">
@@ -1188,7 +1216,7 @@ export default function CourseForm({
 
               {/* Course Address */}
               <div className="space-y-2">
-                <Label htmlFor="address">Course Address (Optional)</Label>
+                <Label htmlFor="address">Course Address</Label>
                 <Input
                   id="address"
                   name="address"
@@ -1213,7 +1241,7 @@ export default function CourseForm({
               <div className="space-y-2">
                 <Label htmlFor="ageMin">
                   <Users className="h-4 w-4 inline mr-1" />
-                  Age Requirements (Optional)
+                  Age Requirements
                 </Label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -1269,10 +1297,21 @@ export default function CourseForm({
 
               {/* Required Documents - Made Optional */}
               <div className="space-y-2">
-                <Label htmlFor="document">
-                  <FileText className="h-4 w-4 inline mr-1" />
-                  Required Documents (Optional)
-                </Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="document">
+                    <FileText className="h-4 w-4 inline mr-1" />
+                    Required Documents
+                  </Label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-sm">
+                      <p>List any documents youth need to provide when applying. Leave blank if no documents are required.</p>
+                      <p className="mt-1 text-xs text-gray-600"><strong>Example:</strong> High school diploma, GED certificate, or passport</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <div className="text-xs text-muted-foreground mb-1">
@@ -1378,10 +1417,20 @@ export default function CourseForm({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Start Date */}
                 <div className="space-y-2">
-                  <Label htmlFor="startDate">
-                    <Calendar className="h-4 w-4 inline mr-1" />
-                    Start Date
-                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="startDate">
+                      <Calendar className="h-4 w-4 inline mr-1" />
+                      Start Date
+                    </Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-sm">
+                        <p>Select the date when the program begins.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                   <Input
                     id="startDate"
                     name="startDate"
@@ -1394,10 +1443,20 @@ export default function CourseForm({
 
                 {/* End Date */}
                 <div className="space-y-2">
-                  <Label htmlFor="endDate">
-                    <Calendar className="h-4 w-4 inline mr-1" />
-                    End Date
-                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="endDate">
+                      <Calendar className="h-4 w-4 inline mr-1" />
+                      End Date
+                    </Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-sm">
+                        <p>Select the date when the program ends.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                   <Input
                     id="endDate"
                     name="endDate"
@@ -1411,7 +1470,17 @@ export default function CourseForm({
 
               {/* Apply By Date */}
               <div className="space-y-2">
-                <Label htmlFor="applyByDate">Application Deadline</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="applyByDate">Application Deadline</Label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-sm">
+                      <p>Set the final date for youth to submit applications.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <div className="text-xs text-muted-foreground mb-1">
@@ -1431,9 +1500,20 @@ export default function CourseForm({
               {/* Estimated Date Section */}
               <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
                 <div className="space-y-3">
-                  <Label className="text-base font-medium">
-                    Estimated Date Options
-                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-base font-medium">
+                      Estimated Date Options
+                    </Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-sm">
+                        <p>Use this when you cannot confirm exact program dates. Mark dates as estimated if they may change by more than one week.</p>
+                        <p className="mt-1 text-xs text-gray-600">If dates may shift by less than a week, leave this unchecked as youth can adjust to minor changes.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                   <p className="text-sm text-muted-foreground">
                     Configure when to display the estimated date. If neither
                     option is selected, estimated dates will not be shown on
@@ -1443,7 +1523,7 @@ export default function CourseForm({
                   {/* Estimated Date Input Fields */}
                   <div className="space-y-2">
                     <Label htmlFor="estimatedDate">
-                      Estimated Date (Optional)
+                      Estimated Date 
                     </Label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -1542,10 +1622,21 @@ export default function CourseForm({
 
               {/* Duration */}
               <div className="space-y-2">
-                <Label htmlFor="duration">
-                  <Clock className="h-4 w-4 inline mr-1" />
-                  Duration (days)
-                </Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="duration">
+                    <Clock className="h-4 w-4 inline mr-1" />
+                    Duration (days)
+                  </Label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-sm">
+                      <p>Enter the total number of active program days, not the time span.</p>
+                      <p className="mt-1 text-xs text-gray-600"><strong>Example:</strong> A 3-day program spread over 3 weeks = 3 days, not 21</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
                 <Input
                   id="duration"
                   name="duration"
@@ -1771,7 +1862,7 @@ export default function CourseForm({
                                 e.target.value
                               )
                             }
-                            placeholder="e.g. Open to residents aged 15+"
+                            placeholder="e.g. Intermediate-beginner English"
                           />
                           <Button
                             type="button"
@@ -1854,7 +1945,7 @@ export default function CourseForm({
 
               {/* How to Apply - English and Myanmar - ADD THIS SECTION AFTER SELECTION CRITERIA */}
               <div className="space-y-3">
-                <Label>How to Apply (Optional)</Label>
+                <Label>How to Apply </Label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <div className="text-xs text-muted-foreground mb-1">
@@ -1946,7 +2037,7 @@ export default function CourseForm({
 
               {/* Apply Button Customization - NEW SECTION */}
               <div className="space-y-3">
-                <Label>Apply Button Customization (Optional)</Label>
+                <Label>Apply Button Customization </Label>
 
                 {/* Apply Button Text */}
                 <div className="space-y-2">
@@ -2253,7 +2344,7 @@ export default function CourseForm({
             variant="outline"
             onClick={() => router.push(backUrl || "/dashboard/courses")}
             disabled={isLoading}
-            className={isMobile ? "w-full" : ""}
+            className={`{isMobile ? "w-full" : ""} hover:bg-gray-100`}
           >
             Cancel
           </Button>
@@ -2294,6 +2385,7 @@ export default function CourseForm({
         </CardFooter>
       </Card>
     </form>
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }

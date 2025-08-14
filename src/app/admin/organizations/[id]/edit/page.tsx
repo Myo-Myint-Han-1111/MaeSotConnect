@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import OrganizationForm from "@/components/admin/OrganizationForm";
+import OrganizationForm from "@/components/forms/OrganizationForm";
 
 interface Organization {
   id: string;

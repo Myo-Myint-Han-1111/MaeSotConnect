@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import OrganizationForm from "@/components/admin/OrganizationForm";
+import OrganizationForm from "@/components/forms/OrganizationForm";
 
 export default function NewOrganizationPage() {
   return (

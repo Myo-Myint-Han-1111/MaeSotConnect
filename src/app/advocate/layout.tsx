@@ -90,7 +90,7 @@ export default function AdvocateLayout({
               className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
                 link.active
                   ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                  : "text-gray-600 hover:bg-gray-200"
+                  : "hover:bg-gray-200"
               }`}
             >
               {link.icon}
@@ -99,7 +99,7 @@ export default function AdvocateLayout({
           ))}
           <Button
             variant="ghost"
-            className="w-full justify-start text-gray-600 hover:bg-gray-200 px-3 py-2 rounded-md text-sm"
+            className="w-full justify-start hover:bg-gray-200 px-3 py-2 rounded-md text-sm"
             onClick={confirmSignOut}
           >
             <LogOut className="h-5 w-5 mr-3" />

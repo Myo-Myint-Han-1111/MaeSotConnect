@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useParams, redirect } from "next/navigation";
-import CourseForm from "@/components/admin/CourseForm";
+import PlatformAdminCourseForm from "@/components/forms/PlatformAdminCourseForm";
 
 // Type assertion for session user with organizationId
 interface SessionUser {
@@ -368,7 +368,7 @@ export default function EditCoursePage() {
   return (
     <div>
       {/* <h1 className="text-2xl font-bold mb-6">Edit Course: {course.title}</h1> */}
-      <CourseForm
+      <PlatformAdminCourseForm
         mode="edit"
         initialData={course}
         existingImages={existingImages}

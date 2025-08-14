@@ -101,9 +101,9 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-sm fixed h-full z-10">
+      <div className="w-64 bg-gray-100 shadow-sm fixed h-full z-10">
         <div className="p-6 border-b">
-          <h1 className="text-xl font-bold">Mae Sot Connect</h1>
+          <h1 className="text-xl font-bold">JumpStudy.org</h1>
           <p className="text-sm text-muted-foreground">Admin Dashboard</p>
         </div>
         <nav className="p-4 space-y-1">

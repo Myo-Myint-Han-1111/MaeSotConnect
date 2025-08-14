@@ -4,7 +4,7 @@ import React from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { redirect } from "next/navigation";
-import CourseForm from "@/components/admin/CourseForm";
+import PlatformAdminCourseForm from "@/components/forms/PlatformAdminCourseForm";
 
 export default function NewCoursePage() {
   const searchParams = useSearchParams();
@@ -38,8 +38,9 @@ export default function NewCoursePage() {
 
   return (
     <div>
-      {/* <h1 className="text-2xl font-bold mb-6">Create New Course</h1> */}
-      <CourseForm mode="create" organizationId={organizationId || undefined} />
+      <PlatformAdminCourseForm 
+        organizationId={organizationId || undefined}
+      />
     </div>
   );
 }
