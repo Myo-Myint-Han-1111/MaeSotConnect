@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const avatar = createAvatar(avatarStyle, {
+    const avatar = createAvatar(avatarStyle as any, {
       seed,
       size,
       // Add some common options for better variety
