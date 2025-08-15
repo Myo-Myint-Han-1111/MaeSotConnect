@@ -1021,6 +1021,12 @@ export default function Home() {
               >
                 {t("nav.about")}
               </Link>
+              <Link
+                href="/youthadvocates"
+                className="text-gray-600 hover:text-primary transition-colors text-sm"
+              >
+                {language === "mm" ? "လူငယ်ကိုယ်စားလှယ်များ" : "Youth Advocates"}
+              </Link>
             </nav>
           </div>
 

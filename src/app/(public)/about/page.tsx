@@ -15,7 +15,7 @@ const About: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Back Button */}
-      <div className="relative z-10 bg-background py-4 pt-6 max-w-4xl mx-auto px-4">
+      <div className="relative z-10 bg-background py-4 pt-4 max-w-4xl mx-auto px-4">
         <Button
           variant="outline"
           size="sm"

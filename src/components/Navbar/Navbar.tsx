@@ -4,7 +4,6 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
-import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -27,77 +26,49 @@ export const Navbar: React.FC<NavbarProps> = ({ brand }) => {
   const { language, setLanguage } = useLanguage();
   const pathname = usePathname();
 
-  // Check if we're on a page that needs the dark navbar style
-  const isAlternateStyle =
-    pathname.startsWith("/about") || pathname.startsWith("/courses/");
+  // Check if we're on the home page
+  const isHomePage = pathname === "/";
 
-  const changeLanguage = (value: string) => {
-    if (value === "en" || value === "mm") {
-      setLanguage(value as "en" | "mm");
-    }
-  };
 
   return (
     <header
       className={`relative w-full z-50 transition-colors duration-300 ${
-        isAlternateStyle ? "bg-[#4257b2] dark:bg-gray-900" : "bg-transparent"
+        isHomePage ? "bg-transparent" : "bg-[#4257b2]"
       }`}
     >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
           {/* Brand/Logo */}
           <Link href="/" className="transition-transform hover:scale-105">
-            {brand.logo && (
-              <Image
-                src={brand.logo}
-                alt={brand.name}
-                width={32}
-                height={32}
-                className="h-10 w-auto"
-                unoptimized={true}
-                priority={true}
-              />
-            )}
+            <Image
+              src="/images/JumpStudyLogo.svg"
+              alt={brand.name}
+              width={32}
+              height={32}
+              className="h-10 w-auto"
+              style={{ filter: 'drop-shadow(none)' }}
+              unoptimized={true}
+              priority={true}
+            />
           </Link>
 
           {/* Right side controls */}
           <div className="flex items-center space-x-4">
-            {/* Theme Toggle */}
-            <ThemeToggle />
+            {/* Theme Toggle - only on home page */}
+            {isHomePage && <ThemeToggle />}
 
             {/* Language Switcher */}
-            <div>
-              <Tabs
-                defaultValue={language}
-                value={language}
-                onValueChange={changeLanguage}
-                className="border rounded-md overflow-hidden border-white/30"
+            <div className="relative">
+              <button
+                onClick={() => setLanguage(language === "en" ? "mm" : "en")}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 border ${
+                  isHomePage 
+                    ? "border-white/30 text-white/70 hover:bg-white/20 hover:text-white"
+                    : "border-white/30 text-white/70 hover:bg-white/20 hover:text-white"
+                }`}
               >
-                <TabsList className="bg-transparent p-0 h-auto flex">
-                  <TabsTrigger
-                    value="en"
-                    className={`px-2 py-1 md:px-3 md:py-2 text-xs md:text-sm font-medium transition-all duration-200 rounded-l-md border-0 h-full
-                      ${
-                        language === "en"
-                          ? "bg-white text-gray-900 font-semibold shadow-sm"
-                          : "bg-transparent text-white/70 hover:text-white hover:bg-white/10"
-                      }`}
-                  >
-                    ENG
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="mm"
-                    className={`px-2 py-1 md:px-3 md:py-2 text-xs md:text-sm font-medium transition-all duration-200 rounded-r-md border-0 h-full
-                      ${
-                        language === "mm"
-                          ? "bg-white text-gray-900 font-semibold shadow-sm"
-                          : "bg-transparent text-white/70 hover:text-white hover:bg-white/10"
-                      }`}
-                  >
-                    မြန်မာ
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
+                {language === "en" ? "မြန်မာ" : "EN"}
+              </button>
             </div>
           </div>
         </div>
