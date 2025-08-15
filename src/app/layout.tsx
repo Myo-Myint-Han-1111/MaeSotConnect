@@ -1,12 +1,20 @@
 // src/app/layout.tsx
-"use client";
-
 import React from "react";
-import { SessionProvider } from "next-auth/react";
-import { LanguageProvider } from "@/context/LanguageContext";
-import { ToastProvider } from "@/context/ToastContext";
-import { ThemeProvider } from "@/components/ThemeProvider";
+import { Metadata } from "next";
+import ClientProviders from "@/components/providers/ClientProviders";
 import "./globals.css";
+
+export const metadata: Metadata = {
+  title: {
+    default: "JumpStudy.org",
+    template: "%s | JumpStudy.org"
+  },
+  description: "Educational opportunities in Thailand",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+};
 
 export default function RootLayout({
   children,
@@ -15,15 +23,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head />
       <body>
-        <ThemeProvider defaultTheme="light">
-          <SessionProvider>
-            <LanguageProvider>
-              <ToastProvider>{children}</ToastProvider>
-            </LanguageProvider>
-          </SessionProvider>
-        </ThemeProvider>
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   );
