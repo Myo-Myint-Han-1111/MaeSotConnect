@@ -1,8 +1,9 @@
 import { Metadata } from "next";
 import CourseClientPage from "./CourseClientPage";
 
-export async function generateMetadata({ params }: { params: { slug: string[] } }): Promise<Metadata> {
-  const currentSlug = Array.isArray(params.slug) ? params.slug.join("/") : params.slug;
+export async function generateMetadata({ params }: { params: Promise<{ slug: string[] }> }): Promise<Metadata> {
+  const resolvedParams = await params;
+  const currentSlug = Array.isArray(resolvedParams.slug) ? resolvedParams.slug.join("/") : resolvedParams.slug;
   
   try {
     // Fetch course data for metadata generation

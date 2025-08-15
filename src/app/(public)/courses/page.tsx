@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import { useLanguage } from "../../../context/LanguageContext";
 import { Button } from "../../../components/ui/button";
@@ -1192,6 +1192,7 @@ export default function CoursePage() {
   const [courses, setCourses] = useState<CourseDetailProps["courses"]>([]);
   const [loading, setLoading] = useState(true);
   const [cacheRestored, setCacheRestored] = useState(false);
+  const coursesLengthRef = useRef(0);
 
   // Cache management functions
   const saveCourseDetailsCache = useCallback((coursesData: CourseDetailProps["courses"]) => {
@@ -1239,6 +1240,7 @@ export default function CoursePage() {
       // Restore course data immediately
       console.log('Course details: restoring', cache.courses.length, 'courses from cache');
       setCourses(cache.courses);
+      coursesLengthRef.current = cache.courses.length;
       setLoading(false);
       
       console.log('Course details: cache restoration successful');
@@ -1269,9 +1271,10 @@ export default function CoursePage() {
           if (response.ok) {
             const data = await response.json();
             // Only update if data is different (simple length check to avoid JSON.stringify)
-            if (data.length !== courses.length) {
+            if (data.length !== coursesLengthRef.current) {
               console.log('Course details: background refresh - data changed, updating');
               setCourses(data);
+              coursesLengthRef.current = data.length;
               saveCourseDetailsCache(data);
             } else {
               console.log('Course details: background refresh - no changes');
@@ -1291,6 +1294,7 @@ export default function CoursePage() {
           if (response.ok) {
             const data = await response.json();
             setCourses(data);
+            coursesLengthRef.current = data.length;
             saveCourseDetailsCache(data);
             console.log('Course details: normal fetch completed');
           }
