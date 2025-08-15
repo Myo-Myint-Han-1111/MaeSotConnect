@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { useLanguage } from "../../../context/LanguageContext";
 import { Button } from "../../../components/ui/button";
@@ -549,10 +549,16 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
     };
   }, []);
 
-  // This effect will run when the component mounts
+  // Scroll position management
   useEffect(() => {
-    // Scroll to the top of the page
-    window.scrollTo(0, 0);
+    // Only scroll to top if we're coming from a fresh load (not cached)
+    // This prevents unwanted scrolling when cache is restored
+    if (typeof window !== "undefined") {
+      const hasCache = sessionStorage.getItem(COURSE_DETAILS_CACHE_KEY);
+      if (!hasCache) {
+        window.scrollTo(0, 0);
+      }
+    }
   }, [id]); // Re-run this effect if the course ID changes
 
   // NEW modern function:
@@ -1173,28 +1179,131 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
   );
 };
 
+// Course details cache constants
+const COURSE_DETAILS_CACHE_KEY = 'courseDetailsCache';
+const COURSE_DETAILS_CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
+
+interface CourseDetailsCache {
+  courses: CourseDetailProps["courses"];
+  timestamp: number;
+}
+
 export default function CoursePage() {
   const [courses, setCourses] = useState<CourseDetailProps["courses"]>([]);
   const [loading, setLoading] = useState(true);
+  const [cacheRestored, setCacheRestored] = useState(false);
+
+  // Cache management functions
+  const saveCourseDetailsCache = useCallback((coursesData: CourseDetailProps["courses"]) => {
+    if (typeof window === "undefined") return;
+    
+    try {
+      const cache: CourseDetailsCache = {
+        courses: coursesData,
+        timestamp: Date.now()
+      };
+      sessionStorage.setItem(COURSE_DETAILS_CACHE_KEY, JSON.stringify(cache));
+      console.log('Course details: cached', coursesData.length, 'courses');
+    } catch (error) {
+      console.error('Error caching course details:', error);
+    }
+  }, []);
+
+  const restoreCourseDetailsCache = useCallback(() => {
+    console.log('Course details: attempting cache restoration');
+    if (typeof window === "undefined") {
+      console.log('Course details: window undefined, skipping cache');
+      return false;
+    }
+    
+    try {
+      const cached = sessionStorage.getItem(COURSE_DETAILS_CACHE_KEY);
+      console.log('Course details: cached data found:', !!cached);
+      
+      if (!cached) {
+        console.log('Course details: no cache found');
+        return false;
+      }
+      
+      const cache: CourseDetailsCache = JSON.parse(cached);
+      const age = Date.now() - cache.timestamp;
+      console.log('Course details: cache age (ms):', age, 'max age:', COURSE_DETAILS_CACHE_DURATION);
+      
+      // Check if cache is still valid
+      if (age > COURSE_DETAILS_CACHE_DURATION) {
+        console.log('Course details: cache expired, removing');
+        sessionStorage.removeItem(COURSE_DETAILS_CACHE_KEY);
+        return false;
+      }
+      
+      // Restore course data immediately
+      console.log('Course details: restoring', cache.courses.length, 'courses from cache');
+      setCourses(cache.courses);
+      setLoading(false);
+      
+      console.log('Course details: cache restoration successful');
+      return true;
+    } catch (error) {
+      console.error('Error restoring course details cache:', error);
+      sessionStorage.removeItem(COURSE_DETAILS_CACHE_KEY);
+      return false;
+    }
+  }, []);
+
+  // Initial cache restoration
+  useEffect(() => {
+    const restored = restoreCourseDetailsCache();
+    setCacheRestored(restored);
+  }, [restoreCourseDetailsCache]);
 
   useEffect(() => {
-    // Fetch courses data
+    // Cache-first data fetching
     async function fetchCourses() {
-      try {
-        const response = await fetch("/api/courses");
-        if (response.ok) {
-          const data = await response.json();
-          setCourses(data);
+      console.log('Course details: fetchCourses called, cacheRestored:', cacheRestored, 'loading:', loading);
+      
+      // If cache was restored, do background refresh
+      if (cacheRestored) {
+        console.log('Course details: cache was restored, doing background refresh');
+        try {
+          const response = await fetch("/api/courses");
+          if (response.ok) {
+            const data = await response.json();
+            // Only update if data is different (simple length check to avoid JSON.stringify)
+            if (data.length !== courses.length) {
+              console.log('Course details: background refresh - data changed, updating');
+              setCourses(data);
+              saveCourseDetailsCache(data);
+            } else {
+              console.log('Course details: background refresh - no changes');
+            }
+          }
+        } catch (error) {
+          console.error("Course details background refresh failed:", error);
         }
-      } catch (error) {
-        console.error("Error fetching courses:", error);
-      } finally {
-        setLoading(false);
+        return;
+      }
+
+      // Normal fetch for first-time load or cache miss
+      if (!cacheRestored && loading) {
+        console.log('Course details: cache miss, doing normal fetch');
+        try {
+          const response = await fetch("/api/courses");
+          if (response.ok) {
+            const data = await response.json();
+            setCourses(data);
+            saveCourseDetailsCache(data);
+            console.log('Course details: normal fetch completed');
+          }
+        } catch (error) {
+          console.error("Error fetching courses:", error);
+        } finally {
+          setLoading(false);
+        }
       }
     }
 
     fetchCourses();
-  }, []);
+  }, [cacheRestored, loading, saveCourseDetailsCache]); // Removed 'courses' from dependencies
 
   if (loading) {
     return (

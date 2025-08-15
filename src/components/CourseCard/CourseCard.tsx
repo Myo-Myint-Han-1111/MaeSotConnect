@@ -103,11 +103,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   const { language, t } = useLanguage();
 
   const handleNavigation = () => {
-    // Save the clicked card's slug instead of scroll position
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("targetCourseSlug", slug);
-      console.log("Saving target course slug:", slug);
-    }
+    // Note: Page state is now automatically saved by the main page component
+    // No need to save individual slug - full state persistence handles this
     router.push(`/courses/${slug}`);
   };
 

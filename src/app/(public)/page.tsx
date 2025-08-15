@@ -95,6 +95,19 @@ interface Course {
   }[];
 }
 
+// Cache management constants
+const COURSE_CACHE_KEY = 'courseListCache';
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+interface CachedState {
+  courses: Course[];
+  searchTerm: string;
+  activeFilters: string[];
+  sortBy: string;
+  scrollPosition: number;
+  timestamp: number;
+}
+
 export default function Home() {
   const { t, language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
@@ -102,6 +115,63 @@ export default function Home() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<string>("startDate-asc");
+  const [cacheRestored, setCacheRestored] = useState(false);
+
+  // Cache management functions
+  const savePageState = useCallback(() => {
+    if (typeof window === "undefined") return;
+    
+    try {
+      const state: CachedState = {
+        courses,
+        searchTerm,
+        activeFilters,
+        sortBy,
+        scrollPosition: window.scrollY,
+        timestamp: Date.now()
+      };
+      sessionStorage.setItem(COURSE_CACHE_KEY, JSON.stringify(state));
+      console.log('Page state saved to cache');
+    } catch (error) {
+      console.error('Error saving page state:', error);
+    }
+  }, [courses, searchTerm, activeFilters, sortBy]);
+
+  const restorePageState = useCallback(() => {
+    if (typeof window === "undefined") return false;
+    
+    try {
+      const cached = sessionStorage.getItem(COURSE_CACHE_KEY);
+      if (!cached) return false;
+      
+      const state: CachedState = JSON.parse(cached);
+      
+      // Check if cache is still valid
+      if (Date.now() - state.timestamp > CACHE_DURATION) {
+        sessionStorage.removeItem(COURSE_CACHE_KEY);
+        return false;
+      }
+      
+      // Restore all state immediately
+      setCourses(state.courses);
+      setSearchTerm(state.searchTerm);
+      setActiveFilters(state.activeFilters);
+      setSortBy(state.sortBy);
+      setLoading(false); // Important: skip loading state
+      
+      // Restore scroll position immediately
+      requestAnimationFrame(() => {
+        window.scrollTo(0, state.scrollPosition);
+      });
+      
+      console.log('Page state restored from cache');
+      return true;
+    } catch (error) {
+      console.error('Error restoring page state:', error);
+      sessionStorage.removeItem(COURSE_CACHE_KEY);
+      return false;
+    }
+  }, []);
 
   // ADD THESE SORT OPTIONS:
   const sortOptions = [
@@ -112,23 +182,29 @@ export default function Home() {
     { value: "applyByDate-desc", label: t("sort.applyByDate.latest") },
   ];
 
-  // Load saved state from sessionStorage on component mount
+  // Initial cache restoration on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
-      try {
-        const savedState = sessionStorage.getItem("courseFilters");
-        if (savedState) {
-          const { searchTerm: savedSearch, activeFilters: savedFilters } =
-            JSON.parse(savedState);
-          if (savedSearch) setSearchTerm(savedSearch);
-          if (savedFilters && Array.isArray(savedFilters))
-            setActiveFilters(savedFilters);
+      const restored = restorePageState();
+      setCacheRestored(restored);
+      
+      // If cache was restored, no need to load old filter state
+      if (!restored) {
+        try {
+          const savedState = sessionStorage.getItem("courseFilters");
+          if (savedState) {
+            const { searchTerm: savedSearch, activeFilters: savedFilters } =
+              JSON.parse(savedState);
+            if (savedSearch) setSearchTerm(savedSearch);
+            if (savedFilters && Array.isArray(savedFilters))
+              setActiveFilters(savedFilters);
+          }
+        } catch (error) {
+          console.error("Error loading saved filters:", error);
         }
-      } catch (error) {
-        console.error("Error loading saved filters:", error);
       }
     }
-  }, []);
+  }, [restorePageState]);
 
   // Save state to sessionStorage whenever searchTerm or activeFilters change
   useEffect(() => {
@@ -147,9 +223,29 @@ export default function Home() {
     }
   }, [searchTerm, activeFilters]);
 
-  // Fetch courses from API
+  // Cache-first data fetching
   useEffect(() => {
     async function fetchCourses() {
+      // If cache was restored, skip initial fetch but do background refresh
+      if (cacheRestored) {
+        console.log('Cache restored, doing background refresh');
+        try {
+          const response = await fetch("/api/courses/public");
+          if (response.ok) {
+            const data = await response.json();
+            // Only update if data is different (simple check)
+            if (JSON.stringify(data) !== JSON.stringify(courses)) {
+              setCourses(data);
+              console.log('Background refresh: data updated');
+            }
+          }
+        } catch (error) {
+          console.error("Background refresh failed:", error);
+        }
+        return;
+      }
+
+      // Normal fetch for first-time load or cache miss
       try {
         const response = await fetch("/api/courses/public");
         if (!response.ok) {
@@ -165,7 +261,7 @@ export default function Home() {
     }
 
     fetchCourses();
-  }, []);
+  }, [cacheRestored, courses]);
 
   // NEW: Get course status function
   const getCourseStatus = useCallback((course: Course) => {
@@ -473,16 +569,47 @@ export default function Home() {
     return sortCourses(filtered, sortBy);
   }, [coursesAvailableForFiltering, activeFilters, sortBy, sortCourses]);
 
-  // Card-based scroll restoration
+  // Save state before navigation and on state changes
+  useEffect(() => {
+    if (!loading && courses.length > 0) {
+      savePageState();
+    }
+  }, [courses, searchTerm, activeFilters, sortBy, loading, savePageState]);
+
+  // Save state when user scrolls (debounced)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    
+    let scrollTimeout: NodeJS.Timeout;
+    const handleScroll = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        if (!loading && courses.length > 0) {
+          savePageState();
+        }
+      }, 100);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(scrollTimeout);
+    };
+  }, [loading, courses.length, savePageState]);
+
+  // Legacy card-based scroll restoration (fallback)
   useEffect(() => {
     const restoreToTargetCard = async () => {
+      // Only use this if cache restoration failed
+      if (cacheRestored) return;
+      
       const targetSlug = sessionStorage.getItem("targetCourseSlug");
 
       if (!targetSlug || loading || filteredCourses.length === 0) {
         return;
       }
 
-      console.log("Looking for target course:", targetSlug);
+      console.log("Looking for target course (fallback):", targetSlug);
 
       // Wait a bit for the cards to render
       await new Promise((resolve) => setTimeout(resolve, 200));
@@ -497,37 +624,17 @@ export default function Home() {
 
         // Scroll to the card with some offset for better UX
         targetCard.scrollIntoView({
-          behavior: "smooth",
+          behavior: "instant",
           block: "center",
         });
 
         // Clean up
         sessionStorage.removeItem("targetCourseSlug");
-      } else {
-        console.log("Target card not found, trying again...");
-
-        // If card not found, try again after more delay
-        setTimeout(() => {
-          const retryCard = document.querySelector(
-            `[data-course-slug="${targetSlug}"]`
-          );
-          if (retryCard) {
-            console.log("Found target card on retry");
-            retryCard.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-            });
-            sessionStorage.removeItem("targetCourseSlug");
-          } else {
-            console.log("Target card still not found, cleaning up");
-            sessionStorage.removeItem("targetCourseSlug");
-          }
-        }, 500);
       }
     };
 
     restoreToTargetCard();
-  }, [loading, filteredCourses.length]);
+  }, [loading, filteredCourses.length, cacheRestored]);
 
   // Toggle a filter badge
   const toggleFilter = (badge: string) => {
@@ -546,6 +653,8 @@ export default function Home() {
     if (typeof window !== "undefined") {
       sessionStorage.removeItem("courseFilters");
       sessionStorage.removeItem("targetCourseSlug");
+      sessionStorage.removeItem(COURSE_CACHE_KEY);
+      sessionStorage.removeItem("courseDetailsCache"); // Also clear course details cache
     }
   };
 
