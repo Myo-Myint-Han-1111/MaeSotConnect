@@ -52,6 +52,21 @@ export async function GET() {
         applyLink: true,
         estimatedDate: true,
         estimatedDateMm: true,
+        createdByUser: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            role: true,
+            advocateProfile: {
+              select: {
+                publicName: true,
+                avatarUrl: true,
+                status: true,
+              },
+            },
+          },
+        },
         organizationInfo: {
           select: {
             id: true,

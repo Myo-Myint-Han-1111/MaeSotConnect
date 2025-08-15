@@ -78,6 +78,7 @@ model Course {
   selectionCriteria   String[]
   selectionCriteriaMm String[]
   organizationId      String?
+  createdBy           String?
   createdAt           DateTime      @default(now())
   updatedAt           DateTime
   district            String?
@@ -97,6 +98,7 @@ model Course {
   startByDateMm       DateTime?
   badges              Badge[]
   organizationInfo    Organization? @relation(fields: [organizationId], references: [id])
+  createdByUser       User?         @relation("CreatedCourses", fields: [createdBy], references: [id])
   faq                 FAQ[]
   images              Image[]
 
@@ -163,6 +165,7 @@ model User {
   organization   Organization? @relation(fields: [organizationId], references: [id])
   drafts         ContentDraft[]
   advocateProfile AdvocateProfile?
+  createdCourses Course[]      @relation("CreatedCourses")
 }
 
 enum Role {

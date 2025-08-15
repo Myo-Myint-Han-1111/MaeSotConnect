@@ -223,8 +223,6 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
     alignItems: "center",
     justifyContent: "center",
     cursor: "pointer",
-    opacity: 0.7,
-    transition: "opacity 0.3s",
     zIndex: 10,
     fontSize: isMounted
       ? screenWidth <= 480
@@ -256,10 +254,22 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
         }
       }
       
-      /* Show carousel buttons on tablet and desktop */
+      /* Show carousel buttons on tablet and desktop, but hide by default */
       @media (min-width: 768px) {
         .carousel-button {
           display: flex !important;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+        
+        /* Show buttons on hover of the carousel container */
+        .image-carousel-container:hover .carousel-button {
+          opacity: 0.7;
+        }
+        
+        /* Increase opacity when hovering directly over buttons */
+        .carousel-button:hover {
+          opacity: 1 !important;
         }
       }
     `;
@@ -274,7 +284,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
   // Only show navigation if there are multiple images
   if (images.length <= 1) {
     return (
-      <div style={{ ...containerStyle, ...{ className } }}>
+      <div className={`image-carousel-container ${className}`} style={containerStyle}>
         <div style={imageContainerStyle}>
           <Image
             src={images[0]}
@@ -296,7 +306,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
   return (
     <div
       ref={carouselRef}
-      className={className}
+      className={`image-carousel-container ${className}`}
       style={containerStyle}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}

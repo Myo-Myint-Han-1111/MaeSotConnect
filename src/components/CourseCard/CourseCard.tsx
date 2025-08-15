@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Card, CardContent, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
 import { useLanguage } from "../../context/LanguageContext";
@@ -60,6 +61,18 @@ export interface CourseCardProps {
     district?: string;
     province?: string;
   } | null;
+  createdByUser?: {
+    id: string;
+    name: string;
+    image: string | null;
+    role: string;
+    advocateProfile?: {
+      publicName: string | null;
+      avatarUrl: string | null;
+      status: string;
+    } | null;
+  } | null;
+  createdAt?: string;
   // TODO: Ko Myo - Add these fields when applyByDate is added to database
   // applyByDate?: string;
   // applyByDateMm?: string | null;
@@ -92,6 +105,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   fee,
   feeMm,
   organizationInfo,
+  createdByUser,
+  createdAt,
   // availableDays,
   // applyByDate, // TODO: Ko Myo - Uncomment when added to database
   // applyByDateMm, // TODO: Ko Myo - Uncomment when added to database
@@ -122,6 +137,50 @@ export const CourseCard: React.FC<CourseCardProps> = ({
 
   // Transform the images array to get just the URLs
   const imageUrls = images.map((img) => img.url);
+
+  // Helper function to get creator display information
+  const getCreatorInfo = () => {
+    if (!createdByUser) {
+      // When createdBy is null, show as anonymous youth advocate
+      return {
+        name: t("course.anonymousYouthAdvocate"),
+        image: "/images/AnonYouthAdvocate.png",
+        role: "YOUTH_ADVOCATE",
+      };
+    }
+    
+    // For youth advocates, use their publicName from profile if available
+    if (createdByUser.role === 'YOUTH_ADVOCATE' && createdByUser.advocateProfile) {
+      const profile = createdByUser.advocateProfile;
+      if (profile.status === 'APPROVED') {
+        return {
+          name: profile.publicName || t("course.anonymousYouthAdvocate"),
+          image: profile.avatarUrl || "/images/AnonYouthAdvocate.png",
+          role: createdByUser.role,
+        };
+      }
+    }
+    
+    // For organization admins and platform admins, use their regular profile
+    return {
+      name: createdByUser.name,
+      image: createdByUser.image,
+      role: createdByUser.role,
+    };
+  };
+
+  const creatorInfo = getCreatorInfo();
+
+  // Format date for display
+  const formatDateAdded = (dateStr?: string): string => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    return date.toLocaleDateString(language === "mm" ? "my-MM" : "en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   return (
     <Card className="course-card" onClick={handleNavigation}>
@@ -179,32 +238,52 @@ export const CourseCard: React.FC<CourseCardProps> = ({
       </CardContent>
 
       <CardFooter className="see-more-container">
-        {
-          <Button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleNavigation();
-            }}
-            variant="ghost"
-            size="sm"
-            className="see-more-button cursor-pointer"
+        {creatorInfo && (
+          <div className="added-by-section">
+            <span className="added-by-text">{t("course.addedBy")}</span>
+            <div className="creator-info">
+              {creatorInfo.image && (
+                <Image
+                  src={creatorInfo.image}
+                  alt={creatorInfo.name}
+                  width={32}
+                  height={32}
+                  className="creator-avatar"
+                />
+              )}
+              <div className="creator-details">
+                <span className="creator-name">{creatorInfo.name}</span>
+                {createdAt && (
+                  <span className="creator-date">on {formatDateAdded(createdAt)}</span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        <Button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleNavigation();
+          }}
+          variant="ghost"
+          size="sm"
+          className="see-more-button cursor-pointer"
+        >
+          {t("course.seemore")}
+          <svg
+            className="see-more-arrow"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            {t("course.seemore")}
-            <svg
-              className="see-more-arrow"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M9 18l6-6-6-6" />
-            </svg>
-          </Button>
-        }
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </Button>
       </CardFooter>
     </Card>
   );

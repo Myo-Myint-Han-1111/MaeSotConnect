@@ -301,9 +301,9 @@ export default function OrganizationForm({
                   <Image
                     src={existingLogo}
                     alt="Current organization logo"
-                    width={128}
-                    height={128}
-                    className="object-cover rounded-md border"
+                    width={200}
+                    height={120}
+                    className="max-w-48 max-h-32 object-contain rounded-md border bg-white p-2"
                   />
                   <Button
                     type="button"
@@ -328,9 +328,7 @@ export default function OrganizationForm({
                   <img
                     src={URL.createObjectURL(logoImage)}
                     alt="New organization logo"
-                    width={128}
-                    height={128}
-                    className="object-cover rounded-md border"
+                    className="max-w-48 max-h-32 object-contain rounded-md border bg-white p-2"
                   />
                   <Button
                     type="button"
@@ -353,9 +351,11 @@ export default function OrganizationForm({
                 setLogoImage(e.target.files?.[0] || null);
               }}
             />
-            <p className="text-xs text-muted-foreground">
-              PNG, JPG, or WebP format recommended
-            </p>
+            <div className="text-xs text-muted-foreground space-y-1">
+              <p>PNG, JPG, or WebP format recommended</p>
+              <p>Optimal dimensions: 200×200px or maintain original aspect ratio</p>
+              <p>Square logos work best for consistent display across the platform</p>
+            </div>
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">

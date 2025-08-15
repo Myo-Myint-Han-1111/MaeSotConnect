@@ -1,12 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "lucide-react";
 import { getFontSizeClasses } from "@/lib/font-sizes";
 
 interface AdvocateProfile {
@@ -16,11 +13,11 @@ interface AdvocateProfile {
   avatarUrl?: string;
   showOrganization: boolean;
   organizationName?: string;
+  courseCount: number;
 }
 
 export default function AdvocatesPage() {
-  const { t, language } = useLanguage();
-  const router = useRouter();
+  const { language } = useLanguage();
   const [profiles, setProfiles] = useState<AdvocateProfile[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -47,19 +44,6 @@ export default function AdvocatesPage() {
   if (loading) {
     return (
       <div className="min-h-screen">
-        {/* Back Button - right below navbar */}
-        <div className="pt-4 pb-4 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Button
-            variant="outline"
-            size="sm"
-            className="border border-gray-200 bg-white hover:bg-gray-50 text-gray-600 hover:text-gray-900"
-            onClick={() => router.push("/")}
-          >
-            <ChevronLeft className="mr-2 h-4 w-4" />
-            {t("course.back")}
-          </Button>
-        </div>
-        
         <div className="flex items-center justify-center py-32">
           <div className="h-8 w-8 border-t-2 border-gray-400 border-solid rounded-full animate-spin"></div>
         </div>
@@ -69,21 +53,8 @@ export default function AdvocatesPage() {
 
   return (
     <div className="min-h-screen">
-      {/* Back Button - right below navbar */}
-      <div className="pt-4 pb-8 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Button
-          variant="outline"
-          size="sm"
-          className="border border-gray-200 bg-white hover:bg-gray-50 text-gray-600 hover:text-gray-900"
-          onClick={() => router.push("/")}
-        >
-          <ChevronLeft className="mr-2 h-4 w-4" />
-          {t("course.back")}
-        </Button>
-      </div>
-
-      {/* Video Game High Score Header */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+       {/* High Score Header */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 mt-20">
         <div className="text-center">
           <h1 
             className={`${getFontSizeClasses("heading1", language)} font-bold text-gray-900 mb-4 text-4xl`}
@@ -113,16 +84,33 @@ export default function AdvocatesPage() {
         {profiles.length > 0 ? (
           <div>
             {/* Leaderboard Header - Responsive */}
-            <div className="flex justify-between items-center mb-6 md:mb-8 border-b-2 border-gray-300 pb-3 md:pb-4">
-              {/* Desktop Headers */}
-              <div className="hidden md:block text-gray-700 font-bold text-xl uppercase tracking-wider">
-                {language === "mm" ? "အဆင့်" : "RANK"}
-              </div>
-              <div className="hidden md:block text-gray-700 font-bold text-xl uppercase tracking-wider">
-                {language === "mm" ? "ကစားသမား" : "PLAYER"}
-              </div>
-              <div className="hidden md:block text-gray-700 font-bold text-xl uppercase tracking-wider">
-                {language === "mm" ? "အပြေ့များ" : "STATS"}
+            <div className="mb-6 md:mb-8 border-b-2 border-gray-300 pb-3 md:pb-4">
+              {/* Desktop Headers - Match content layout structure */}
+              <div className="hidden md:flex items-center justify-between">
+                <div className="flex items-center space-x-4 flex-1">
+                  <div className="min-w-[60px] text-center">
+                    <div className="text-gray-700 font-bold text-xl uppercase tracking-wider">
+                      {language === "mm" ? "အဆင့်" : "RANK"}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-8 flex-1">
+                    <div className="w-24">
+                      {/* Avatar space placeholder */}
+                    </div>
+                    <div className="flex items-center flex-1">
+                      <div className="min-w-[160px]">
+                        <div className="text-gray-700 font-bold text-xl uppercase tracking-wider">
+                          {language === "mm" ? "ကစားသမား" : "PLAYER"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end ml-4">
+                  <div className="text-gray-700 font-bold text-xl uppercase tracking-wider">
+                    {language === "mm" ? "အပြေ့များ" : "STATS"}
+                  </div>
+                </div>
               </div>
               
               {/* Mobile Header - Single centered title */}
@@ -160,7 +148,7 @@ export default function AdvocatesPage() {
                         </div>
                         
                         {/* Avatar, Name, and Bio */}
-                        <div className="flex items-center space-x-4 flex-1">
+                        <div className="flex items-center space-x-8 flex-1">
                           <Avatar className="w-24 h-24 ring-2 ring-gray-200 group-hover:ring-gray-300 transition-all duration-200">
                             <AvatarImage 
                               src={profile.avatarUrl || undefined} 
@@ -190,28 +178,25 @@ export default function AdvocatesPage() {
                               )}
                             </div>
                             
-                            {/* Vertical Divider and Bio */}
+                            {/* Bio */}
                             {profile.bio && (
-                              <>
-                                <div className="w-px bg-gray-300 h-16 mx-4"></div>
-                                <div className="flex-1">
-                                  <p 
-                                    className={`${getFontSizeClasses("bodyRegular", language)} text-gray-700 leading-relaxed`}
-                                    data-language={language}
-                                  >
-                                    {profile.bio}
-                                  </p>
-                                </div>
-                              </>
+                              <div className="flex-1 ml-6">
+                                <p 
+                                  className={`${getFontSizeClasses("bodyRegular", language)} text-gray-700 leading-relaxed`}
+                                  data-language={language}
+                                >
+                                  {profile.bio}
+                                </p>
+                              </div>
                             )}
                           </div>
                         </div>
                       </div>
                       
-                      {/* Stats Placeholder */}
+                      {/* Stats */}
                       <div className="flex flex-col items-end ml-4">
                         <div className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold mb-2">
-                          {language === "mm" ? "အပြေ့ 123" : "Score 123"}
+                          {language === "mm" ? `အပြေ့ ${profile.courseCount}` : `Score ${profile.courseCount}`}
                         </div>
                         <div className="text-xs text-gray-500">
                           {language === "mm" ? "ကူရစ် အများ" : "Courses Added"}
@@ -277,7 +262,7 @@ export default function AdvocatesPage() {
                           {/* Mobile Stats */}
                           <div className="flex items-center space-x-4">
                             <div className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold">
-                              {language === "mm" ? "အပြေ့ 123" : "Score 123"}
+                              {language === "mm" ? `အပြေ့ ${profile.courseCount}` : `Score ${profile.courseCount}`}
                             </div>
                             <span className="text-xs text-gray-500">
                               {language === "mm" ? "ကူရစ် အများ" : "Courses Added"}

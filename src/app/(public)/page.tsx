@@ -93,6 +93,18 @@ interface Course {
     answer: string;
     answerMm: string | null;
   }[];
+  createdByUser?: {
+    id: string;
+    name: string;
+    image: string | null;
+    role: string;
+    advocateProfile?: {
+      publicName: string | null;
+      avatarUrl: string | null;
+      status: string;
+    } | null;
+  } | null;
+  createdAt?: string;
 }
 
 // Cache management constants
@@ -958,6 +970,8 @@ export default function Home() {
                     availableDays={course.availableDays}
                     badges={course.badges}
                     organizationInfo={course.organizationInfo}
+                    createdByUser={course.createdByUser}
+                    createdAt={course.createdAt}
                     district={course.district}
                     province={course.province}
                     showSwipeHint={index === 0}

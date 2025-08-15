@@ -102,6 +102,18 @@ interface CourseDetail {
     longitude: number;
     logoImage?: string;
   };
+  createdAt?: string;
+  createdByUser?: {
+    id: string;
+    name: string;
+    image: string | null;
+    role: string;
+    advocateProfile?: {
+      publicName: string | null;
+      avatarUrl: string | null;
+      status: string;
+    } | null;
+  } | null;
 }
 
 interface CourseDetailComponentProps {
@@ -302,9 +314,53 @@ export default function CourseDetailComponent({
     return "";
   };
 
+  // Helper function to get creator display information
+  const getCreatorInfo = () => {
+    if (!course.createdByUser) {
+      // When createdBy is null, show as anonymous youth advocate
+      return {
+        name: t("course.anonymousYouthAdvocate"),
+        image: "/images/AnonYouthAdvocate.png",
+        role: "YOUTH_ADVOCATE",
+      };
+    }
+    
+    // For youth advocates, use their publicName from profile if available
+    if (course.createdByUser.role === 'YOUTH_ADVOCATE' && course.createdByUser.advocateProfile) {
+      const profile = course.createdByUser.advocateProfile;
+      if (profile.status === 'APPROVED') {
+        return {
+          name: profile.publicName || t("course.anonymousYouthAdvocate"),
+          image: profile.avatarUrl || "/images/AnonYouthAdvocate.png",
+          role: course.createdByUser.role,
+        };
+      }
+    }
+    
+    // For organization admins and platform admins, use their regular profile
+    return {
+      name: course.createdByUser.name,
+      image: course.createdByUser.image,
+      role: course.createdByUser.role,
+    };
+  };
+
+  // Format date for display
+  const formatDateAdded = (dateStr?: string): string => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    return date.toLocaleDateString(language === "mm" ? "my-MM" : "en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const creatorInfo = getCreatorInfo();
+
   return (
     <div className="content mt-20">
-      <div className="max-w-6xl mx-auto px-4">
+      <div className="max-w-3xl mx-auto px-4">
         {/* Back Button */}
         <div className="relative z-40 bg-background pt-6 py-2 mb-4">
           <Button
@@ -331,158 +387,165 @@ export default function CourseDetailComponent({
         {/* Badges */}
         <BadgeDisplay badges={course.badges} size="medium" />
 
-        {/* Image Gallery and Info Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-10">
-          <div className="lg:col-span-3">
-            <ImageCarousel
-              images={course.images}
-              altText={getLocalizedDateContent(course.title, course.titleMm)}
-              variant="fullsize"
-              indicatorStyle="dots"
-              aspectRatio="video"
-            />
-          </div>
+        {/* Image Gallery */}
+        <div className="mb-8">
+          <ImageCarousel
+            images={course.images}
+            altText={getLocalizedDateContent(course.title, course.titleMm)}
+            variant="fullsize"
+            indicatorStyle="dots"
+            aspectRatio="video"
+          />
+        </div>
 
-          {/* Course Info Card */}
-          <div className="lg:col-span-2">
+        {/* Course Info Card */}
+        <div className="mb-4">
             <Card>
               <CardHeader>
                 <CardTitle>{t("course.details")}</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Location */}
-                <div className="flex items-start">
-                  <MapPin className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">
-                      {t("course.location")}
-                    </p>
-                    <p className="text-sm text-muted-foreground" dir="auto">
-                      {course.province || course.district
-                        ? course.district && course.province
-                          ? `${course.district}, ${course.province}`
-                          : course.district || course.province
-                        : "Location information not available"}
-                    </p>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Left Column */}
+                  <div className="space-y-4">
+                    {/* Location */}
+                    <div className="flex items-start">
+                      <MapPin className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          {t("course.location")}
+                        </p>
+                        <p className="text-sm text-muted-foreground" dir="auto">
+                          {course.province || course.district
+                            ? course.district && course.province
+                              ? `${course.district}, ${course.province}`
+                              : course.district || course.province
+                            : "Location information not available"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Date Range (Start & End Date) with DD/MM/YYYY format */}
+                    <div className="flex items-start">
+                      <Calendar className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          {t("course.dates")}
+                        </p>
+                        <p className="text-sm text-muted-foreground" dir="auto">
+                          {getLocalizedDateContent(
+                            course.startDate,
+                            course.startDateMm
+                          )}
+                          {course.endDate &&
+                            ` - ${getLocalizedDateContent(
+                              course.endDate,
+                              course.endDateMm
+                            )}`}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Duration */}
+                    <div className="flex items-start">
+                      <Clock className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          {t("course.duration")}
+                        </p>
+                        <p className="text-sm text-muted-foreground" dir="auto">
+                          {language === "mm"
+                            ? formatDuration(course.durationMm ?? course.duration)
+                            : formatDuration(course.duration)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Fee - Updated to handle three conditions */}
+                    {course.feeAmount !== -1 && course.feeAmount !== undefined && (
+                      <div className="flex items-start">
+                        <div className="h-5 w-5 mr-2 mt-0.5 flex items-center justify-center text-muted-foreground">
+                          ฿
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">
+                            {t("course.fee")}
+                          </p>
+                          <p className="text-sm text-muted-foreground" dir="auto">
+                            {language === "mm"
+                              ? formatCurrency(
+                                  course.feeAmountMm ?? course.feeAmount
+                                )
+                              : formatCurrency(course.feeAmount)}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right Column */}
+                  <div className="space-y-4">
+                    {/* Schedule */}
+                    <div className="flex items-start">
+                      <BookOpen className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          {t("course.schedule")}
+                        </p>
+                        <p className="text-sm text-muted-foreground" dir="auto">
+                          {getLocalizedDateContent(
+                            course.schedule,
+                            course.scheduleMm
+                          )}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Age Range - Only show if at least one age limit is defined and greater than 0 */}
+                    {((course.ageMin !== null &&
+                      course.ageMin !== undefined &&
+                      course.ageMin > 0) ||
+                      (course.ageMax !== null &&
+                        course.ageMax !== undefined &&
+                        course.ageMax > 0)) && (
+                      <div className="flex items-start">
+                        <Users className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium text-foreground">
+                            {t("course.ageRange")}
+                          </p>
+                          <p className="text-sm text-muted-foreground" dir="auto">
+                            {language === "mm"
+                              ? formatAgeRange(
+                                  course.ageMinMm ?? course.ageMin,
+                                  course.ageMaxMm ?? course.ageMax
+                                )
+                              : formatAgeRange(course.ageMin, course.ageMax)}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Required Documents - Only show if documents are specified */}
+                    {(course.document && course.document.trim() !== "") ||
+                    (course.documentMm && course.documentMm.trim() !== "") ? (
+                      <div className="flex items-start">
+                        <FileText className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium text-foreground">
+                            {t("course.requiredDocuments")}
+                          </p>
+                          <p className="text-sm text-muted-foreground" dir="auto">
+                            {getLocalizedDateContent(
+                              course.document,
+                              course.documentMm
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
-
-                {/* Date Range (Start & End Date) with DD/MM/YYYY format */}
-                <div className="flex items-start">
-                  <Calendar className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">
-                      {t("course.dates")}
-                    </p>
-                    <p className="text-sm text-muted-foreground" dir="auto">
-                      {getLocalizedDateContent(
-                        course.startDate,
-                        course.startDateMm
-                      )}
-                      {course.endDate &&
-                        ` - ${getLocalizedDateContent(
-                          course.endDate,
-                          course.endDateMm
-                        )}`}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Duration */}
-                <div className="flex items-start">
-                  <Clock className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">
-                      {t("course.duration")}
-                    </p>
-                    <p className="text-sm text-muted-foreground" dir="auto">
-                      {language === "mm"
-                        ? formatDuration(course.durationMm ?? course.duration)
-                        : formatDuration(course.duration)}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Schedule */}
-                <div className="flex items-start">
-                  <BookOpen className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">
-                      {t("course.schedule")}
-                    </p>
-                    <p className="text-sm text-muted-foreground" dir="auto">
-                      {getLocalizedDateContent(
-                        course.schedule,
-                        course.scheduleMm
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Age Range - Only show if at least one age limit is defined and greater than 0 */}
-                {((course.ageMin !== null &&
-                  course.ageMin !== undefined &&
-                  course.ageMin > 0) ||
-                  (course.ageMax !== null &&
-                    course.ageMax !== undefined &&
-                    course.ageMax > 0)) && (
-                  <div className="flex items-start">
-                    <Users className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        {t("course.ageRange")}
-                      </p>
-                      <p className="text-sm text-muted-foreground" dir="auto">
-                        {language === "mm"
-                          ? formatAgeRange(
-                              course.ageMinMm ?? course.ageMin,
-                              course.ageMaxMm ?? course.ageMax
-                            )
-                          : formatAgeRange(course.ageMin, course.ageMax)}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Required Documents - Only show if documents are specified */}
-                {(course.document && course.document.trim() !== "") ||
-                (course.documentMm && course.documentMm.trim() !== "") ? (
-                  <div className="flex items-start">
-                    <FileText className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        {t("course.requiredDocuments")}
-                      </p>
-                      <p className="text-sm text-muted-foreground" dir="auto">
-                        {getLocalizedDateContent(
-                          course.document,
-                          course.documentMm
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                ) : null}
-
-                {/* Fee - Updated to handle three conditions */}
-                {course.feeAmount !== -1 && course.feeAmount !== undefined && (
-                  <div className="flex items-start">
-                    <div className="h-5 w-5 mr-2 mt-0.5 flex items-center justify-center text-muted-foreground">
-                      ฿
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        {t("course.fee")}
-                      </p>
-                      <p className="text-sm text-muted-foreground" dir="auto">
-                        {language === "mm"
-                          ? formatCurrency(
-                              course.feeAmountMm ?? course.feeAmount
-                            )
-                          : formatCurrency(course.feeAmount)}
-                      </p>
-                    </div>
-                  </div>
-                )}
 
                 {/* Day Availability Section */}
                 <div className="mt-6 pt-4 border-t border-gray-200">
@@ -505,7 +568,6 @@ export default function CourseDetailComponent({
                 </div>
               </CardContent>
             </Card>
-          </div>
         </div>
 
         {/* Course Details Accordion */}
@@ -690,9 +752,8 @@ export default function CourseDetailComponent({
               <ClipboardList className="h-6 w-6 inline mr-2 text-primary" />
               {language === "mm" ? "လျှောက်ထားပုံ" : "How to Apply"}
             </h2>
-            <Card>
-              <CardContent className="pt-6">
-                <ul className="list-decimal pl-6 space-y-3">
+            <div>
+              <ul className="list-decimal pl-6 space-y-3">
                   {getLocalizedArray(course.howToApply, course.howToApplyMm)
                     .filter((step) => step.trim() !== "")
                     .map((step, index) => (
@@ -708,9 +769,9 @@ export default function CourseDetailComponent({
 
                 {/* Apply Button inside How to Apply section */}
                 {(course.applyButtonText || course.applyButtonTextMm) && (
-                  <div className="mt-6 pt-4 border-t border-gray-200 text-center">
+                  <div className="mt-6 text-center">
                     <Button
-                      className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer px-6 py-2 text-base"
+                      className="bg-blue-700 hover:bg-blue-600 text-white cursor-pointer px-6 py-2 text-base"
                       onClick={() => {
                         if (course.applyLink) {
                           if (course.applyLink.startsWith("mailto:")) {
@@ -732,49 +793,46 @@ export default function CourseDetailComponent({
                     </Button>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+            </div>
           </section>
         )}
 
-        {/* Organization Info */}
+        {/* About Organization */}
         {course.organizationInfo && (
           <section className="mb-10">
+            {/* Title */}
             <h2 className="text-2xl font-bold mb-4">
-              {t("about.organization")}
+              {language === "mm" 
+                ? `${course.organizationInfo.name} အကြောင်း`
+                : `About ${course.organizationInfo.name}`}
             </h2>
-            <Card>
-              <CardContent className="pt-6">
-                {/* Organization Name and Logo Row */}
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-xl font-semibold mb-0">
-                      {course.organizationInfo.name}
-                    </h3>
-                  </div>
-                  {/* Logo - Always on the right */}
-                  {course.organizationInfo.logoImage && (
-                    <div className="flex-shrink-0">
-                      <Image
-                        src={course.organizationInfo.logoImage}
-                        alt={`${course.organizationInfo.name} logo`}
-                        width={160}
-                        height={160}
-                        className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-contain rounded-lg border border-gray-200 bg-white p-1 sm:p-2"
-                      />
-                    </div>
-                  )}
-                </div>
 
-                {/* Description - Same vertical spacing as other items */}
-                <div className="mb-4">
-                  <p className="text-muted-foreground">
+            {/* Mobile Logo - Centered after title */}
+            {course.organizationInfo.logoImage && (
+              <div className="lg:hidden flex justify-center mb-6">
+                <Image
+                  src={course.organizationInfo.logoImage}
+                  alt={`${course.organizationInfo.name} logo`}
+                  width={120}
+                  height={120}
+                  className="max-w-48 max-h-32 sm:max-w-56 sm:max-h-40 md:max-w-64 md:max-h-48 object-contain rounded-lg bg-white p-2 border border-gray-200"
+                />
+              </div>
+            )}
+
+            {/* Two-column layout for desktop */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Content Column */}
+              <div className={course.organizationInfo.logoImage ? "lg:col-span-2" : "lg:col-span-3"}>
+                {/* Description */}
+                <div className="mb-6">
+                  <p className="text-muted-foreground text-lg leading-relaxed">
                     {course.organizationInfo.description}
                   </p>
                 </div>
 
                 {/* Contact Information */}
-                <div className="space-y-4">
+                <div className="space-y-4 mb-6">
                   <div className="flex items-center">
                     <PhoneCall className="h-5 w-5 mr-3 text-primary flex-shrink-0" />
                     <span className="break-all">
@@ -822,10 +880,71 @@ export default function CourseDetailComponent({
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+
+              {/* Desktop Logo Column */}
+              {course.organizationInfo.logoImage && (
+                <div className="hidden lg:flex lg:col-span-1 lg:justify-end">
+                  <Image
+                    src={course.organizationInfo.logoImage}
+                    alt={`${course.organizationInfo.name} logo`}
+                    width={120}
+                    height={120}
+                    className="max-w-24 max-h-16 xl:max-w-32 xl:max-h-20 object-contain rounded-lg bg-white p-1 border border-gray-200"
+                  />
+                </div>
+              )}
+            </div>
           </section>
         )}
+
+        {/* Added by Section */}
+        {creatorInfo && (
+          <div className="mb-10 rounded-lg">
+            <div className="flex items-center space-x-4">
+              {creatorInfo.image && (
+                <Image
+                  src={creatorInfo.image}
+                  alt={creatorInfo.name}
+                  width={64}
+                  height={64}
+                  className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                />
+              )}
+              <div className="flex-1">
+                <p className="text-sm text-muted-foreground mb-1">
+                  {t("course.addedBy")}
+                </p>
+                <h3 className="text-lg font-semibold text-foreground">
+                  {creatorInfo.name}
+                </h3>
+                {course.createdAt && (
+                  <p className="text-sm text-muted-foreground">
+                    on {formatDateAdded(course.createdAt)}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Youth Advocates Promotion - Subtle */}
+        <div className="mt-8 p-5 bg-gray-50 rounded-lg mb-10">
+          <p className="text-sm text-muted-foreground leading-relaxed italic mb-3">
+            {language === "mm" 
+              ? "ကျွန်ုပ်တို့၏ လူငယ်ကိုယ်စားလှယ်များသည် ပညာရေးအစီအစဉ်များအကြောင်း လူငယ်များအား သတင်းအချက်အလက်များ မျှဝေပေးသူများဖြစ်ပါသည်။"
+              : "Our youth advocates help connect young people with educational opportunities by sharing information about programs like this one."}
+          </p>
+          <Link href="/youthadvocates">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="text-xs bg-white hover:bg-blue-700 hover:text-white"
+            >
+              {language === "mm" ? "လူငယ်ကိုယ်စားလှယ်များကို မိတ်ဆက်ပါ" : "Meet Our Youth Advocates"}
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
   );

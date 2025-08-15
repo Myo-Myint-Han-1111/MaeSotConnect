@@ -70,6 +70,18 @@ interface CourseDetail {
     longitude: number;
     logoImage?: string;
   };
+  createdAt?: string;
+  createdByUser?: {
+    id: string;
+    name: string;
+    image: string | null;
+    role: string;
+    advocateProfile?: {
+      publicName: string | null;
+      avatarUrl: string | null;
+      status: string;
+    } | null;
+  } | null;
 }
 
 // Cache management constants

@@ -106,6 +106,21 @@ export async function GET(
         badges: true,
         faq: true,
         organizationInfo: true,
+        createdByUser: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            role: true,
+            advocateProfile: {
+              select: {
+                publicName: true,
+                avatarUrl: true,
+                status: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -162,6 +177,8 @@ export async function GET(
       estimatedDate: course.estimatedDate,
       estimatedDateMm: course.estimatedDateMm,
       organizationId: course.organizationId,
+      createdAt: course.createdAt.toISOString(),
+      createdByUser: course.createdByUser,
       images: course.images.map((img) => img.url),
       badges: course.badges.map((badge) => ({
         text: badge.text,

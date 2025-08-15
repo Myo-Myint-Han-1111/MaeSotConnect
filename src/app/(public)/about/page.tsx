@@ -4,12 +4,13 @@ import React from "react";
 import { useLanguage } from "../../../context/LanguageContext";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 
 import { Button } from "../../../components/ui/button";
 import { ChevronLeft } from "lucide-react";
 
 const About: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
   return (
@@ -109,6 +110,48 @@ const About: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-gray-100 py-8 mt-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div className="mb-4 md:mb-0">
+              <Link href="/" className="flex items-center space-x-2">
+                <span className="font-semibold text-gray-700">
+                  JumpStudy.org
+                </span>
+              </Link>
+            </div>
+
+            <nav className="flex flex-col md:flex-row gap-4 md:gap-8">
+              <Link
+                href="/"
+                className="text-gray-600 hover:text-primary transition-colors text-sm"
+              >
+                {language === "mm" ? "ပင်မစာမျက်နှာ" : "Home"}
+              </Link>
+              <Link
+                href="/about"
+                className="text-gray-600 hover:text-primary transition-colors text-sm"
+              >
+                {language === "mm" ? "အကြောင်း" : "About Us"}
+              </Link>
+              <Link
+                href="/youthadvocates"
+                className="text-gray-600 hover:text-primary transition-colors text-sm"
+              >
+                {language === "mm" ? "လူငယ်ကိုယ်စားလှယ်များ" : "Youth Advocates"}
+              </Link>
+            </nav>
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <p className="text-xs text-gray-500 text-center">
+              © {new Date().getFullYear()} JumpStudy.org. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

@@ -15,26 +15,37 @@ export async function GET() {
               select: {
                 name: true
               }
+            },
+            createdCourses: {
+              select: {
+                id: true
+              }
             }
           }
         }
-      },
-      orderBy: {
-        updatedAt: 'desc'
       }
     });
 
-    // Transform the data for public consumption
+    // Transform the data for public consumption and calculate stats
     const publicProfiles = profiles.map(profile => ({
       id: profile.id,
       publicName: profile.publicName || "Anonymous Youth Advocate",
       bio: profile.bio,
       avatarUrl: profile.avatarUrl,
       showOrganization: profile.showOrganization,
-      organizationName: profile.showOrganization ? profile.user.organization?.name : null
+      organizationName: profile.showOrganization ? profile.user.organization?.name : null,
+      courseCount: profile.user.createdCourses.length
     }));
 
-    return NextResponse.json(publicProfiles);
+    // Sort by course count (descending) then by name for consistent ranking
+    const sortedProfiles = publicProfiles.sort((a, b) => {
+      if (b.courseCount !== a.courseCount) {
+        return b.courseCount - a.courseCount;
+      }
+      return a.publicName.localeCompare(b.publicName);
+    });
+
+    return NextResponse.json(sortedProfiles);
   } catch (error) {
     console.error("Error fetching public profiles:", error);
     return NextResponse.json(
