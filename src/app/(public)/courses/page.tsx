@@ -1204,46 +1204,37 @@ export default function CoursePage() {
         timestamp: Date.now()
       };
       sessionStorage.setItem(COURSE_DETAILS_CACHE_KEY, JSON.stringify(cache));
-      console.log('Course details: cached', coursesData.length, 'courses');
     } catch (error) {
       console.error('Error caching course details:', error);
     }
   }, []);
 
   const restoreCourseDetailsCache = useCallback(() => {
-    console.log('Course details: attempting cache restoration');
     if (typeof window === "undefined") {
-      console.log('Course details: window undefined, skipping cache');
       return false;
     }
     
     try {
       const cached = sessionStorage.getItem(COURSE_DETAILS_CACHE_KEY);
-      console.log('Course details: cached data found:', !!cached);
       
       if (!cached) {
-        console.log('Course details: no cache found');
         return false;
       }
       
       const cache: CourseDetailsCache = JSON.parse(cached);
       const age = Date.now() - cache.timestamp;
-      console.log('Course details: cache age (ms):', age, 'max age:', COURSE_DETAILS_CACHE_DURATION);
       
       // Check if cache is still valid
       if (age > COURSE_DETAILS_CACHE_DURATION) {
-        console.log('Course details: cache expired, removing');
         sessionStorage.removeItem(COURSE_DETAILS_CACHE_KEY);
         return false;
       }
       
       // Restore course data immediately
-      console.log('Course details: restoring', cache.courses.length, 'courses from cache');
       setCourses(cache.courses);
       coursesLengthRef.current = cache.courses.length;
       setLoading(false);
       
-      console.log('Course details: cache restoration successful');
       return true;
     } catch (error) {
       console.error('Error restoring course details cache:', error);
@@ -1261,23 +1252,17 @@ export default function CoursePage() {
   useEffect(() => {
     // Cache-first data fetching
     async function fetchCourses() {
-      console.log('Course details: fetchCourses called, cacheRestored:', cacheRestored, 'loading:', loading);
-      
       // If cache was restored, do background refresh
       if (cacheRestored) {
-        console.log('Course details: cache was restored, doing background refresh');
         try {
           const response = await fetch("/api/courses");
           if (response.ok) {
             const data = await response.json();
             // Only update if data is different (simple length check to avoid JSON.stringify)
             if (data.length !== coursesLengthRef.current) {
-              console.log('Course details: background refresh - data changed, updating');
               setCourses(data);
               coursesLengthRef.current = data.length;
               saveCourseDetailsCache(data);
-            } else {
-              console.log('Course details: background refresh - no changes');
             }
           }
         } catch (error) {
@@ -1288,7 +1273,6 @@ export default function CoursePage() {
 
       // Normal fetch for first-time load or cache miss
       if (!cacheRestored && loading) {
-        console.log('Course details: cache miss, doing normal fetch');
         try {
           const response = await fetch("/api/courses");
           if (response.ok) {
@@ -1296,7 +1280,6 @@ export default function CoursePage() {
             setCourses(data);
             coursesLengthRef.current = data.length;
             saveCourseDetailsCache(data);
-            console.log('Course details: normal fetch completed');
           }
         } catch (error) {
           console.error("Error fetching courses:", error);

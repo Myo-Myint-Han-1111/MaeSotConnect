@@ -104,7 +104,6 @@ export default function CourseSlugPage() {
         timestamp: Date.now()
       };
       sessionStorage.setItem(COURSE_DETAILS_CACHE_KEY, JSON.stringify(cached));
-      console.log('Course details saved to cache:', slug);
     } catch (error) {
       console.error('Error saving course to cache:', error);
     }
@@ -118,19 +117,16 @@ export default function CourseSlugPage() {
       const courseCache = cached[slug];
       
       if (!courseCache) {
-        console.log('No cache found for course:', slug);
         return null;
       }
       
       // Check if cache is still valid
       if (Date.now() - courseCache.timestamp > COURSE_DETAILS_CACHE_DURATION) {
-        console.log('Cache expired for course:', slug);
         delete cached[slug];
         sessionStorage.setItem(COURSE_DETAILS_CACHE_KEY, JSON.stringify(cached));
         return null;
       }
       
-      console.log('Course details restored from cache:', slug);
       return courseCache.course;
     } catch (error) {
       console.error('Error restoring course from cache:', error);
@@ -151,7 +147,6 @@ export default function CourseSlugPage() {
       setCourse(cachedCourse);
       setLoading(false);
       setCacheRestored(true);
-      console.log('Course details loaded from cache immediately');
     }
   }, [currentSlug, restoreCourseFromCache]);
 
@@ -166,7 +161,6 @@ export default function CourseSlugPage() {
       try {
         // If cache was restored, do background refresh
         if (cacheRestored) {
-          console.log('Cache restored, doing background refresh for course');
           const response = await fetch(`/api/courses/${encodeURIComponent(currentSlug)}`);
           if (response.ok) {
             const data = await response.json();
@@ -174,14 +168,12 @@ export default function CourseSlugPage() {
             if (JSON.stringify(data) !== JSON.stringify(course)) {
               setCourse(data);
               saveCourseToCache(currentSlug, data);
-              console.log('Background refresh: course data updated');
             }
           }
           return;
         }
 
         // Normal fetch for first-time load or cache miss
-        console.log('Fetching course details from API:', currentSlug);
         const response = await fetch(`/api/courses/${encodeURIComponent(currentSlug)}`);
         
         if (!response.ok) {
@@ -195,7 +187,6 @@ export default function CourseSlugPage() {
         const data = await response.json();
         setCourse(data);
         saveCourseToCache(currentSlug, data);
-        console.log('Course details fetched and cached');
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load course");
         console.error("Error fetching course:", err);

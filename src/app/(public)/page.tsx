@@ -131,7 +131,6 @@ export default function Home() {
         timestamp: Date.now()
       };
       sessionStorage.setItem(COURSE_CACHE_KEY, JSON.stringify(state));
-      console.log('Page state saved to cache');
     } catch (error) {
       console.error('Error saving page state:', error);
     }
@@ -164,7 +163,6 @@ export default function Home() {
         window.scrollTo(0, state.scrollPosition);
       });
       
-      console.log('Page state restored from cache');
       return true;
     } catch (error) {
       console.error('Error restoring page state:', error);
@@ -228,7 +226,6 @@ export default function Home() {
     async function fetchCourses() {
       // If cache was restored, skip initial fetch but do background refresh
       if (cacheRestored) {
-        console.log('Cache restored, doing background refresh');
         try {
           const response = await fetch("/api/courses/public");
           if (response.ok) {
@@ -236,7 +233,6 @@ export default function Home() {
             // Only update if data is different (simple check)
             if (JSON.stringify(data) !== JSON.stringify(courses)) {
               setCourses(data);
-              console.log('Background refresh: data updated');
             }
           }
         } catch (error) {
@@ -609,8 +605,6 @@ export default function Home() {
         return;
       }
 
-      console.log("Looking for target course (fallback):", targetSlug);
-
       // Wait a bit for the cards to render
       await new Promise((resolve) => setTimeout(resolve, 200));
 
@@ -620,8 +614,6 @@ export default function Home() {
       );
 
       if (targetCard) {
-        console.log("Found target card, scrolling to it");
-
         // Scroll to the card with some offset for better UX
         targetCard.scrollIntoView({
           behavior: "instant",
