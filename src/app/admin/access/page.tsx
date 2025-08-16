@@ -50,7 +50,9 @@ export default function AdminAccessPage() {
     
     async function fetchAdmins() {
       try {
-        const response = await fetch("/api/admin/allowlist");
+        const response = await fetch("/api/admin/allowlist", {
+          cache: 'no-store'
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch admin list");
         }

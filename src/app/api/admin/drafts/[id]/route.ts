@@ -71,8 +71,41 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
+    const { id } = await params;
     const body = await request.json();
-    const { status, reviewNotes } = body;
+    const { status, reviewNotes, content } = body;
+
+    // If no status is provided, this is just a content update
+    if (!status) {
+      if (!content) {
+        return NextResponse.json({ error: "Content is required for updates" }, { status: 400 });
+      }
+
+      const updatedDraft = await prisma.contentDraft.update({
+        where: { id },
+        data: {
+          content: content,
+        },
+        include: {
+          author: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+          organization: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+
+      return NextResponse.json({
+        message: "Draft content updated successfully",
+        draft: updatedDraft,
+      });
+    }
 
     // Validate status
     if (!Object.values(DraftStatus).includes(status)) {
@@ -86,8 +119,6 @@ export async function PATCH(
         { status: 400 }
       );
     }
-
-    const { id } = await params;
     
     // Get the draft to check if it exists
     const existingDraft = await prisma.contentDraft.findUnique({
@@ -110,6 +141,7 @@ export async function PATCH(
             reviewedAt: new Date(),
             reviewedBy: session.user.id,
             reviewNotes: reviewNotes?.trim() || null,
+            content: content || existingDraft.content, // Use provided content or existing
           },
           include: {
             author: true,
@@ -241,6 +273,7 @@ export async function PATCH(
           reviewedAt: new Date(),
           reviewedBy: session.user.id,
           reviewNotes: reviewNotes?.trim() || null,
+          content: content || existingDraft.content, // Use provided content or existing
         },
         include: {
           author: {

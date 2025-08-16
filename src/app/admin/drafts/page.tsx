@@ -40,7 +40,9 @@ export default function AdminDraftsPage() {
 
   const fetchDrafts = async () => {
     try {
-      const response = await fetch("/api/admin/drafts");
+      const response = await fetch("/api/admin/drafts", {
+        cache: 'no-store'
+      });
       if (response.ok) {
         const data = await response.json();
         setDrafts(data);

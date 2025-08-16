@@ -25,7 +25,9 @@ export default function EditOrganizationPage() {
   useEffect(() => {
     async function fetchOrganization() {
       try {
-        const response = await fetch(`/api/organizations/${id}`);
+        const response = await fetch(`/api/organizations/${id}`, {
+          cache: 'no-store'
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch organization");
         }

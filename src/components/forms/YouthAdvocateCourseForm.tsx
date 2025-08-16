@@ -118,6 +118,9 @@ interface CourseFormProps {
   draftMode?: boolean; // For advocates/org admins to submit as drafts
   backUrl?: string; // Custom back URL
   editDraftId?: string; // ID of existing draft being edited
+  onSubmit?: (formData: CourseFormData) => Promise<void>;
+  isSubmitting?: boolean;
+  submitButtonText?: string;
 }
 
 const badgeOptions: BadgeOption[] = [
@@ -203,6 +206,9 @@ export default function CourseForm({
   draftMode = false,
   backUrl = "/dashboard/courses",
   editDraftId,
+  onSubmit,
+  isSubmitting,
+  submitButtonText,
 }: CourseFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -875,6 +881,20 @@ export default function CourseForm({
 
     console.log("Cleaned form data:", cleanedFormData);
     console.log("Final organizationId:", cleanedFormData.organizationId);
+
+    // If external onSubmit is provided, use it instead of internal logic
+    if (onSubmit) {
+      try {
+        await onSubmit(cleanedFormData);
+        setIsLoading(false);
+        return;
+      } catch (error) {
+        console.error("External onSubmit error:", error);
+        setError("Failed to submit form. Please try again.");
+        setIsLoading(false);
+        return;
+      }
+    }
 
     try {
       if (draftMode) {
@@ -2175,7 +2195,7 @@ export default function CourseForm({
                   {existingImageList.map((url, index) => (
                     <div
                       key={`existing-image-${index}`}
-                      className="relative h-40 border rounded-md overflow-hidden"
+                      className="relative h-40 border rounded-md overflow-hidden group"
                     >
                       <Image 
                         src={url} 
@@ -2191,7 +2211,7 @@ export default function CourseForm({
                         type="button"
                         variant="destructive"
                         size="icon"
-                        className="absolute top-2 right-2 w-7 h-7"
+                        className="absolute top-1 right-1 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-200"
                         onClick={() => removeExistingImage(index)}
                       >
                         <X className="h-4 w-4" />
@@ -2203,7 +2223,7 @@ export default function CourseForm({
                   {formData.images.map((file, index) => (
                     <div
                       key={`new-image-${index}`}
-                      className="relative h-40 border rounded-md overflow-hidden"
+                      className="relative h-40 border rounded-md overflow-hidden group"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -2218,7 +2238,7 @@ export default function CourseForm({
                         type="button"
                         variant="destructive"
                         size="icon"
-                        className="absolute top-2 right-2 w-7 h-7"
+                        className="absolute top-1 right-1 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-200"
                         onClick={() => removeImage(index)}
                       >
                         <X className="h-4 w-4" />
@@ -2439,19 +2459,23 @@ export default function CourseForm({
             <Button
               type="submit"
               disabled={
-                isLoading ||
+                (isSubmitting ?? isLoading) ||
                 isOverLimit ||
                 (!draftMode &&
                   (!formData.organizationId || formData.organizationId === ""))
               }
               className={`${isMobile ? "flex-1" : ""} bg-blue-600 hover:bg-blue-700 text-white`}
             >
-              {isLoading
-                ? draftMode
+              {(isSubmitting ?? isLoading)
+                ? submitButtonText
+                  ? "Saving..."
+                  : draftMode
                   ? "Submitting..."
                   : "Saving..."
                 : isOverLimit
                 ? "Images too large"
+                : submitButtonText
+                ? submitButtonText
                 : draftMode
                 ? "Submit for Review"
                 : mode === "create"

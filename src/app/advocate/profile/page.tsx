@@ -27,7 +27,9 @@ export default function ProfilePage() {
 
   const fetchProfileData = useCallback(async () => {
     try {
-      const response = await fetch("/api/advocate/profile");
+      const response = await fetch("/api/advocate/profile", {
+        cache: 'no-store'
+      });
       if (response.ok) {
         const profile = await response.json();
         setProfileData(profile);

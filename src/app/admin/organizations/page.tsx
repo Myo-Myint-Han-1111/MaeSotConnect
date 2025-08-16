@@ -51,7 +51,9 @@ export default function OrganizationsPage() {
   useEffect(() => {
     async function fetchOrganizations() {
       try {
-        const response = await fetch("/api/organizations");
+        const response = await fetch("/api/organizations", {
+          cache: 'no-store'
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch organizations");
         }

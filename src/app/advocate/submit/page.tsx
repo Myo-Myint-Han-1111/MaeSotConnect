@@ -37,7 +37,9 @@ export default function SubmitCoursePage() {
 
   const fetchDraftData = useCallback(async () => {
     try {
-      const response = await fetch(`/api/drafts/${editDraftId}`);
+      const response = await fetch(`/api/drafts/${editDraftId}`, {
+        cache: 'no-store'
+      });
       if (response.ok) {
         const draft = await response.json();
         setDraftData(draft);

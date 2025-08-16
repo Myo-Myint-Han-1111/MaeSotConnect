@@ -39,7 +39,9 @@ export default function AllDraftsPage() {
 
   const fetchDrafts = async () => {
     try {
-      const response = await fetch("/api/drafts");
+      const response = await fetch("/api/drafts", {
+        cache: 'no-store'
+      });
       if (response.ok) {
         const data = await response.json();
         setDrafts(data);

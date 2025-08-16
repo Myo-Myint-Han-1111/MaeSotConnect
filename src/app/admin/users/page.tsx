@@ -83,8 +83,9 @@ export default function UserManagementPage() {
 
   const fetchUsers = async () => {
     try {
-      const cacheBuster = process.env.NODE_ENV === "development" ? `?t=${Date.now()}` : "";
-      const response = await fetch(`/api/admin/users${cacheBuster}`);
+      const response = await fetch('/api/admin/users', {
+        cache: 'no-store'
+      });
       if (response.ok) {
         const data = await response.json();
         setUsers(data);
@@ -96,8 +97,9 @@ export default function UserManagementPage() {
 
   const fetchInvitations = async () => {
     try {
-      const cacheBuster = process.env.NODE_ENV === "development" ? `?t=${Date.now()}` : "";
-      const response = await fetch(`/api/admin/invitations${cacheBuster}`);
+      const response = await fetch('/api/admin/invitations', {
+        cache: 'no-store'
+      });
       if (response.ok) {
         const data = await response.json();
         setInvitations(data);
@@ -109,8 +111,9 @@ export default function UserManagementPage() {
 
   const fetchOrganizations = async () => {
     try {
-      const cacheBuster = process.env.NODE_ENV === "development" ? `?t=${Date.now()}` : "";
-      const response = await fetch(`/api/admin/organizations${cacheBuster}`);
+      const response = await fetch('/api/admin/organizations', {
+        cache: 'no-store'
+      });
       if (response.ok) {
         const data = await response.json();
         setOrganizations(data);

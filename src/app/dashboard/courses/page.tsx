@@ -126,18 +126,19 @@ export default function CoursesPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        // Add cache-busting timestamp in development
-        const cacheBuster = process.env.NODE_ENV === "development" ? `?t=${Date.now()}` : "";
-        
         // Fetch all courses
-        const coursesResponse = await fetch(`/api/courses${cacheBuster}`);
+        const coursesResponse = await fetch('/api/courses', {
+          cache: 'no-store'
+        });
         if (!coursesResponse.ok) {
           throw new Error("Failed to fetch courses");
         }
         const coursesData = await coursesResponse.json();
 
         // Fetch organizations for display
-        const orgsResponse = await fetch(`/api/organizations${cacheBuster}`);
+        const orgsResponse = await fetch('/api/organizations', {
+          cache: 'no-store'
+        });
         if (!orgsResponse.ok) {
           throw new Error("Failed to fetch organizations");
         }

@@ -49,7 +49,9 @@ export default function AdvocateDashboard() {
 
   const fetchDrafts = async () => {
     try {
-      const response = await fetch("/api/drafts");
+      const response = await fetch("/api/drafts", {
+        cache: 'no-store'
+      });
       if (response.ok) {
         const drafts = await response.json();
         setRecentDrafts(drafts.slice(0, 5)); // Show last 5 drafts
@@ -84,7 +86,9 @@ export default function AdvocateDashboard() {
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch("/api/advocate/profile");
+      const response = await fetch("/api/advocate/profile", {
+        cache: 'no-store'
+      });
       if (response.ok) {
         const profileData = await response.json();
         setProfile(profileData);

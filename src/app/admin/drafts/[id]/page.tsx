@@ -7,10 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { FileText, Clock, CheckCircle, XCircle, ArrowLeft, User } from "lucide-react";
+import { FileText, Clock, CheckCircle, XCircle, ArrowLeft, User, Edit, X } from "lucide-react";
 import Link from "next/link";
 import { DraftStatus } from "@/lib/auth/roles";
 import { ConfirmationDialog } from "@/components/common/ConfirmationDialog";
+import PlatformAdminCourseForm from "@/components/forms/PlatformAdminCourseForm";
+import YouthAdvocateCourseForm from "@/components/forms/YouthAdvocateCourseForm";
+
 
 type Draft = {
   id: string;
@@ -40,6 +43,9 @@ export default function AdminDraftReviewPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editedContent, setEditedContent] = useState<Record<string, unknown> | null>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   useEffect(() => {
     if (params.id) {
@@ -50,7 +56,9 @@ export default function AdminDraftReviewPage() {
 
   const fetchDraft = async () => {
     try {
-      const response = await fetch(`/api/admin/drafts/${params.id}`);
+      const response = await fetch(`/api/admin/drafts/${params.id}`, {
+        cache: 'no-store'
+      });
       if (response.ok) {
         const data = await response.json();
         setDraft(data);
@@ -78,6 +86,7 @@ export default function AdminDraftReviewPage() {
         body: JSON.stringify({
           status: "APPROVED",
           reviewNotes: reviewNotes.trim(),
+          content: editedContent || draft.content, // Use edited content if available
         }),
       });
 
@@ -114,6 +123,7 @@ export default function AdminDraftReviewPage() {
         body: JSON.stringify({
           status: "REJECTED",
           reviewNotes: reviewNotes.trim(),
+          content: editedContent || draft.content, // Use edited content if available
         }),
       });
 
@@ -129,6 +139,74 @@ export default function AdminDraftReviewPage() {
     } finally {
       setIsProcessing(false);
       setRejectDialogOpen(false);
+    }
+  };
+
+
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setEditedContent(null);
+  };
+
+  // Helper function to convert dates to YYYY-MM-DD format for form inputs
+  const formatDateForInput = (dateValue: unknown): string => {
+    if (!dateValue) return "";
+    
+    let date: Date;
+    if (typeof dateValue === "string") {
+      date = new Date(dateValue);
+    } else if (dateValue instanceof Date) {
+      date = dateValue;
+    } else {
+      return "";
+    }
+    
+    if (isNaN(date.getTime())) return "";
+    
+    return date.toISOString().split('T')[0];
+  };
+
+  // Prepare initial data with properly formatted dates
+  const prepareInitialData = (content: Record<string, unknown>) => {
+    return {
+      ...content,
+      startDate: formatDateForInput(content.startDate),
+      endDate: formatDateForInput(content.endDate),
+      applyByDate: formatDateForInput(content.applyByDate),
+      applyByDateMm: formatDateForInput(content.applyByDateMm),
+    };
+  };
+
+  const handleFormSubmit = async (formData: Record<string, unknown>) => {
+    setEditedContent(formData);
+    
+    // Save the changes
+    setIsSavingEdit(true);
+    try {
+      const response = await fetch(`/api/admin/drafts/${draft!.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: formData,
+        }),
+      });
+
+      if (response.ok) {
+        // Update the local draft state with the edited content
+        setDraft(prev => prev ? { ...prev, content: formData } : null);
+        setIsEditMode(false);
+        setEditedContent(null);
+      } else {
+        const error = await response.json();
+        alert(`Error saving changes: ${error.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error("Error saving changes:", error);
+      alert("Error saving changes. Please try again.");
+    } finally {
+      setIsSavingEdit(false);
     }
   };
 
@@ -237,6 +315,33 @@ export default function AdminDraftReviewPage() {
             Course draft review and approval
           </p>
         </div>
+        
+        {/* Edit Mode Toggle */}
+        {isPending && (
+          <div className="flex gap-2">
+            {isEditMode ? (
+              <>
+                <Button 
+                  variant="outline" 
+                  onClick={handleCancelEdit}
+                  disabled={isSavingEdit}
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel Edit
+                </Button>
+              </>
+            ) : (
+              <Button 
+                variant="outline" 
+                onClick={() => setIsEditMode(true)}
+                disabled={isProcessing}
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Draft
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -275,14 +380,36 @@ export default function AdminDraftReviewPage() {
           </Card>
 
           {/* Course Content */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Course Draft Details</CardTitle>
-              <CardDescription>
-                Complete information about the proposed course
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          {isEditMode ? (
+            <div>
+              {draft.type === "YOUTH_ADVOCATE" ? (
+                <YouthAdvocateCourseForm
+                  initialData={prepareInitialData(editedContent || draft.content)}
+                  mode="edit"
+                  onSubmit={handleFormSubmit as never}
+                  isSubmitting={isSavingEdit}
+                  submitButtonText="Save Changes"
+                  draftMode={true}
+                />
+              ) : (
+                <PlatformAdminCourseForm
+                  initialData={prepareInitialData(editedContent || draft.content)}
+                  mode="edit"
+                  onSubmit={handleFormSubmit as never}
+                  isSubmitting={isSavingEdit}
+                  submitButtonText="Save Changes"
+                />
+              )}
+            </div>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Course Draft Details</CardTitle>
+                <CardDescription>
+                  Complete information about the proposed course
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
               {/* Basic Information */}
               {renderContentField("Course Title", draft.content.title)}
               {renderContentField("Subtitle", draft.content.subtitle)}
@@ -398,6 +525,7 @@ export default function AdminDraftReviewPage() {
               )}
             </CardContent>
           </Card>
+          )}
         </div>
 
         {/* Review Panel */}

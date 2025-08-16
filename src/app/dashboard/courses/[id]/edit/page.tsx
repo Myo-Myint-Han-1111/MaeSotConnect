@@ -195,9 +195,9 @@ export default function EditCoursePage() {
   useEffect(() => {
     async function fetchCourse() {
       try {
-        // Add cache-busting timestamp in development
-        const cacheBuster = process.env.NODE_ENV === "development" ? `?t=${Date.now()}` : "";
-        const response = await fetch(`/api/courses/${id}${cacheBuster}`);
+        const response = await fetch(`/api/courses/${id}`, {
+          cache: 'no-store'
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch course");
         }

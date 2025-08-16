@@ -171,6 +171,9 @@ interface CourseFormProps {
   existingImages?: string[];
   backUrl?: string;
   editDraftId?: string;
+  onSubmit?: (formData: CourseFormData) => Promise<void>;
+  isSubmitting?: boolean;
+  submitButtonText?: string;
 }
 
 export default function PlatformAdminCourseForm({
@@ -180,6 +183,9 @@ export default function PlatformAdminCourseForm({
   existingImages = [],
   backUrl = "/dashboard/courses",
   editDraftId,
+  onSubmit,
+  isSubmitting,
+  submitButtonText,
 }: CourseFormProps = {}) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -608,6 +614,20 @@ export default function PlatformAdminCourseForm({
 
     delete (cleanedFormData as Partial<CourseFormData>).showEstimatedForStartDate;
     delete (cleanedFormData as Partial<CourseFormData>).showEstimatedForApplyByDate;
+
+    // If external onSubmit is provided, use it instead of internal logic
+    if (onSubmit) {
+      try {
+        await onSubmit(cleanedFormData);
+        setIsLoading(false);
+        return;
+      } catch (error) {
+        console.error("External onSubmit error:", error);
+        setError("Failed to submit form. Please try again.");
+        setIsLoading(false);
+        return;
+      }
+    }
 
     try {
       const formDataToSend = new FormData();
@@ -1479,7 +1499,7 @@ export default function PlatformAdminCourseForm({
                   )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                     {existingImageList.map((url, index) => (
-                      <div key={`existing-image-${index}`} className="relative h-40 border rounded-md overflow-hidden">
+                      <div key={`existing-image-${index}`} className="relative h-40 border rounded-md overflow-hidden group">
                         <Image 
                           src={url} 
                           alt={`Existing course image ${index + 1}`} 
@@ -1494,7 +1514,7 @@ export default function PlatformAdminCourseForm({
                           type="button"
                           variant="destructive"
                           size="icon"
-                          className="absolute top-2 right-2 w-7 h-7"
+                          className="absolute top-1 right-1 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-200"
                           onClick={() => removeExistingImage(index)}
                         >
                           <X className="h-4 w-4" />
@@ -1503,7 +1523,7 @@ export default function PlatformAdminCourseForm({
                     ))}
 
                     {formData.images.map((file, index) => (
-                      <div key={`new-image-${index}`} className="relative h-40 border rounded-md overflow-hidden">
+                      <div key={`new-image-${index}`} className="relative h-40 border rounded-md overflow-hidden group">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img 
                           src={URL.createObjectURL(file)} 
@@ -1517,7 +1537,7 @@ export default function PlatformAdminCourseForm({
                           type="button"
                           variant="destructive"
                           size="icon"
-                          className="absolute top-2 right-2 w-7 h-7"
+                          className="absolute top-1 right-1 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-200"
                           onClick={() => removeImage(index)}
                         >
                           <X className="h-4 w-4" />
@@ -1685,10 +1705,10 @@ export default function PlatformAdminCourseForm({
 
               <Button
                 type="submit"
-                disabled={isLoading || !formData.organizationId || isOverLimit}
+                disabled={(isSubmitting ?? isLoading) || !formData.organizationId || isOverLimit}
                 className={`${isMobile ? "w-full" : ""} bg-blue-600 hover:bg-blue-700 text-white`}
               >
-                {isLoading ? "Publishing..." : isOverLimit ? "Images too large" : "Publish Course"}
+                {(isSubmitting ?? isLoading) ? (submitButtonText ? "Saving..." : "Publishing...") : isOverLimit ? "Images too large" : (submitButtonText ?? "Publish Course")}
               </Button>
             </div>
           </CardFooter>

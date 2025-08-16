@@ -3,25 +3,17 @@
  */
 
 /**
- * Adds cache-busting parameters to URLs in development mode
- * In production, returns the URL unchanged to allow proper caching
+ * Fetch with modern caching strategy for admin and dashboard pages
+ * Uses no-store to prevent caching for real-time data
  */
-export function addCacheBuster(url: string): string {
-  if (process.env.NODE_ENV === "development") {
-    const separator = url.includes("?") ? "&" : "?";
-    return `${url}${separator}t=${Date.now()}`;
-  }
-  return url;
-}
-
-/**
- * Fetch with automatic cache busting in development
- */
-export async function fetchWithCacheBusting(
+export async function fetchWithNoCache(
   url: string, 
   options?: RequestInit
 ): Promise<Response> {
-  return fetch(addCacheBuster(url), options);
+  return fetch(url, {
+    ...options,
+    cache: 'no-store'
+  });
 }
 
 /**

@@ -54,8 +54,9 @@ export default function DraftDetailsPage() {
 
   const fetchDraft = async () => {
     try {
-      const cacheBuster = process.env.NODE_ENV === "development" ? `?t=${Date.now()}` : "";
-      const response = await fetch(`/api/drafts/${params.id}${cacheBuster}`);
+      const response = await fetch(`/api/drafts/${params.id}`, {
+        cache: 'no-store'
+      });
       if (response.ok) {
         const data = await response.json();
         setDraft(data);
