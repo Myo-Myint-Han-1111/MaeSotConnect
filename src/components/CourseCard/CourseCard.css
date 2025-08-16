@@ -42,6 +42,7 @@
   position: relative;
 }
 .see-more-button {
+  font-weight: 500;
   min-width: fit-content;
   border: none;
   outline: none;

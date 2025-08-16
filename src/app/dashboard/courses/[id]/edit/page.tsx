@@ -126,7 +126,7 @@ interface CourseFormData {
   startDateMm: string;
   endDate: string;
   endDateMm: string;
-  duration: number; // Number for new schema
+  duration: number | null; // Number for new schema
   durationMm: number; // Number for new schema
   schedule: string;
   scheduleMm: string;

@@ -792,58 +792,61 @@ export default function LocationSelector({
         </Label>
       </div>
 
-      {/* Province Selection */}
-      <div className="space-y-2">
-        <Label htmlFor="province">Province</Label>
-        <Select
-          value={value.province}
-          onValueChange={handleProvinceChange}
-          disabled={disabled}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select a province" />
-          </SelectTrigger>
-          <SelectContent className="bg-white max-h-[200px] overflow-y-auto">
-            {provinces.map((province) => (
-              <SelectItem key={province.id} value={province.provinceNameEn}>
-                {province.provinceNameEn} ({province.provinceNameTh})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {/* Province and District Selection - Side by Side */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Province Selection */}
+        <div className="space-y-2">
+          <Label htmlFor="province">Province</Label>
+          <Select
+            value={value.province}
+            onValueChange={handleProvinceChange}
+            disabled={disabled}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a province" />
+            </SelectTrigger>
+            <SelectContent className="bg-white max-h-[200px] overflow-y-auto">
+              {provinces.map((province) => (
+                <SelectItem key={province.id} value={province.provinceNameEn}>
+                  {province.provinceNameEn} ({province.provinceNameTh})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-      {/* District Selection */}
-      <div className="space-y-2">
-        <Label htmlFor="district">District</Label>
-        <Select
-          value={value.district}
-          onValueChange={handleDistrictChange}
-          disabled={disabled || !selectedProvinceCode}
-        >
-          <SelectTrigger>
-            <SelectValue
-              placeholder={
-                selectedProvinceCode
-                  ? "Select a district"
-                  : "Please select a province first"
-              }
-            />
-          </SelectTrigger>
-          <SelectContent className="bg-white max-h-[200px] overflow-y-auto">
-            {availableDistricts.map((district) => (
-              <SelectItem key={district.id} value={district.districtNameEn}>
-                {district.districtNameEn} ({district.districtNameTh})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {availableDistricts.length === 0 && selectedProvinceCode && (
-          <p className="text-xs text-muted-foreground">
-            No districts available for selected province. You can still save the
-            course with just the province selected.
-          </p>
-        )}
+        {/* District Selection */}
+        <div className="space-y-2">
+          <Label htmlFor="district">District</Label>
+          <Select
+            value={value.district}
+            onValueChange={handleDistrictChange}
+            disabled={disabled || !selectedProvinceCode}
+          >
+            <SelectTrigger>
+              <SelectValue
+                placeholder={
+                  selectedProvinceCode
+                    ? "Select a district"
+                    : "Please select a province first"
+                }
+              />
+            </SelectTrigger>
+            <SelectContent className="bg-white max-h-[200px] overflow-y-auto">
+              {availableDistricts.map((district) => (
+                <SelectItem key={district.id} value={district.districtNameEn}>
+                  {district.districtNameEn} ({district.districtNameTh})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {availableDistricts.length === 0 && selectedProvinceCode && (
+            <p className="text-xs text-muted-foreground">
+              No districts available for selected province. You can still save the
+              course with just the province selected.
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

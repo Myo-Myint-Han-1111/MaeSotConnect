@@ -57,7 +57,7 @@ interface CourseFormData {
   applyByDateMm: string;
   startDate: string;
   endDate: string;
-  duration: number;
+  duration: number | null;
   schedule: string;
   scheduleMm: string;
   feeAmount: number;
@@ -212,6 +212,7 @@ export default function CourseForm({
   const [existingImageList, setExistingImageList] =
     useState<string[]>(existingImages);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [organizationsLoading, setOrganizationsLoading] = useState(true);
   const [isCompressing, setIsCompressing] = useState(false);
 
   // Initialize form data with default values
@@ -229,7 +230,7 @@ export default function CourseForm({
       applyByDateMm: "",
       startDate: "",
       endDate: "",
-      duration: 0,
+      duration: null,
       schedule: "",
       scheduleMm: "",
       feeAmount: 0,
@@ -292,6 +293,7 @@ export default function CourseForm({
   useEffect(() => {
     const fetchOrganizations = async () => {
       try {
+        setOrganizationsLoading(true);
         const response = await fetch("/api/organizations");
         if (response.ok) {
           const data = await response.json();
@@ -301,6 +303,8 @@ export default function CourseForm({
         }
       } catch (error) {
         console.error("Error fetching organizations:", error);
+      } finally {
+        setOrganizationsLoading(false);
       }
     };
 
@@ -350,7 +354,7 @@ export default function CourseForm({
         applyByDateMm: initialData.applyByDateMm ?? "",
         startDate: initialData.startDate ?? "",
         endDate: initialData.endDate ?? "",
-        duration: initialData.duration ?? 0,
+        duration: initialData.duration ?? null,
         schedule: initialData.schedule ?? "",
         scheduleMm: initialData.scheduleMm ?? "",
         feeAmount: initialData.feeAmount ?? -1,
@@ -497,11 +501,27 @@ export default function CourseForm({
       }
     } else {
       // Handle other numeric fields normally (duration, feeAmount, etc.)
-      const value = inputValue === "" ? 0 : parseInt(inputValue, 10) || 0;
-      setFormData((prev) => ({
-        ...prev,
-        [fieldName]: value,
-      }));
+      if (inputValue === "" || inputValue === null || inputValue === undefined) {
+        // Allow clearing the field for duration
+        if (fieldName === "duration") {
+          setFormData((prev) => ({
+            ...prev,
+            [fieldName]: null,
+          }));
+        } else {
+          // For other fields like feeAmount, use 0 as default
+          setFormData((prev) => ({
+            ...prev,
+            [fieldName]: 0,
+          }));
+        }
+      } else {
+        const value = parseInt(inputValue, 10) || 0;
+        setFormData((prev) => ({
+          ...prev,
+          [fieldName]: value,
+        }));
+      }
     }
   };
 
@@ -1163,16 +1183,16 @@ export default function CourseForm({
                     ))}
                   </SelectContent>
                 </Select>
-                {organizations.length === 0 && (
-                  <p className="text-xs text-red-500">
-                    No organizations found. Please create an organization first.
-                  </p>
-                )}
-                {(!formData.organizationId ||
-                  formData.organizationId === "") && (
-                  <p className="text-xs text-red-500">
-                    Organization selection is required
-                  </p>
+                {!organizationsLoading && (
+                  organizations.length === 0 ? (
+                    <p className="text-xs text-red-500">
+                      No organizations found. Please create an organization first.
+                    </p>
+                  ) : (!formData.organizationId || formData.organizationId === "") ? (
+                    <p className="text-xs text-red-500">
+                      Organization selection is required
+                    </p>
+                  ) : null
                 )}
               </div>
 
@@ -1202,6 +1222,8 @@ export default function CourseForm({
                       onChange={handleTextChange}
                       required
                       className="bg-white"
+                      aria-invalid={!formData.title}
+                      aria-describedby={!formData.title ? "title-error" : undefined}
                     />
                   </div>
                   <div>
@@ -1218,6 +1240,11 @@ export default function CourseForm({
                     />
                   </div>
                 </div>
+                {!formData.title && (
+                  <p id="title-error" className="text-xs text-red-500 mt-1">
+                    Course title is required
+                  </p>
+                )}
               </div>
 
               {/* Subtitle - English and Myanmar */}
@@ -1246,6 +1273,8 @@ export default function CourseForm({
                       onChange={handleTextChange}
                       required
                       className="bg-white"
+                      aria-invalid={!formData.subtitle}
+                      aria-describedby={!formData.subtitle ? "subtitle-error" : undefined}
                     />
                   </div>
                   <div>
@@ -1262,6 +1291,11 @@ export default function CourseForm({
                     />
                   </div>
                 </div>
+                {!formData.subtitle && (
+                  <p id="subtitle-error" className="text-xs text-red-500 mt-1">
+                    Subtitle is required
+                  </p>
+                )}
               </div>
 
               {/* Course Address */}
@@ -1397,68 +1431,6 @@ export default function CourseForm({
                 </p>
               </div>
 
-              {/* Schedule - English and Myanmar */}
-              <div className="space-y-2">
-                <Label htmlFor="schedule">
-                  <BookOpen className="h-4 w-4 inline mr-1" />
-                  Schedule
-                </Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">
-                      English
-                    </div>
-                    <Input
-                      id="schedule"
-                      name="schedule"
-                      value={formData.schedule ?? ""}
-                      onChange={handleTextChange}
-                      required
-                      placeholder="e.g. Mon, Wed, Fri: 2-4 PM"
-                    />
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">
-                      Myanmar
-                    </div>
-                    <Input
-                      id="scheduleMm"
-                      name="scheduleMm"
-                      value={formData.scheduleMm ?? ""}
-                      onChange={handleTextChange}
-                      dir="auto"
-                      placeholder="Myanmar translation..."
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Available Days</Label>
-                <div
-                  className={`flex ${
-                    isMobile ? "flex-col gap-2" : "flex-wrap gap-3"
-                  } mt-2`}
-                >
-                  {dayNames.map((day, index) => (
-                    <div key={day} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id={`day-${index}`}
-                        checked={formData.availableDays[index] || false}
-                        onChange={() => handleDayChange(index)}
-                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
-                      <label
-                        htmlFor={`day-${index}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {day}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </TabsContent>
 
             {/* NEW TAB: Dates & Fees */}
@@ -1470,7 +1442,7 @@ export default function CourseForm({
                   <div className="flex items-center gap-2">
                     <Label htmlFor="startDate">
                       <Calendar className="h-4 w-4 inline mr-1" />
-                      Start Date
+                      Start Date*
                     </Label>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -1488,7 +1460,40 @@ export default function CourseForm({
                     value={formData.startDate ?? ""}
                     onChange={handleTextChange}
                     required
+                    aria-invalid={!formData.startDate}
+                    aria-describedby={!formData.startDate ? "startDate-error" : undefined}
                   />
+                  {!formData.startDate && (
+                    <p id="startDate-error" className="text-xs text-red-500 mt-1">
+                      Start date is required
+                    </p>
+                  )}
+                  
+                  <div className="flex items-center space-x-2 mt-2">
+                    <input
+                      type="checkbox"
+                      id="showEstimatedForStartDate"
+                      checked={formData.showEstimatedForStartDate}
+                      onChange={() =>
+                        handleCheckboxChange("showEstimatedForStartDate")
+                      }
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <label
+                      htmlFor="showEstimatedForStartDate"
+                      className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-1"
+                    >
+                      Mark start date as estimated
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-sm">
+                          <p>Check this if the start date may change by more than one week. This will show an &quot;estimated&quot; badge next to the start date.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </label>
+                  </div>
                 </div>
 
                 {/* End Date */}
@@ -1496,7 +1501,7 @@ export default function CourseForm({
                   <div className="flex items-center gap-2">
                     <Label htmlFor="endDate">
                       <Calendar className="h-4 w-4 inline mr-1" />
-                      End Date
+                      End Date*
                     </Label>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -1514,7 +1519,14 @@ export default function CourseForm({
                     value={formData.endDate ?? ""}
                     onChange={handleTextChange}
                     required
+                    aria-invalid={!formData.endDate}
+                    aria-describedby={!formData.endDate ? "endDate-error" : undefined}
                   />
+                  {!formData.endDate && (
+                    <p id="endDate-error" className="text-xs text-red-500 mt-1">
+                      End date is required
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -1545,177 +1557,88 @@ export default function CourseForm({
                     />
                   </div>
                 </div>
+                
+                <div className="flex items-center space-x-2 mt-2">
+                  <input
+                    type="checkbox"
+                    id="showEstimatedForApplyByDate"
+                    checked={formData.showEstimatedForApplyByDate}
+                    onChange={() =>
+                      handleCheckboxChange("showEstimatedForApplyByDate")
+                    }
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <label
+                    htmlFor="showEstimatedForApplyByDate"
+                    className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-1"
+                  >
+                    Mark application deadline as estimated
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-3 w-3 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-sm">
+                        <p>Check this if the application deadline may change. This will show an &quot;estimated&quot; badge next to the deadline.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </label>
+                </div>
               </div>
 
-              {/* Estimated Date Section */}
-              <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
-                <div className="space-y-3">
+
+              {/* Duration and Fee */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label className="text-base font-medium">
-                      Estimated Date Options
+                    <Label htmlFor="duration">
+                      <Clock className="h-4 w-4 inline mr-1" />
+                      Duration (days)*
                     </Label>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Info className="h-4 w-4 text-muted-foreground" />
                       </TooltipTrigger>
                       <TooltipContent className="max-w-sm">
-                        <p>Use this when you cannot confirm exact program dates. Mark dates as estimated if they may change by more than one week.</p>
-                        <p className="mt-1 text-xs text-gray-600">If dates may shift by less than a week, leave this unchecked as youth can adjust to minor changes.</p>
+                        <p>Enter the total number of active program days, not the time span.</p>
+                        <p className="mt-1 text-xs text-gray-600"><strong>Example:</strong> A 3-day program spread over 3 weeks = 3 days, not 21</p>
                       </TooltipContent>
                     </Tooltip>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Configure when to display the estimated date. If neither
-                    option is selected, estimated dates will not be shown on
-                    course cards.
-                  </p>
-
-                  {/* Estimated Date Input Fields */}
-                  <div className="space-y-2">
-                    <Label htmlFor="estimatedDate">
-                      Estimated Date 
-                    </Label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <div className="text-xs text-muted-foreground mb-1">
-                          English
-                        </div>
-                        <Input
-                          id="estimatedDate"
-                          name="estimatedDate"
-                          value={formData.estimatedDate}
-                          onChange={handleTextChange}
-                          placeholder="e.g., Early 2024, Spring semester"
-                        />
-                      </div>
-                      <div>
-                        <div className="text-xs text-muted-foreground mb-1">
-                          Myanmar
-                        </div>
-                        <Input
-                          id="estimatedDateMm"
-                          name="estimatedDateMm"
-                          value={formData.estimatedDateMm}
-                          onChange={handleTextChange}
-                          placeholder="Myanmar translation..."
-                          dir="auto"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Checkboxes for display options - Only show if estimated date is filled */}
-                  {(formData.estimatedDate || formData.estimatedDateMm) && (
-                    <div className="space-y-3 pt-3 border-t">
-                      <Label className="text-sm font-medium">
-                        Display estimated date for:
-                      </Label>
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            id="showEstimatedForStartDate"
-                            checked={formData.showEstimatedForStartDate}
-                            onChange={() =>
-                              handleCheckboxChange("showEstimatedForStartDate")
-                            }
-                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                          />
-                          <label
-                            htmlFor="showEstimatedForStartDate"
-                            className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            Start Date (show estimated date badge next to start
-                            date)
-                          </label>
-                        </div>
-
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            id="showEstimatedForApplyByDate"
-                            checked={formData.showEstimatedForApplyByDate}
-                            onChange={() =>
-                              handleCheckboxChange(
-                                "showEstimatedForApplyByDate"
-                              )
-                            }
-                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                          />
-                          <label
-                            htmlFor="showEstimatedForApplyByDate"
-                            className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            Application Deadline (show estimated date badge next
-                            to deadline)
-                          </label>
-                        </div>
-                      </div>
-
-                      {!formData.showEstimatedForStartDate &&
-                        !formData.showEstimatedForApplyByDate && (
-                          <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
-                            ⚠️ Estimated date is entered but won&apos;t be
-                            displayed. Select at least one option above to show
-                            it.
-                          </p>
-                        )}
-                    </div>
-                  )}
-
-                  <p className="text-xs text-muted-foreground">
-                    Use estimated dates for approximate or flexible timing when
-                    exact dates are not available
-                  </p>
-                </div>
-              </div>
-
-              {/* Duration */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="duration">
-                    <Clock className="h-4 w-4 inline mr-1" />
-                    Duration (days)
-                  </Label>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-4 w-4 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-sm">
-                      <p>Enter the total number of active program days, not the time span.</p>
-                      <p className="mt-1 text-xs text-gray-600"><strong>Example:</strong> A 3-day program spread over 3 weeks = 3 days, not 21</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
                 <Input
                   id="duration"
                   name="duration"
                   type="number"
                   min="1"
-                  value={formData.duration}
+                  value={formData.duration === null ? "" : formData.duration}
                   onChange={(e) => handleNumberChange(e, "duration")}
                   required
                   placeholder="Number of days"
+                  aria-invalid={!formData.duration || formData.duration <= 0}
+                  aria-describedby={(!formData.duration || formData.duration <= 0) ? "duration-error" : undefined}
                 />
-              </div>
+                {(!formData.duration || formData.duration <= 0) && (
+                  <p id="duration-error" className="text-xs text-red-500 mt-1">
+                    Duration is required and must be greater than 0
+                  </p>
+                )}
+                </div>
 
-              {/* Fee Amount */}
-              <div className="space-y-2">
-                <Label htmlFor="feeAmount">
-                  <DollarSign className="h-4 w-4 inline mr-1" />
-                  Course Fee (THB)
-                </Label>
+                <div className="space-y-2">
+                  <Label htmlFor="feeAmount">
+                    <DollarSign className="h-4 w-4 inline mr-1" />
+                    Course Fee (THB)
+                  </Label>
                 <Input
                   id="feeAmount"
                   name="feeAmount"
                   type="number"
-                  min="-1"
-                  step="0.01"
-                  value={formData.feeAmount === -1 ? "" : formData.feeAmount}
+                  min="0"
+                  step="100"
+                  value={formData.feeAmount === 0 ? "" : formData.feeAmount}
                   onChange={(e) => {
                     const value = e.target.value;
                     if (value === "") {
-                      setFormData((prev) => ({ ...prev, feeAmount: -1 }));
+                      setFormData((prev) => ({ ...prev, feeAmount: 0 }));
                     } else {
                       const numValue = parseFloat(value);
                       if (!isNaN(numValue) && numValue >= 0) {
@@ -1728,10 +1651,81 @@ export default function CourseForm({
                   }}
                   placeholder="Leave blank to hide, 0 for free, or enter amount"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Leave blank to hide fee, enter 0 for free courses, or enter
-                  amount for paid courses
-                </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Leave blank to hide fee, enter 0 for free courses, or enter
+                    amount for paid courses
+                  </p>
+                </div>
+              </div>
+
+              {/* Schedule - English and Myanmar */}
+              <div className="space-y-2">
+                <Label htmlFor="schedule">
+                  <BookOpen className="h-4 w-4 inline mr-1" />
+                  Schedule*
+                </Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">
+                      English
+                    </div>
+                    <Input
+                      id="schedule"
+                      name="schedule"
+                      value={formData.schedule ?? ""}
+                      onChange={handleTextChange}
+                      required
+                      placeholder="e.g. Mon, Wed, Fri: 2-4 PM"
+                      aria-invalid={!formData.schedule}
+                      aria-describedby={!formData.schedule ? "schedule-error" : undefined}
+                    />
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">
+                      Myanmar
+                    </div>
+                    <Input
+                      id="scheduleMm"
+                      name="scheduleMm"
+                      value={formData.scheduleMm ?? ""}
+                      onChange={handleTextChange}
+                      dir="auto"
+                      placeholder="Myanmar translation..."
+                    />
+                  </div>
+                </div>
+                {!formData.schedule && (
+                  <p id="schedule-error" className="text-xs text-red-500 mt-1">
+                    Schedule is required
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Available Days</Label>
+                <div
+                  className={`flex ${
+                    isMobile ? "flex-col gap-2" : "flex-wrap gap-3"
+                  } mt-2`}
+                >
+                  {dayNames.map((day, index) => (
+                    <div key={day} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={`day-${index}`}
+                        checked={formData.availableDays[index] || false}
+                        onChange={() => handleDayChange(index)}
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                      <label
+                        htmlFor={`day-${index}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        {day}
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </div>
             </TabsContent>
 
