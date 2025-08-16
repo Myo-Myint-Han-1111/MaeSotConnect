@@ -256,13 +256,16 @@ export default function PlatformAdminCourseForm({
   const isOverLimit = totalFileSize > VERCEL_LIMIT;
 
   useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+    // Use matchMedia for better performance than window.innerWidth
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    
+    const handleMediaChange = (e: MediaQueryListEvent) => {
+      setIsMobile(e.matches);
     };
 
-    checkIfMobile();
-    window.addEventListener("resize", checkIfMobile);
-    return () => window.removeEventListener("resize", checkIfMobile);
+    setIsMobile(mediaQuery.matches);
+    mediaQuery.addEventListener('change', handleMediaChange);
+    return () => mediaQuery.removeEventListener('change', handleMediaChange);
   }, []);
 
   // ONLY CHANGE: Fetch organizations and set default - NO COMPLEX DEPENDENCY ARRAY
@@ -1505,7 +1508,7 @@ export default function PlatformAdminCourseForm({
                           alt={`Existing course image ${index + 1}`} 
                           fill
                           className="object-cover"
-                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                          sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 256px"
                         />
                         <div className="absolute top-0 left-0 bg-black bg-opacity-20 text-white text-xs px-2 py-1 rounded-br-md">
                           Existing

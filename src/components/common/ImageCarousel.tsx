@@ -31,21 +31,9 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
   const carouselRef = useRef<HTMLDivElement>(null);
   const touchStartXRef = useRef<number | null>(null);
   const touchEndXRef = useRef<number | null>(null);
-  const [screenWidth, setScreenWidth] = useState(1024); // Default to desktop size
-
   // Set isMounted when component mounts (client-side only)
   useEffect(() => {
     setIsMounted(true);
-    // Set screen width
-    setScreenWidth(window.innerWidth);
-
-    // Update screen width on resize
-    const handleResize = () => {
-      setScreenWidth(window.innerWidth);
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // Navigation functions as useCallback to prevent unnecessary recreations
@@ -152,14 +140,8 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
     if (indicatorStyle === "bars") {
       return {
         ...baseStyle,
-        width: isMounted
-          ? screenWidth <= 480
-            ? "16px"
-            : screenWidth <= 768
-            ? "20px"
-            : "25px"
-          : "25px", // Default for SSR
-        height: isMounted ? (screenWidth <= 768 ? "3px" : "4px") : "4px", // Default for SSR
+        width: "20px", // Fixed size - CSS will handle responsiveness
+        height: "4px", // Fixed size - CSS will handle responsiveness
         borderRadius: "2px",
         backgroundColor: isActive ? "white" : "rgba(255, 255, 255, 0.5)",
       };
@@ -204,33 +186,15 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     color: "white",
     border: "none",
-    width: isMounted
-      ? screenWidth <= 480
-        ? "24px"
-        : screenWidth <= 768
-        ? "28px"
-        : "30px"
-      : "30px", // Default for SSR
-    height: isMounted
-      ? screenWidth <= 480
-        ? "24px"
-        : screenWidth <= 768
-        ? "28px"
-        : "30px"
-      : "30px", // Default for SSR
+    width: "30px", // Use CSS for responsive sizing
+    height: "30px",
     borderRadius: "50%",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     cursor: "pointer",
     zIndex: 10,
-    fontSize: isMounted
-      ? screenWidth <= 480
-        ? "10px"
-        : screenWidth <= 768
-        ? "12px"
-        : "14px"
-      : "14px", // Default for SSR
+    fontSize: "14px",
   };
 
   // Define keyframes for fadeInOut animation and responsive styles for carousel buttons
@@ -247,22 +211,38 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
         100% { opacity: 0; visibility: hidden; }
       }
 
-      /* Hide carousel buttons on mobile */
-      @media (max-width: 767px) {
+      /* Responsive button sizing */
+      @media (max-width: 480px) {
         .carousel-button {
           display: none !important;
         }
       }
       
-      /* Show carousel buttons on tablet and desktop, but hide by default */
-      @media (min-width: 768px) {
+      @media (min-width: 481px) and (max-width: 768px) {
         .carousel-button {
+          width: 28px !important;
+          height: 28px !important;
+          fontSize: 12px !important;
           display: flex !important;
           opacity: 0;
           transition: opacity 0.3s ease;
         }
-        
-        /* Show buttons on hover of the carousel container */
+      }
+      
+      /* Show carousel buttons on tablet and desktop, but hide by default */
+      @media (min-width: 769px) {
+        .carousel-button {
+          width: 30px !important;
+          height: 30px !important;
+          fontSize: 14px !important;
+          display: flex !important;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+      }
+      
+      /* Show buttons on hover of the carousel container */
+      @media (min-width: 481px) {
         .image-carousel-container:hover .carousel-button {
           opacity: 0.7;
         }
@@ -270,6 +250,21 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
         /* Increase opacity when hovering directly over buttons */
         .carousel-button:hover {
           opacity: 1 !important;
+        }
+      }
+
+      /* Responsive indicator sizing */
+      @media (max-width: 480px) {
+        .image-carousel-container button[style*="width: 20px"] {
+          width: 16px !important;
+          height: 3px !important;
+        }
+      }
+      
+      @media (min-width: 481px) and (max-width: 768px) {
+        .image-carousel-container button[style*="width: 20px"] {
+          width: 18px !important;
+          height: 3px !important;
         }
       }
     `;
@@ -295,7 +290,8 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
               transition: "transform 0.3s ease",
               userSelect: "none",
             }}
-            sizes="(max-width: 768px) 100vw, 800px"
+            sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 384px"
+            quality={80}
             priority
           />
         </div>
@@ -322,7 +318,8 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
             transition: "transform 0.3s ease",
             userSelect: "none",
           }}
-          sizes="(max-width: 768px) 100vw, 800px"
+          sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 384px"
+          quality={80}
           priority={currentImageIndex === 0}
           draggable={false}
         />

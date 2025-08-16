@@ -107,14 +107,13 @@ const nextConfig: NextConfig = {
         pathname: "**",
       },
     ],
-    // Optimized sizes for your course image use cases
-    deviceSizes: [640, 768, 1024, 1280], // Removed smaller sizes, course images don't need 320px
-    imageSizes: [32, 64, 128, 256], // Reduced options, focused on common thumbnail/preview sizes
-    formats: ["image/webp"], // Single format to reduce transformations
+    // Optimized sizes for actual course card display (378px)
+    deviceSizes: [384, 640, 768, 1024], // Added 384px to match actual course card display
+    imageSizes: [128, 256, 384], // Removed unnecessary small sizes, focused on card previews
+    formats: ["image/webp", "image/avif"], // Added AVIF for better compression
     minimumCacheTTL: 2678400, // 31 days cache (Vercel recommendation for static content)
-    
-    // Disable optimization for small images and development previews
-    unoptimized: process.env.NODE_ENV === "development", // Skip optimization in dev for faster builds
+    dangerouslyAllowSVG: true, // Allow SVG images for logos
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;"
   },
 
   // Ensure Prisma client works in serverless environment
@@ -300,6 +299,12 @@ const nextConfig: NextConfig = {
   // Experimental features for better performance
   experimental: {
     // optimizeCss: true, // Disabled - was causing critters dependency issues
+  },
+
+  // Modern JavaScript configuration
+  compiler: {
+    // Remove console logs in production
+    removeConsole: process.env.NODE_ENV === "production",
   },
 
   async redirects() {

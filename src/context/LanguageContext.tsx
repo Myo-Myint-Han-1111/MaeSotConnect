@@ -339,14 +339,15 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
     return "en"; // Default for server-side rendering
   };
 
-  // Start with default "en" for SSR
+  // Start with default "en" for SSR and set hydrated to true immediately
   const [language, setLanguageState] = useState<Language>("en");
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [isHydrated] = useState(true);
 
   // Update language after component mounts (client-side only)
   useEffect(() => {
-    setLanguageState(getInitialLanguage());
-    setIsHydrated(true);
+    if (typeof window !== "undefined") {
+      setLanguageState(getInitialLanguage());
+    }
   }, []);
 
   // Set language and save to localStorage

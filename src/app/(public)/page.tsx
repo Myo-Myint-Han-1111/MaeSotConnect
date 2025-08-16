@@ -170,9 +170,11 @@ export default function Home() {
       setSortBy(state.sortBy);
       setLoading(false); // Important: skip loading state
       
-      // Restore scroll position immediately
+      // Restore scroll position with double RAF to ensure DOM is ready
       requestAnimationFrame(() => {
-        window.scrollTo(0, state.scrollPosition);
+        requestAnimationFrame(() => {
+          window.scrollTo(0, state.scrollPosition);
+        });
       });
       
       return true;
@@ -584,18 +586,28 @@ export default function Home() {
     }
   }, [courses, searchTerm, activeFilters, sortBy, loading, savePageState]);
 
-  // Save state when user scrolls (debounced)
+  // Save state when user scrolls (throttled to reduce reflows)
   useEffect(() => {
     if (typeof window === "undefined") return;
     
     let scrollTimeout: NodeJS.Timeout;
+    let isScrolling = false;
+    
     const handleScroll = () => {
+      if (isScrolling) return; // Skip if already processing
+      
+      isScrolling = true;
       clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        if (!loading && courses.length > 0) {
-          savePageState();
-        }
-      }, 100);
+      
+      // Use RAF to batch DOM reads with rendering
+      requestAnimationFrame(() => {
+        scrollTimeout = setTimeout(() => {
+          if (!loading && courses.length > 0) {
+            savePageState();
+          }
+          isScrolling = false;
+        }, 200); // Increased debounce for better performance
+      });
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -626,10 +638,12 @@ export default function Home() {
       );
 
       if (targetCard) {
-        // Scroll to the card with some offset for better UX
-        targetCard.scrollIntoView({
-          behavior: "instant",
-          block: "center",
+        // Use RAF to avoid forced reflow during scroll restoration
+        requestAnimationFrame(() => {
+          targetCard.scrollIntoView({
+            behavior: "instant",
+            block: "start", // Less aggressive than "center"
+          });
         });
 
         // Clean up
@@ -823,8 +837,6 @@ export default function Home() {
 
               <div className="flex flex-wrap gap-3 justify-start">
                 {allBadges.map((badge) => {
-                  // Debug: log the badge text to see what you're getting
-                  console.log("Badge from database:", badge);
 
                   // Use the centralized badge system to get styles
                   // Try exact match first, then fallback
