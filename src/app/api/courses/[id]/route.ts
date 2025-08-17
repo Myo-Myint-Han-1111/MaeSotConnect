@@ -24,12 +24,22 @@ const courseSchema = z.object({
     .optional()
     .nullable()
     .transform((val) => (val && val.trim() !== "" ? new Date(val) : null)),
+  startByDate: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((val) => (val && val.trim() !== "" ? new Date(val) : null)),
+  startByDateMm: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((val) => (val && val.trim() !== "" ? new Date(val) : null)),
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),
   duration: z.number().int().positive(),
   schedule: z.string().min(2),
   scheduleMm: z.string().optional().nullable(),
- feeAmount: z.number().min(-1), // Allow -1 for hidden fee, 0 for free, positive for paid
+  feeAmount: z.number().min(-1), // Allow -1 for hidden fee, 0 for free, positive for paid
 
   ageMin: z.number().int().nonnegative().optional().nullable(),
   ageMax: z.number().int().nonnegative().optional().nullable(),
@@ -141,6 +151,10 @@ export async function GET(
       applyByDate: course.applyByDate ? course.applyByDate.toISOString() : null,
       applyByDateMm: course.applyByDateMm
         ? course.applyByDateMm.toISOString()
+        : null,
+      startByDate: course.startByDate ? course.startByDate.toISOString() : null,
+      startByDateMm: course.startByDateMm
+        ? course.startByDateMm.toISOString()
         : null,
       startDate: course.startDate.toISOString(),
       startDateMm: null,
@@ -421,6 +435,8 @@ export async function PUT(
             address: validatedData.address,
             applyByDate: validatedData.applyByDate,
             applyByDateMm: validatedData.applyByDateMm,
+            startByDate: validatedData.startByDate,
+            startByDateMm: validatedData.startByDateMm,
             province: validatedData.province,
             district: validatedData.district,
             startDate: validatedData.startDate,

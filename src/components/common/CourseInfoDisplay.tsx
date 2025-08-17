@@ -16,6 +16,7 @@ interface CourseInfoDisplayProps {
   duration: string;
 
   applyByDate?: string;
+  startByDate?: string;
   courseAddress?: string;
   fee?: string;
   estimatedDate?: string | null;
@@ -61,6 +62,7 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
   compact = false,
   showDescriptions = true,
   applyByDate,
+  startByDate,
   courseAddress,
   estimatedDate,
   estimatedDateMm,
@@ -179,6 +181,46 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
                 {applyByDate}
               </p>
               {/* Show estimated date badge only if preferences allow it for apply by date */}
+              {estimatedPrefs.showForApplyByDate &&
+                estimatedPrefs.displayText && (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded text-xs whitespace-nowrap">
+                    <Calendar className="w-3 h-3" />
+                    <span className="text-xs">
+                      {estimatedPrefs.displayText}
+                    </span>
+                  </span>
+                )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Start By Date (Application Open Date) */}
+      {startByDate && (
+        <div className={itemClass} style={{ color: grayColor }}>
+          <CalendarCheck className={iconClass} style={{ color: grayColor }} />
+          <div className="flex-1 min-w-0">
+            {!compact && (
+              <p className="text-sm font-medium text-foreground">
+                Application Open
+              </p>
+            )}
+            <div className="flex items-center gap-2 flex-wrap">
+              {compact && showDescriptions && (
+                <span
+                  className="text-xs w-20 flex-shrink-0"
+                  style={{ color: grayColor }}
+                >
+                  {t("course.info.startByDate")}:
+                </span>
+              )}
+              <p
+                className={compact ? "truncate" : "text-sm"}
+                style={{ color: grayColor }}
+              >
+                {startByDate}
+              </p>
+              {/* Show estimated date badge only if preferences allow it for start by date */}
               {estimatedPrefs.showForApplyByDate &&
                 estimatedPrefs.displayText && (
                   <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded text-xs whitespace-nowrap">

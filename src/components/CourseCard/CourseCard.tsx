@@ -31,6 +31,8 @@ export interface CourseCardProps {
   startDateMm: string | null;
   applyByDate?: string | null;
   applyByDateMm?: string | null;
+  startByDate?: string | null;
+  startByDateMm?: string | null;
   estimatedDate?: string | null;
   estimatedDateMm?: string | null;
   logoImage?: string | null;
@@ -96,6 +98,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   startDateMm,
   applyByDate,
   applyByDateMm,
+  startByDate,
+  startByDateMm,
   estimatedDate,
   estimatedDateMm,
   duration,
@@ -148,11 +152,14 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         role: "YOUTH_ADVOCATE",
       };
     }
-    
+
     // For youth advocates, use their publicName from profile if available
-    if (createdByUser.role === 'YOUTH_ADVOCATE' && createdByUser.advocateProfile) {
+    if (
+      createdByUser.role === "YOUTH_ADVOCATE" &&
+      createdByUser.advocateProfile
+    ) {
       const profile = createdByUser.advocateProfile;
-      if (profile.status === 'APPROVED') {
+      if (profile.status === "APPROVED") {
         return {
           name: profile.publicName || t("course.anonymousYouthAdvocate"),
           image: profile.avatarUrl || "/images/AnonYouthAdvocate.png",
@@ -160,7 +167,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         };
       }
     }
-    
+
     // For organization admins and platform admins, use their regular profile
     return {
       name: createdByUser.name,
@@ -212,6 +219,12 @@ export const CourseCard: React.FC<CourseCardProps> = ({
               ? getLocalizedContent(applyByDate, applyByDateMm || null)
               : undefined
           }
+          startByDate={
+            // ADD THESE LINES
+            startByDate
+              ? getLocalizedContent(startByDate, startByDateMm || null)
+              : undefined
+          }
           estimatedDate={estimatedDate} // Add this line
           estimatedDateMm={estimatedDateMm} // Add this line
           duration={getLocalizedContent(duration, durationMm)}
@@ -254,7 +267,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({
               <div className="creator-details">
                 <span className="creator-name">{creatorInfo.name}</span>
                 {createdAt && (
-                  <span className="creator-date">on {formatDateAdded(createdAt)}</span>
+                  <span className="creator-date">
+                    on {formatDateAdded(createdAt)}
+                  </span>
                 )}
               </div>
             </div>

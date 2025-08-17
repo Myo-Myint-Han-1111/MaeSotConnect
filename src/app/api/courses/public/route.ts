@@ -26,6 +26,8 @@ export async function GET() {
         address: true, // ADD THIS LINE
         applyByDate: true, // ADD THIS LINE
         applyByDateMm: true, // ADD THIS LINE
+        startByDate: true,
+        startByDateMm: true,
         scheduleMm: true,
         // fee/feeMm fields are replaced with feeAmount/feeAmountMm
         feeAmount: true, // New field
@@ -123,6 +125,10 @@ export async function GET() {
       applyByDateMm: course.applyByDateMm
         ? course.applyByDateMm.toISOString()
         : null, // ADD THIS LINE
+      startByDate: course.startByDate ? course.startByDate.toISOString() : null,
+      startByDateMm: course.startByDateMm
+        ? course.startByDateMm.toISOString()
+        : null,
       estimatedDate: course.estimatedDate, // Add this line
       estimatedDateMm: course.estimatedDateMm,
       howToApply: course.howToApply || [],

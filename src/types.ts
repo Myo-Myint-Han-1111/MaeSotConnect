@@ -65,6 +65,8 @@ export interface Course {
   address?: string | null;
   applyByDate?: string | null; // ISO string format
   applyByDateMm?: string | null;
+  startByDate?: string | null; // ISO string format
+  startByDateMm?: string | null;
   logoImage?: string | null;
   // HOW TO APPLY FIELDS - NEW
   howToApply?: string[] | null;

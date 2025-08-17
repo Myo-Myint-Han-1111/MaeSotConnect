@@ -22,7 +22,7 @@ export async function GET(
     }
 
     const { id } = await params;
-    
+
     const draft = await prisma.contentDraft.findUnique({
       where: { id },
       include: {
@@ -78,7 +78,10 @@ export async function PATCH(
     // If no status is provided, this is just a content update
     if (!status) {
       if (!content) {
-        return NextResponse.json({ error: "Content is required for updates" }, { status: 400 });
+        return NextResponse.json(
+          { error: "Content is required for updates" },
+          { status: 400 }
+        );
       }
 
       const updatedDraft = await prisma.contentDraft.update({
@@ -113,13 +116,16 @@ export async function PATCH(
     }
 
     // Require review notes for rejections
-    if (status === DraftStatus.REJECTED && (!reviewNotes || !reviewNotes.trim())) {
+    if (
+      status === DraftStatus.REJECTED &&
+      (!reviewNotes || !reviewNotes.trim())
+    ) {
       return NextResponse.json(
         { error: "Review notes are required for rejections" },
         { status: 400 }
       );
     }
-    
+
     // Get the draft to check if it exists
     const existingDraft = await prisma.contentDraft.findUnique({
       where: { id },
@@ -151,17 +157,18 @@ export async function PATCH(
 
         // Create the course from the draft content
         const courseData = updatedDraft.content as Record<string, unknown>;
-        
+
         // Generate course ID
         const courseId = crypto.randomUUID();
 
         // Generate a unique slug
-        const baseSlug = (courseData.title as string || "course").toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/(^-|-$)/g, '');
+        const baseSlug = ((courseData.title as string) || "course")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)/g, "");
         let slug = baseSlug;
         let counter = 1;
-        
+
         // Ensure slug uniqueness
         while (await tx.course.findUnique({ where: { slug } })) {
           slug = `${baseSlug}-${counter}`;
@@ -180,14 +187,28 @@ export async function PATCH(
             province: (courseData.province as string) || "",
             district: (courseData.district as string) || "",
             address: (courseData.address as string) || "",
-            applyByDate: courseData.applyByDate ? new Date(courseData.applyByDate as string) : null,
-            applyByDateMm: courseData.applyByDateMm ? new Date(courseData.applyByDateMm as string) : null,
+            applyByDate: courseData.applyByDate
+              ? new Date(courseData.applyByDate as string)
+              : null,
+            applyByDateMm: courseData.applyByDateMm
+              ? new Date(courseData.applyByDateMm as string)
+              : null,
+            startByDate: courseData.startByDate
+              ? new Date(courseData.startByDate as string)
+              : null,
+            startByDateMm: courseData.startByDateMm
+              ? new Date(courseData.startByDateMm as string)
+              : null,
             startDate: new Date(courseData.startDate as string),
             endDate: new Date(courseData.endDate as string),
             duration: (courseData.duration as number) || 0,
             schedule: (courseData.schedule as string) || "",
             scheduleMm: (courseData.scheduleMm as string) || "",
-            feeAmount: typeof courseData.feeAmount === 'number' && courseData.feeAmount >= 0 ? courseData.feeAmount : 0,
+            feeAmount:
+              typeof courseData.feeAmount === "number" &&
+              courseData.feeAmount >= 0
+                ? courseData.feeAmount
+                : 0,
             ageMin: (courseData.ageMin as number) || null,
             ageMax: (courseData.ageMax as number) || null,
             document: (courseData.document as string) || "",
@@ -198,7 +219,8 @@ export async function PATCH(
             scheduleDetails: (courseData.scheduleDetails as string) || "",
             scheduleDetailsMm: (courseData.scheduleDetailsMm as string) || "",
             selectionCriteria: (courseData.selectionCriteria as string[]) || [],
-            selectionCriteriaMm: (courseData.selectionCriteriaMm as string[]) || [],
+            selectionCriteriaMm:
+              (courseData.selectionCriteriaMm as string[]) || [],
             howToApply: (courseData.howToApply as string[]) || [],
             howToApplyMm: (courseData.howToApplyMm as string[]) || [],
             applyButtonText: (courseData.applyButtonText as string) || "",
@@ -206,7 +228,9 @@ export async function PATCH(
             applyLink: (courseData.applyLink as string) || "",
             estimatedDate: (courseData.estimatedDate as string) || "",
             estimatedDateMm: (courseData.estimatedDateMm as string) || "",
-            organizationId: (courseData.organizationId as string) || updatedDraft.organizationId,
+            organizationId:
+              (courseData.organizationId as string) ||
+              updatedDraft.organizationId,
             updatedAt: new Date(),
             slug: slug,
           },
@@ -214,7 +238,11 @@ export async function PATCH(
 
         // Create badges if they exist
         if (courseData.badges && Array.isArray(courseData.badges)) {
-          for (const badge of courseData.badges as Array<{text: string; color: string; backgroundColor: string}>) {
+          for (const badge of courseData.badges as Array<{
+            text: string;
+            color: string;
+            backgroundColor: string;
+          }>) {
             await tx.badge.create({
               data: {
                 id: crypto.randomUUID(),
@@ -229,7 +257,12 @@ export async function PATCH(
 
         // Create FAQ if they exist
         if (courseData.faq && Array.isArray(courseData.faq)) {
-          for (const faq of courseData.faq as Array<{question: string; questionMm?: string; answer: string; answerMm?: string}>) {
+          for (const faq of courseData.faq as Array<{
+            question: string;
+            questionMm?: string;
+            answer: string;
+            answerMm?: string;
+          }>) {
             if (faq.question && faq.question.trim()) {
               await tx.fAQ.create({
                 data: {
