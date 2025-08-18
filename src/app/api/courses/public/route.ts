@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 
 export async function GET() {
   try {
-    // Fetch courses with the updated schema fields
+    // Fetch courses with only fields needed for CourseCard component
     const courses = await prisma.course.findMany({
       select: {
         id: true,
@@ -13,45 +13,21 @@ export async function GET() {
         titleMm: true,
         subtitle: true,
         subtitleMm: true,
-        // location/locationMm fields no longer exist in the schema
         startDate: true,
         startDateMm: true,
-        endDate: true, // New field
-        endDateMm: true, // New field
         duration: true,
         durationMm: true,
-        province: true, // New field
-        district: true, // New field
-        schedule: true,
-        address: true, // ADD THIS LINE
-        applyByDate: true, // ADD THIS LINE
-        applyByDateMm: true, // ADD THIS LINE
-        scheduleMm: true,
+        province: true,
+        district: true,
+        applyByDate: true,
+        applyByDateMm: true,
         // fee/feeMm fields are replaced with feeAmount/feeAmountMm
-        feeAmount: true, // New field
-        feeAmountMm: true, // New field
-        ageMin: true, // New field
-        ageMinMm: true, // New field
-        ageMax: true, // New field
-        ageMaxMm: true, // New field
-        document: true, // New field
-        documentMm: true, // New field
+        feeAmount: true,
+        feeAmountMm: true,
         availableDays: true,
-        description: true,
-        descriptionMm: true,
-        outcomes: true,
-        outcomesMm: true,
-        scheduleDetails: true,
-        scheduleDetailsMm: true,
-        selectionCriteria: true,
-        selectionCriteriaMm: true,
-        howToApply: true,
-        howToApplyMm: true,
-        applyButtonText: true,
-        applyButtonTextMm: true,
-        applyLink: true,
         estimatedDate: true,
         estimatedDateMm: true,
+        createdAt: true,
         createdByUser: {
           select: {
             id: true,
@@ -78,8 +54,8 @@ export async function GET() {
             facebookPage: true,
             latitude: true,
             longitude: true,
-            district: true, // New field
-            province: true, // New field
+            district: true,
+            province: true,
             logoImage: true,
           },
         },
@@ -99,14 +75,6 @@ export async function GET() {
             courseId: true,
           },
         },
-        faq: {
-          select: {
-            question: true,
-            questionMm: true,
-            answer: true,
-            answerMm: true,
-          },
-        },
       },
     });
 
@@ -117,19 +85,13 @@ export async function GET() {
       // Convert DateTime objects to ISO strings
       startDate: course.startDate.toISOString(),
       startDateMm: course.startDateMm ? course.startDateMm.toISOString() : null,
-      endDate: course.endDate.toISOString(),
-      endDateMm: course.endDateMm ? course.endDateMm.toISOString() : null,
-      applyByDate: course.applyByDate ? course.applyByDate.toISOString() : null, // ADD THIS LINE
+      applyByDate: course.applyByDate ? course.applyByDate.toISOString() : null,
       applyByDateMm: course.applyByDateMm
         ? course.applyByDateMm.toISOString()
-        : null, // ADD THIS LINE
-      estimatedDate: course.estimatedDate, // Add this line
+        : null,
+      estimatedDate: course.estimatedDate,
       estimatedDateMm: course.estimatedDateMm,
-      howToApply: course.howToApply || [],
-      howToApplyMm: course.howToApplyMm || [],
-      applyButtonText: course.applyButtonText,
-      applyButtonTextMm: course.applyButtonTextMm,
-      applyLink: course.applyLink,
+      createdAt: course.createdAt ? course.createdAt.toISOString() : null,
       // Build location from course district/province only
       location:
         [course.district, course.province].filter(Boolean).join(", ") || "",

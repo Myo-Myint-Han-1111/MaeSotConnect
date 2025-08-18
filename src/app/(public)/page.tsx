@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { CourseCard } from "@/components/CourseCard/CourseCard";
-import { BADGE_STYLES } from "@/components/common/BadgeDisplay";
+import { useBadgeTranslation, getBadgeStyle } from "@/lib/badges";
 import { convertToMyanmarNumber } from "@/lib/utils";
 import { getFontSizeClasses } from "@/lib/font-sizes";
 import { Input } from "@/components/ui/input";
@@ -122,6 +122,7 @@ interface CachedState {
 
 export default function Home() {
   const { t, language } = useLanguage();
+  const { translateBadge } = useBadgeTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
@@ -676,23 +677,6 @@ export default function Home() {
     }
   };
 
-  // Function to translate badge text - HANDLES LEGACY BADGES
-  const translateBadge = (badgeText: string) => {
-    // Handle legacy badge mapping
-    let normalizedBadgeText = badgeText;
-
-    // Map legacy "In-Person" to new "In-person" format
-    if (badgeText === "In-Person") {
-      normalizedBadgeText = "In-person";
-    }
-
-    // Try to use the translation from language context
-    const translationKey = `badge.${normalizedBadgeText.toLowerCase()}`;
-    const translation = t(translationKey);
-
-    // Return the translation if it exists, otherwise return the normalized text
-    return translationKey !== translation ? translation : normalizedBadgeText;
-  };
 
   // Show loading state
   if (loading) {
@@ -837,38 +821,7 @@ export default function Home() {
 
               <div className="flex flex-wrap gap-3 justify-start">
                 {allBadges.map((badge) => {
-
-                  // Use the centralized badge system to get styles
-                  // Try exact match first, then fallback
-                  let badgeStyle = BADGE_STYLES[badge];
-
-                  // If no exact match, try common variations
-                  if (!badgeStyle) {
-                    // Check for common variations
-                    const variations = [
-                      badge.trim(),
-                      badge.toLowerCase(),
-                      badge.charAt(0).toUpperCase() +
-                        badge.slice(1).toLowerCase(),
-                    ];
-
-                    for (const variation of variations) {
-                      if (BADGE_STYLES[variation]) {
-                        badgeStyle = BADGE_STYLES[variation];
-                        break;
-                      }
-                    }
-                  }
-
-                  // Final fallback
-                  if (!badgeStyle) {
-                    badgeStyle = {
-                      text: badge,
-                      color: "#333",
-                      backgroundColor: "#e5e5e5",
-                    };
-                  }
-
+                  const badgeStyle = getBadgeStyle(badge);
                   const isActive = activeFilters.includes(badge);
 
                   return (
@@ -940,13 +893,10 @@ export default function Home() {
                   data-course-slug={course.slug}
                 >
                   <CourseCard
-                    id={course.id}
                     slug={course.slug}
                     images={course.images}
                     title={course.title}
                     titleMm={course.titleMm || null}
-                    subtitle={course.subtitle}
-                    subtitleMm={course.subtitleMm || null}
                     startDate={formatDate(course.startDate)}
                     startDateMm={
                       course.startDateMm ? formatDate(course.startDateMm) : null
@@ -957,8 +907,6 @@ export default function Home() {
                         ? formatDuration(course.durationMm)
                         : null
                     }
-                    // schedule={course.schedule}
-                    // scheduleMm={course.scheduleMm || null}
                     applyByDate={
                       course.applyByDate
                         ? formatDate(course.applyByDate)
@@ -969,7 +917,7 @@ export default function Home() {
                         ? formatDate(course.applyByDateMm)
                         : undefined
                     }
-                    estimatedDate={course.estimatedDate || null} // Add this line
+                    estimatedDate={course.estimatedDate || null}
                     estimatedDateMm={course.estimatedDateMm || null}
                     fee={
                       course.feeAmount !== -1
@@ -979,11 +927,9 @@ export default function Home() {
                     feeMm={
                       course.feeAmountMm ? formatFee(course.feeAmountMm) : null
                     }
-                    availableDays={course.availableDays}
                     badges={course.badges}
-                    organizationInfo={course.organizationInfo}
+                    organizationInfo={course.organizationInfo ? { name: course.organizationInfo.name } : null}
                     createdByUser={course.createdByUser}
-                    createdAt={course.createdAt}
                     district={course.district}
                     province={course.province}
                     showSwipeHint={index === 0}

@@ -235,7 +235,7 @@ export default function AdminDraftsPage() {
                         {draft.status === DraftStatus.REJECTED ? "Needs Revision" : draft.status}
                       </Badge>
                       {draft.status === DraftStatus.PENDING && (
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                        <Badge className="bg-blue-50 text-blue-700 border-blue-200">
                           Needs Review
                         </Badge>
                       )}

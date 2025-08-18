@@ -139,7 +139,6 @@ export const translations = {
     "badge.ged": "GED",
     "badge.ielts": "IELTS",
     "badge.thai": "Thai",
-    "badge.thailand": "Thailand",
     "badge.korea": "Korea",
     "badge.japan": "Japan",
     "badge.english": "English",

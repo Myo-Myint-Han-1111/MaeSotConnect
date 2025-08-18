@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import { useLanguage } from "../../../context/LanguageContext";
+import { useBadgeTranslation } from "../../../lib/badges";
 import { Button } from "../../../components/ui/button";
 import {
   Card,
@@ -536,6 +537,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
   const { id } = useParams<{ id: string }>();
   const course = courses.find((c) => c.id === id);
   const { t, language } = useLanguage();
+  const { translateBadge } = useBadgeTranslation();
 
   // Add CSS to head when component mounts
   useEffect(() => {
@@ -561,25 +563,6 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
     }
   }, [id]); // Re-run this effect if the course ID changes
 
-  // NEW modern function:
-  const translateBadge = (badgeText: string) => {
-    // Handle legacy badge mapping first
-    let normalizedBadgeText = badgeText;
-
-    // Map legacy "In-Person" to new "In-person" format
-    if (badgeText === "In-Person") {
-      normalizedBadgeText = "In-person";
-    }
-
-    // Use dynamic translation lookup based on badge text
-    const translationKey = `badge.${normalizedBadgeText
-      .toLowerCase()
-      .replace(/\s+/g, " ")}`;
-    const translation = t(translationKey);
-
-    // Return translation if it exists, otherwise return the normalized text
-    return translationKey !== translation ? translation : normalizedBadgeText;
-  };
 
   // Format fee based on feeAmount if available, otherwise use legacy fee
   const formatFee = () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Card, CardContent, CardFooter } from "../ui/card";
@@ -10,10 +10,10 @@ import ImageCarousel from "../common/ImageCarousel";
 // import DayIndicator from "../common/DayIndicator";
 import BadgeDisplay from "../common/BadgeDisplay";
 import CourseInfoDisplay from "../common/CourseInfoDisplay";
+import { getCreatorInfo } from "../../lib/course-utils";
 import "./CourseCard.css";
 
 export interface CourseCardProps {
-  id: string;
   slug: string;
   images: {
     id: string;
@@ -22,25 +22,16 @@ export interface CourseCardProps {
   }[];
   title: string;
   titleMm: string | null;
-  subtitle: string;
-  subtitleMm: string | null;
-
-  // Note: These are now formatted strings, not the raw database types
-
   startDate: string;
   startDateMm: string | null;
   applyByDate?: string | null;
   applyByDateMm?: string | null;
   estimatedDate?: string | null;
   estimatedDateMm?: string | null;
-  logoImage?: string | null;
   duration: string;
   durationMm: string | null;
-  // schedule: string;
-  // scheduleMm: string | null;
   fee?: string | null;
   feeMm?: string | null;
-  availableDays: boolean[];
   badges: {
     id: string;
     text: string;
@@ -49,17 +40,7 @@ export interface CourseCardProps {
     courseId: string;
   }[];
   organizationInfo?: {
-    id: string;
     name: string;
-    description: string;
-    phone: string;
-    email: string;
-    address: string;
-    facebookPage?: string;
-    latitude: number;
-    longitude: number;
-    district?: string;
-    province?: string;
   } | null;
   createdByUser?: {
     id: string;
@@ -72,26 +53,17 @@ export interface CourseCardProps {
       status: string;
     } | null;
   } | null;
-  createdAt?: string;
-  // TODO: Ko Myo - Add these fields when applyByDate is added to database
-  // applyByDate?: string;
-  // applyByDateMm?: string | null;
   district?: string | null;
   province?: string | null;
   showSwipeHint?: boolean;
 }
 
 export const CourseCard: React.FC<CourseCardProps> = ({
-  id, // eslint-disable-line @typescript-eslint/no-unused-vars
   slug,
   images,
   title,
   titleMm,
-  // subtitle,
-  // subtitleMm,
-
   badges,
-
   startDate,
   startDateMm,
   applyByDate,
@@ -100,16 +72,10 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   estimatedDateMm,
   duration,
   durationMm,
-  // schedule,
-  // scheduleMm,
   fee,
   feeMm,
   organizationInfo,
   createdByUser,
-  createdAt,
-  // availableDays,
-  // applyByDate, // TODO: Ko Myo - Uncomment when added to database
-  // applyByDateMm, // TODO: Ko Myo - Uncomment when added to database
   district,
   province,
   showSwipeHint = true,
@@ -118,8 +84,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   const { language, t } = useLanguage();
 
   const handleNavigation = () => {
-    // Note: Page state is now automatically saved by the main page component
-    // No need to save individual slug - full state persistence handles this
     router.push(`/courses/${slug}`);
   };
 
@@ -127,7 +91,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({
     e.stopPropagation();
   };
 
-  // Helper function to get localized content
   const getLocalizedContent = (enContent: string, mmContent: string | null) => {
     if (language === "mm" && mmContent) {
       return mmContent;
@@ -135,52 +98,13 @@ export const CourseCard: React.FC<CourseCardProps> = ({
     return enContent;
   };
 
-  // Transform the images array to get just the URLs
-  const imageUrls = images.map((img) => img.url);
+  const imageUrls = useMemo(() => images.map((img) => img.url), [images]);
 
-  // Helper function to get creator display information
-  const getCreatorInfo = () => {
-    if (!createdByUser) {
-      // When createdBy is null, show as anonymous youth advocate
-      return {
-        name: t("course.anonymousYouthAdvocate"),
-        image: "/images/AnonYouthAdvocate.png",
-        role: "YOUTH_ADVOCATE",
-      };
-    }
-    
-    // For youth advocates, use their publicName from profile if available
-    if (createdByUser.role === 'YOUTH_ADVOCATE' && createdByUser.advocateProfile) {
-      const profile = createdByUser.advocateProfile;
-      if (profile.status === 'APPROVED') {
-        return {
-          name: profile.publicName || t("course.anonymousYouthAdvocate"),
-          image: profile.avatarUrl || "/images/AnonYouthAdvocate.png",
-          role: createdByUser.role,
-        };
-      }
-    }
-    
-    // For organization admins and platform admins, use their regular profile
-    return {
-      name: createdByUser.name,
-      image: createdByUser.image,
-      role: createdByUser.role,
-    };
-  };
+  const creatorInfo = useMemo(
+    () => getCreatorInfo(createdByUser, t("course.anonymousYouthAdvocate")),
+    [createdByUser, t]
+  );
 
-  const creatorInfo = getCreatorInfo();
-
-  // Format date for display
-  const formatDateAdded = (dateStr?: string): string => {
-    if (!dateStr) return "";
-    const date = new Date(dateStr);
-    return date.toLocaleDateString(language === "mm" ? "my-MM" : "en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
 
   return (
     <Card className="course-card" onClick={handleNavigation}>
@@ -212,8 +136,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({
               ? getLocalizedContent(applyByDate, applyByDateMm || null)
               : undefined
           }
-          estimatedDate={estimatedDate} // Add this line
-          estimatedDateMm={estimatedDateMm} // Add this line
+          estimatedDate={estimatedDate}
+          estimatedDateMm={estimatedDateMm}
           duration={getLocalizedContent(duration, durationMm)}
           fee={fee ? getLocalizedContent(fee, feeMm || null) : undefined}
           compact={true}
@@ -253,9 +177,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({
               )}
               <div className="creator-details">
                 <span className="creator-name">{creatorInfo.name}</span>
-                {createdAt && (
-                  <span className="creator-date">on {formatDateAdded(createdAt)}</span>
-                )}
               </div>
             </div>
           </div>

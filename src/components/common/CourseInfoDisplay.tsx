@@ -127,7 +127,6 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
             {/* Show estimated date badge only if preferences allow it for start date */}
             {estimatedPrefs.showForStartDate && estimatedPrefs.displayText && (
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded text-xs whitespace-nowrap">
-                <Calendar className="w-3 h-3" />
                 <span className="text-xs">{estimatedPrefs.displayText}</span>
               </span>
             )}
@@ -182,7 +181,6 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
               {estimatedPrefs.showForApplyByDate &&
                 estimatedPrefs.displayText && (
                   <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded text-xs whitespace-nowrap">
-                    <Calendar className="w-3 h-3" />
                     <span className="text-xs">
                       {estimatedPrefs.displayText}
                     </span>
