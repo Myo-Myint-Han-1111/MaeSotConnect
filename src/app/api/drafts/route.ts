@@ -116,8 +116,10 @@ export async function POST(request: NextRequest) {
       content = parsedData.content;
       status = parsedData.status || DraftStatus.DRAFT;
 
-      // Process uploaded images
+      // Process uploaded images and logos
       const { saveFile } = await import("@/lib/upload");
+      
+      // Handle course images
       for (const [key, value] of formData.entries()) {
         if (key.startsWith("image_") && value instanceof File) {
           const imageUrl = await saveFile(value, undefined, "course");
@@ -125,7 +127,14 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Add image URLs to content
+      // Handle organization logo
+      const logoFile = formData.get("logoImage");
+      if (logoFile && logoFile instanceof File && type === DraftType.ORGANIZATION) {
+        const logoUrl = await saveFile(logoFile, undefined, "logo");
+        content.logoImageUrl = logoUrl;
+      }
+
+      // Add image URLs to content for courses
       if (imageUrls.length > 0) {
         content.imageUrls = imageUrls;
       }

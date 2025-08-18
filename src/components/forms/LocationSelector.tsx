@@ -721,12 +721,14 @@ interface LocationSelectorProps {
   value: LocationData;
   onChange: (data: LocationData) => void;
   disabled?: boolean;
+  className?: string;
 }
 
 export default function LocationSelector({
   value,
   onChange,
   disabled = false,
+  className = "",
 }: LocationSelectorProps) {
   const [selectedProvinceCode, setSelectedProvinceCode] = useState<
     number | null
@@ -802,7 +804,7 @@ export default function LocationSelector({
             onValueChange={handleProvinceChange}
             disabled={disabled}
           >
-            <SelectTrigger>
+            <SelectTrigger className={`hover:bg-gray-50 ${className}`}>
               <SelectValue placeholder="Select a province" />
             </SelectTrigger>
             <SelectContent className="bg-white max-h-[200px] overflow-y-auto">
@@ -823,7 +825,7 @@ export default function LocationSelector({
             onValueChange={handleDistrictChange}
             disabled={disabled || !selectedProvinceCode}
           >
-            <SelectTrigger>
+            <SelectTrigger className={`hover:bg-gray-50 ${className}`}>
               <SelectValue
                 placeholder={
                   selectedProvinceCode

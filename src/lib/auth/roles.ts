@@ -27,4 +27,5 @@ export enum DraftStatus {
 export enum DraftType {
   COURSE = "COURSE",
   ORGANIZATION_UPDATE = "ORGANIZATION_UPDATE",
+  ORGANIZATION = "ORGANIZATION",
 }

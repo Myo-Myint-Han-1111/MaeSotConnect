@@ -224,7 +224,7 @@ export default function CourseForm({
   const [existingImageList, setExistingImageList] =
     useState<string[]>(existingImages);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [organizationsLoading, setOrganizationsLoading] = useState(true);
+  const [, setOrganizationsLoading] = useState(true);
   const [isCompressing, setIsCompressing] = useState(false);
 
   // Initialize form data with default values
@@ -1228,7 +1228,7 @@ export default function CourseForm({
                       onValueChange={handleOrganizationChange}
                       required
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className={(!formData.organizationId || formData.organizationId === "") ? "border-red-200 focus:border-red-500" : ""}>
                         <SelectValue placeholder="Select an organization" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1239,18 +1239,6 @@ export default function CourseForm({
                         ))}
                       </SelectContent>
                     </Select>
-                    {!organizationsLoading &&
-                      (organizations.length === 0 ? (
-                        <p className="text-xs text-red-500">
-                          No organizations found. Please create an organization
-                          first.
-                        </p>
-                      ) : !formData.organizationId ||
-                        formData.organizationId === "" ? (
-                        <p className="text-xs text-red-500">
-                          Organization selection is required
-                        </p>
-                      ) : null)}
                   </div>
 
                   {/* Title - English and Myanmar */}
@@ -1283,7 +1271,7 @@ export default function CourseForm({
                           value={formData.title ?? ""}
                           onChange={handleTextChange}
                           required
-                          className="bg-white"
+                          className={!formData.title ? "bg-white border-red-200 focus:border-red-500" : "bg-white"}
                           aria-invalid={!formData.title}
                           aria-describedby={
                             !formData.title ? "title-error" : undefined
@@ -1304,11 +1292,6 @@ export default function CourseForm({
                         />
                       </div>
                     </div>
-                    {!formData.title && (
-                      <p id="title-error" className="text-xs text-red-500 mt-1">
-                        Course title is required
-                      </p>
-                    )}
                   </div>
 
                   {/* Subtitle - English and Myanmar */}
@@ -1342,7 +1325,7 @@ export default function CourseForm({
                           value={formData.subtitle ?? ""}
                           onChange={handleTextChange}
                           required
-                          className="bg-white"
+                          className={!formData.subtitle ? "bg-white border-red-200 focus:border-red-500" : "bg-white"}
                           aria-invalid={!formData.subtitle}
                           aria-describedby={
                             !formData.subtitle ? "subtitle-error" : undefined
@@ -1363,14 +1346,6 @@ export default function CourseForm({
                         />
                       </div>
                     </div>
-                    {!formData.subtitle && (
-                      <p
-                        id="subtitle-error"
-                        className="text-xs text-red-500 mt-1"
-                      >
-                        Subtitle is required
-                      </p>
-                    )}
                   </div>
 
                   {/* Course Address */}
@@ -1542,19 +1517,12 @@ export default function CourseForm({
                         value={formData.startDate ?? ""}
                         onChange={handleTextChange}
                         required
+                        className={!formData.startDate ? "border-red-200 focus:border-red-500" : ""}
                         aria-invalid={!formData.startDate}
                         aria-describedby={
                           !formData.startDate ? "startDate-error" : undefined
                         }
                       />
-                      {!formData.startDate && (
-                        <p
-                          id="startDate-error"
-                          className="text-xs text-red-500 mt-1"
-                        >
-                          Start date is required
-                        </p>
-                      )}
 
                       <div className="flex items-center space-x-2 mt-2">
                         <input
@@ -1611,19 +1579,12 @@ export default function CourseForm({
                         value={formData.endDate ?? ""}
                         onChange={handleTextChange}
                         required
+                        className={!formData.endDate ? "border-red-200 focus:border-red-500" : ""}
                         aria-invalid={!formData.endDate}
                         aria-describedby={
                           !formData.endDate ? "endDate-error" : undefined
                         }
                       />
-                      {!formData.endDate && (
-                        <p
-                          id="endDate-error"
-                          className="text-xs text-red-500 mt-1"
-                        >
-                          End date is required
-                        </p>
-                      )}
                     </div>
                   </div>
 
@@ -1756,6 +1717,7 @@ export default function CourseForm({
                         onChange={(e) => handleNumberChange(e, "duration")}
                         required
                         placeholder="Number of days"
+                        className={(!formData.duration || formData.duration <= 0) ? "border-red-200 focus:border-red-500" : ""}
                         aria-invalid={
                           !formData.duration || formData.duration <= 0
                         }
@@ -1765,14 +1727,6 @@ export default function CourseForm({
                             : undefined
                         }
                       />
-                      {(!formData.duration || formData.duration <= 0) && (
-                        <p
-                          id="duration-error"
-                          className="text-xs text-red-500 mt-1"
-                        >
-                          Duration is required and must be greater than 0
-                        </p>
-                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -1830,6 +1784,7 @@ export default function CourseForm({
                           onChange={handleTextChange}
                           required
                           placeholder="e.g. Mon, Wed, Fri: 2-4 PM"
+                          className={!formData.schedule ? "border-red-200 focus:border-red-500" : ""}
                           aria-invalid={!formData.schedule}
                           aria-describedby={
                             !formData.schedule ? "schedule-error" : undefined
@@ -1850,14 +1805,6 @@ export default function CourseForm({
                         />
                       </div>
                     </div>
-                    {!formData.schedule && (
-                      <p
-                        id="schedule-error"
-                        className="text-xs text-red-500 mt-1"
-                      >
-                        Schedule is required
-                      </p>
-                    )}
                   </div>
 
                   <div className="space-y-2">

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { LogOut, FileText, Send, LayoutDashboard, User } from "lucide-react";
+import { LogOut, FileText, Send, LayoutDashboard, User, Building } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/common/ConfirmationDialog";
 import { Role } from "@/lib/auth/roles";
@@ -64,7 +64,13 @@ export default function AdvocateLayout({
       label: "Create Course",
       href: "/advocate/submit",
       icon: <Send className="h-5 w-5" />,
-      active: pathname.startsWith("/advocate/submit"),
+      active: pathname.startsWith("/advocate/submit") && !pathname.startsWith("/advocate/submit/organizations"),
+    },
+    {
+      label: "Add Organization",
+      href: "/advocate/organizations/submit",
+      icon: <Building className="h-5 w-5" />,
+      active: pathname.startsWith("/advocate/organizations"),
     },
     {
       label: "My Profile",

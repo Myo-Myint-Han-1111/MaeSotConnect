@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Clock, CheckCircle, XCircle, Plus, ArrowLeft, Search, Undo2, Edit, Trash2, Copy } from "lucide-react";
+import { FileText, Clock, CheckCircle, XCircle, Plus, ArrowLeft, Search, Undo2, Edit, Trash2, Copy, Building, BookOpen } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { DraftStatus } from "@/lib/auth/roles";
 import { ConfirmationDialog } from "@/components/common/ConfirmationDialog";
 
@@ -15,6 +16,7 @@ type Draft = {
   id: string;
   title: string;
   type: string;
+  content: Record<string, unknown>;
   status: DraftStatus;
   submittedAt: string;
   reviewedAt?: string;
@@ -201,27 +203,35 @@ export default function AllDraftsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">All Course Submissions</h1>
+          <h1 className="text-3xl font-bold tracking-tight">All Submissions</h1>
           <p className="text-muted-foreground">
-            View and manage all your course drafts.
+            View and manage all your course and organization drafts.
           </p>
         </div>
-        <Button asChild className="bg-blue-700 hover:bg-blue-600 text-white">
-          <Link href="/advocate/submit">
-            <Plus className="mr-2 h-4 w-4" />
-            Submit New Course
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild className="bg-blue-700 hover:bg-blue-600 text-white">
+            <Link href="/advocate/submit">
+              <Plus className="mr-2 h-4 w-4" />
+              Submit New Course
+            </Link>
+          </Button>
+          <Button variant="outline" asChild className="hover:bg-gray-50 hover:text-gray-700">
+            <Link href="/advocate/organizations/submit">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Organization
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card className="bg-white">
         <CardContent className="pt-6">
           <div className="flex gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search course titles..."
+                placeholder="Search titles..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -244,7 +254,7 @@ export default function AllDraftsPage() {
       </Card>
 
       {/* Drafts List */}
-      <div className="space-y-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredDrafts.length === 0 ? (
           <Card>
             <CardContent className="pt-6">
@@ -252,7 +262,7 @@ export default function AllDraftsPage() {
                 <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                 {drafts.length === 0 ? (
                   <>
-                    <p className="text-muted-foreground mb-4">You haven&apos;t submitted any courses yet.</p>
+                    <p className="text-muted-foreground mb-4">You haven&apos;t submitted any courses or organizations yet.</p>
                     <Button asChild>
                       <Link href="/advocate/submit">
                         <Plus className="mr-2 h-4 w-4" />
@@ -261,125 +271,170 @@ export default function AllDraftsPage() {
                     </Button>
                   </>
                 ) : (
-                  <p className="text-muted-foreground">No courses match your current filters.</p>
+                  <p className="text-muted-foreground">No submissions match your current filters.</p>
                 )}
               </div>
             </CardContent>
           </Card>
         ) : (
-          filteredDrafts.map((draft) => (
-            <Card key={draft.id}>
-              <CardContent className="pt-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      {getStatusIcon(draft.status)}
-                      <h3 className="text-lg font-medium">{draft.title}</h3>
-                      <Badge className={getStatusBadgeColor(draft.status)}>
-                        {draft.status === DraftStatus.REJECTED ? "Needs Revision" : draft.status}
-                      </Badge>
-                    </div>
-                    
-                    <div className="space-y-1 text-sm text-muted-foreground">
-                      <p>Type: {draft.type.replace("_", " ")}</p>
-                      <p>Submitted: {new Date(draft.submittedAt).toLocaleDateString()}</p>
-                      {draft.reviewedAt && (
-                        <p>Reviewed: {new Date(draft.reviewedAt).toLocaleDateString()}</p>
-                      )}
-                      {draft.organization && (
-                        <p>Organization: {draft.organization.name}</p>
-                      )}
-                    </div>
-
-                    {draft.reviewNotes && (
-                      <div className="mt-3 p-3 bg-muted rounded-md">
-                        <p className="text-sm font-medium mb-1">Review Notes:</p>
-                        <p className="text-sm italic">{draft.reviewNotes}</p>
+          filteredDrafts.map((draft) => {
+            const content = draft.content as { 
+              imageUrls?: string[]; 
+              subtitle?: string; 
+              description?: string;
+              logoImageUrl?: string;
+            };
+            const firstImage = draft.type === "ORGANIZATION" ? content?.logoImageUrl : content?.imageUrls?.[0];
+            const subtitle = content?.subtitle || content?.description;
+            
+            return (
+              <Card key={draft.id} className="max-w-md p-4 border border-gray-200 rounded-lg flex flex-col bg-white">
+                <CardContent className="p-0 flex flex-col flex-1">
+                      {/* Type Label */}
+                      <div className="flex items-center gap-2 mb-3">
+                        {draft.type === "ORGANIZATION" ? (
+                          <Building className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <BookOpen className="h-4 w-4 text-muted-foreground" />
+                        )}
+                        <span className="text-sm font-medium text-muted-foreground">
+                          {draft.type === "ORGANIZATION" ? "Organization" : "Course"}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex gap-1 flex-wrap">
-                    {/* Primary Edit Actions */}
-                    {draft.status === "DRAFT" && (
+
+                      {/* Image Preview */}
+                      {firstImage && (
+                        <div className="mb-3">
+                          <Image
+                            src={firstImage}
+                            alt={draft.title}
+                            width={400}
+                            height={128}
+                            className="w-full h-32 object-cover rounded-md"
+                          />
+                        </div>
+                      )}
+
+                      {/* Title and Status */}
+                      <div className="flex items-center gap-2 mb-2">
+                        {getStatusIcon(draft.status)}
+                        <h3 className="text-lg font-medium">{draft.title}</h3>
+                      </div>
+                      
+                      {/* Status Badge on its own line */}
+                      <div className="mb-3">
+                        <Badge className={getStatusBadgeColor(draft.status)}>
+                          {draft.status === DraftStatus.REJECTED ? "Needs Revision" : draft.status}
+                        </Badge>
+                      </div>
+
+                      {/* Subtitle/Description */}
+                      {subtitle && (
+                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                          {String(subtitle)}
+                        </p>
+                      )}
+                      
+                      {/* Metadata */}
+                      <div className="space-y-1 text-sm text-muted-foreground">
+                        <p>Submitted: {new Date(draft.submittedAt).toLocaleDateString()}</p>
+                        {draft.reviewedAt && (
+                          <p>Reviewed: {new Date(draft.reviewedAt).toLocaleDateString()}</p>
+                        )}
+                        {draft.organization && (
+                          <p>Organization: {draft.organization.name}</p>
+                        )}
+                      </div>
+
+                      {/* Review Notes */}
+                      {draft.reviewNotes && (
+                        <div className="mt-3 p-3 bg-muted rounded-md">
+                          <p className="text-sm font-medium mb-1">Review Notes:</p>
+                          <p className="text-sm italic">{draft.reviewNotes}</p>
+                        </div>
+                      )}
+                    
+                    <div className="flex gap-1 mt-3 flex-wrap">
+                      {/* Primary Edit Actions */}
+                      {draft.status === "DRAFT" && (
+                        <Button 
+                          size="sm" 
+                          asChild
+                          className="hover:bg-blue-700 hover:text-white"
+                        >
+                          <Link href={draft.type === "ORGANIZATION" ? `/advocate/organizations/submit?edit=${draft.id}` : `/advocate/submit?edit=${draft.id}`}>
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
+                          </Link>
+                        </Button>
+                      )}
+                      {draft.status === "REJECTED" && (
+                        <Button 
+                          size="sm" 
+                          asChild
+                          className="hover:bg-blue-700 hover:text-white"
+                        >
+                          <Link href={draft.type === "ORGANIZATION" ? `/advocate/organizations/submit?edit=${draft.id}` : `/advocate/submit?edit=${draft.id}`}>
+                            <Edit className="h-4 w-4 mr-1" />
+                            Revise
+                          </Link>
+                        </Button>
+                      )}
+                      {draft.status === "PENDING" && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="hover:bg-gray-50 hover:text-gray-700"
+                          onClick={() => handlePullBack(draft.id)}
+                          disabled={isProcessing}
+                        >
+                          <Undo2 className="h-4 w-4 mr-1" />
+                          Withdraw
+                        </Button>
+                      )}
+                      
+                      {/* Copy Action - Available for all statuses */}
                       <Button 
                         size="sm" 
-                        asChild
-                        className="hover:bg-blue-700 hover:text-white"
+                        className="hover:bg-gray-50 hover:text-gray-700"
+                        onClick={() => handleCopy(draft.id)}
+                        disabled={isProcessing}
+                        title="Copy this draft"
                       >
-                        <Link href={`/advocate/submit?edit=${draft.id}`}>
-                          <Edit className="h-4 w-4 mr-1" />
-                          Edit
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      
+                      {/* Delete Action - Only for non-approved drafts */}
+                      {draft.status !== "APPROVED" && (
+                        <Button 
+                          size="sm" 
+                          className="hover:bg-red-50 hover:text-red-700"
+                          onClick={() => handleDelete(draft.id, draft.title)}
+                          disabled={isProcessing}
+                          title="Delete this draft"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                      
+                      {/* Secondary View Action */}
+                      <Button variant="ghost" size="sm" asChild className=" hover:text-gray-500">
+                        <Link href={`/advocate/drafts/${draft.id}`}>
+                          View
                         </Link>
                       </Button>
-                    )}
-                    {draft.status === "REJECTED" && (
-                      <Button 
-                        size="sm" 
-                        asChild
-                        className="hover:bg-blue-700 hover:text-white"
-                      >
-                        <Link href={`/advocate/submit?edit=${draft.id}`}>
-                          <Edit className="h-4 w-4 mr-1" />
-                          Revise
-                        </Link>
-                      </Button>
-                    )}
-                    {draft.status === "PENDING" && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-300"
-                        onClick={() => handlePullBack(draft.id)}
-                        disabled={isProcessing}
-                      >
-                        <Undo2 className="h-4 w-4 mr-1" />
-                        Withdraw
-                      </Button>
-                    )}
-                    
-                    {/* Copy Action - Available for all statuses */}
-                    <Button 
-                      size="sm" 
-                      className="hover:bg-green-50 hover:text-green-700"
-                      onClick={() => handleCopy(draft.id)}
-                      disabled={isProcessing}
-                      title="Copy this draft"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    
-                    {/* Delete Action - Only for non-approved drafts */}
-                    {draft.status !== "APPROVED" && (
-                      <Button 
-                        size="sm" 
-                        className="hover:bg-red-50 hover:text-red-700"
-                        onClick={() => handleDelete(draft.id, draft.title)}
-                        disabled={isProcessing}
-                        title="Delete this draft"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                    
-                    {/* Secondary View Action */}
-                    <Button variant="ghost" size="sm" asChild className="hover:bg-gray-50 hover:text-gray-500">
-                      <Link href={`/advocate/drafts/${draft.id}`}>
-                        View
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                    </div>
+                </CardContent>
+              </Card>
+            )
+          })
         )}
       </div>
 
       {/* Summary */}
       {filteredDrafts.length > 0 && (
         <div className="text-center text-sm text-muted-foreground">
-          Showing {filteredDrafts.length} of {drafts.length} course submissions
+          Showing {filteredDrafts.length} of {drafts.length} submissions
         </div>
       )}
 

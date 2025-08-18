@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Role } from "@/lib/auth/roles";
 
 export default function AuthRedirectPage() {
@@ -40,10 +41,20 @@ export default function AuthRedirectPage() {
   }, [session, status, router]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-center">
+    <div className="min-h-screen hero-gradient flex flex-col items-center justify-center p-4 space-y-8">
+      <div className="flex justify-center">
+        <Image 
+          src="/images/JumpStudyLogo.svg" 
+          alt="JumpStudy.org" 
+          width={200}
+          height={64}
+          className="h-16 w-auto"
+        />
+      </div>
+      
+      <div className="text-center bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-2xl rounded-lg p-8">
         <div className="h-16 w-16 border-t-4 border-primary border-solid rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-muted-foreground">Redirecting you to your dashboard...</p>
+        <p className="text-gray-600 dark:text-gray-300">Redirecting you to your dashboard...</p>
       </div>
     </div>
   );

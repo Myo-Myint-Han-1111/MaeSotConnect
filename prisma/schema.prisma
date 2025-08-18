@@ -233,6 +233,7 @@ enum InvitationStatus {
 enum DraftType {
   COURSE
   ORGANIZATION_UPDATE
+  ORGANIZATION
 }
 
 enum DraftStatus {

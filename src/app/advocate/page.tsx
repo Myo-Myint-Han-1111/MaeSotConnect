@@ -5,10 +5,11 @@ import { useSession } from "next-auth/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Clock, CheckCircle, XCircle, Plus, Edit, Undo2, Trash2, Copy, User, EyeOff, AlertTriangle } from "lucide-react";
+import { FileText, Clock, CheckCircle, XCircle, Plus, Edit, Undo2, Trash2, Copy, User, EyeOff, AlertTriangle, Building, BookOpen } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { DraftStatus } from "@/lib/auth/roles";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type DraftSummary = {
   id: string;
@@ -41,10 +42,17 @@ export default function AdvocateDashboard() {
     approved: 0,
     rejected: 0,
   });
+  const [rankData, setRankData] = useState<{
+    rank: number | null;
+    totalAdvocates: number;
+    courseCount: number;
+    hasProfile: boolean;
+  } | null>(null);
 
   useEffect(() => {
     fetchDrafts();
     fetchProfile();
+    fetchRank();
   }, []);
 
   const fetchDrafts = async () => {
@@ -97,6 +105,20 @@ export default function AdvocateDashboard() {
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
+    }
+  };
+
+  const fetchRank = async () => {
+    try {
+      const response = await fetch("/api/advocate/rank", {
+        cache: 'no-store'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setRankData(data);
+      }
+    } catch (error) {
+      console.error("Error fetching rank:", error);
     }
   };
 
@@ -280,107 +302,200 @@ export default function AdvocateDashboard() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="h-16 w-16 border-t-4 border-primary border-solid rounded-full animate-spin"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center gap-6">
-        {profile?.avatarUrl && (
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-6">
           <div className="flex-shrink-0">
-            <Image
-              src={profile.avatarUrl}
-              alt="Profile Avatar"
-              width={96}
-              height={96}
-              className="w-24 h-24 rounded-full border-2 border-gray-200 shadow-sm"
-            />
+            {loading ? (
+              <Skeleton className="w-24 h-24 rounded-full" />
+            ) : profile?.avatarUrl ? (
+              <Image
+                src={profile.avatarUrl}
+                alt="Profile Avatar"
+                width={96}
+                height={96}
+                className="w-24 h-24 rounded-full border-2 border-gray-200 shadow-sm"
+              />
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center">
+                <User className="h-8 w-8 text-gray-400" />
+              </div>
+            )}
           </div>
-        )}
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Welcome back, {session?.user?.name}!
-          </h1>
-          <p className="text-muted-foreground">
-            Submit course drafts and track their approval status.
-          </p>
+          <div>
+            {loading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-9 w-80" />
+                <Skeleton className="h-5 w-96" />
+              </div>
+            ) : (
+              <>
+                <h1 className="text-3xl font-bold tracking-tight">
+                  Welcome back, {session?.user?.name}!
+                </h1>
+                <p className="text-muted-foreground">
+                  Submit course drafts, propose new organizations, and track their approval status.
+                </p>
+              </>
+            )}
+          </div>
         </div>
+        
+        {/* Rank Display */}
+        {rankData === null ? (
+          // Skeleton while loading
+          <div className="relative">
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="text-left space-y-1">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+              </div>
+            </div>
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2">
+              <Skeleton className="h-3 w-20" />
+            </div>
+          </div>
+        ) : rankData.hasProfile && rankData.rank ? (
+          // Actual rank display
+          <div className="relative">
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <div className="flex items-center gap-3">
+                {rankData.rank <= 3 ? (
+                  <span className="text-4xl">
+                    {rankData.rank === 1 ? '🥇' : rankData.rank === 2 ? '🥈' : '🥉'}
+                  </span>
+                ) : (
+                  <span className="text-gray-500 font-bold text-3xl">#{rankData.rank}</span>
+                )}
+                <div className="text-left">
+                  <p className="text-sm font-medium text-gray-700">
+                    Rank {rankData.rank} of {rankData.totalAdvocates}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Youth Advocates
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2">
+              <Link 
+                href="/youthadvocates" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-xs text-gray-400 hover:text-gray-600 underline transition-colors whitespace-nowrap"
+              >
+                View Leaderboard
+              </Link>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {/* Quick Actions */}
-      <div className="flex gap-4">
-        <Button asChild className="bg-blue-700 hover:bg-blue-600 text-white">
-          <Link href="/advocate/submit">
-            <Plus className="mr-2 h-4 w-4" />
-            Submit New Course
-          </Link>
-        </Button>
-        <Button variant="outline" asChild className="hover:bg-gray-50 hover:text-gray-700">
-          <Link href="/advocate/drafts">
-            <FileText className="mr-2 h-4 w-4" />
-            View All Drafts
-          </Link>
-        </Button>
-        <Button variant="outline" asChild className="hover:bg-gray-50 hover:text-gray-700">
-          <Link href="/advocate/profile">
-            <User className="mr-2 h-4 w-4" />
-            {profile ? "Manage Profile" : "Create Profile"}
-          </Link>
-        </Button>
-      </div>
+      {loading ? (
+        <div className="flex gap-4 flex-wrap">
+          <Skeleton className="h-10 w-40" />
+          <Skeleton className="h-10 w-36" />
+          <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-10 w-36" />
+        </div>
+      ) : (
+        <div className="flex gap-4 flex-wrap">
+          <Button asChild className="bg-blue-700 hover:bg-blue-600 text-white">
+            <Link href="/advocate/submit">
+              <Plus className="mr-2 h-4 w-4" />
+              Submit New Course
+            </Link>
+          </Button>
+          <Button variant="outline" asChild className="hover:bg-gray-50 hover:text-gray-500">
+            <Link href="/advocate/organizations/submit">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Organization
+            </Link>
+          </Button>
+          <Button variant="outline" asChild className="hover:bg-gray-50 hover:text-gray-500">
+            <Link href="/advocate/drafts">
+              <FileText className="mr-2 h-4 w-4" />
+              View All Drafts
+            </Link>
+          </Button>
+          <Button variant="outline" asChild className="hover:bg-gray-50 hover:text-gray-500">
+            <Link href="/advocate/profile">
+              <User className="mr-2 h-4 w-4" />
+              {profile ? "Manage Profile" : "Create Profile"}
+            </Link>
+          </Button>
+        </div>
+      )}
 
       {/* Statistics Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card className="bg-white border border-gray-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-white rounded-t-lg">
-            <CardTitle className="text-sm font-medium">Total Submissions</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="bg-white rounded-b-lg">
-            <div className="text-2xl font-bold">{stats.total}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-white border border-gray-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-white rounded-t-lg">
-            <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="bg-white rounded-b-lg">
-            <div className="text-2xl font-bold">{stats.pending}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-white border border-gray-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-white rounded-t-lg">
-            <CardTitle className="text-sm font-medium">Approved</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="bg-white rounded-b-lg">
-            <div className="text-2xl font-bold">{stats.approved}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-white border border-gray-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-white rounded-t-lg">
-            <CardTitle className="text-sm font-medium">Needs Revision</CardTitle>
-            <XCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="bg-white rounded-b-lg">
-            <div className="text-2xl font-bold">{stats.rejected}</div>
-          </CardContent>
-        </Card>
-      </div>
+      {loading ? (
+        <div className="grid gap-4 md:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="bg-white border border-gray-200">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-white rounded-t-lg">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-4 rounded" />
+              </CardHeader>
+              <CardContent className="bg-white rounded-b-lg">
+                <Skeleton className="h-8 w-8" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card className="bg-white border border-gray-200">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-white rounded-t-lg">
+              <CardTitle className="text-sm font-medium">Total Submissions</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="bg-white rounded-b-lg">
+              <div className="text-2xl font-bold">{stats.total}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-white border border-gray-200">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-white rounded-t-lg">
+              <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="bg-white rounded-b-lg">
+              <div className="text-2xl font-bold">{stats.pending}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-white border border-gray-200">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-white rounded-t-lg">
+              <CardTitle className="text-sm font-medium">Approved</CardTitle>
+              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="bg-white rounded-b-lg">
+              <div className="text-2xl font-bold">{stats.approved}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-white border border-gray-200">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-white rounded-t-lg">
+              <CardTitle className="text-sm font-medium">Needs Revision</CardTitle>
+              <XCircle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="bg-white rounded-b-lg">
+              <div className="text-2xl font-bold">{stats.rejected}</div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Recent Submissions */}
       <Card className="bg-white border border-gray-200">
         <CardHeader className="bg-white rounded-t-lg">
           <CardTitle>Recent Submissions</CardTitle>
           <CardDescription>
-            Your latest course submissions and their status
+            Your latest course and organization submissions and their status
           </CardDescription>
         </CardHeader>
         <CardContent className="bg-white rounded-b-lg">
@@ -398,14 +513,29 @@ export default function AdvocateDashboard() {
               </div>
             ) : (
               recentDrafts.map((draft) => {
-                const content = draft.content as { imageUrls?: string[]; subtitle?: string; description?: string };
-                const firstImage = content?.imageUrls?.[0];
+                const content = draft.content as { 
+                  imageUrls?: string[]; 
+                  subtitle?: string; 
+                  description?: string;
+                  logoImageUrl?: string;
+                };
+                const firstImage = draft.type === "ORGANIZATION" ? content?.logoImageUrl : content?.imageUrls?.[0];
                 const subtitle = content?.subtitle || content?.description;
                 return (
                 <div
                   key={draft.id}
                   className="max-w-md p-4 border border-gray-200 rounded-lg flex flex-col bg-white"
                 >
+                  <div className="flex items-center gap-2 mb-3">
+                    {draft.type === "ORGANIZATION" ? (
+                      <Building className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <BookOpen className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {draft.type === "ORGANIZATION" ? "Organization" : "Course"}
+                    </span>
+                  </div>
                   {firstImage && (
                     <div className="mb-3">
                       <Image
@@ -445,7 +575,7 @@ export default function AdvocateDashboard() {
                         asChild
                         className="hover:bg-blue-700 hover:text-white"
                       >
-                        <Link href={`/advocate/submit?edit=${draft.id}`}>
+                        <Link href={draft.type === "ORGANIZATION" ? `/advocate/organizations/submit?edit=${draft.id}` : `/advocate/submit?edit=${draft.id}`}>
                           <Edit className="h-4 w-4 mr-1" />
                           Edit
                         </Link>
@@ -457,7 +587,7 @@ export default function AdvocateDashboard() {
                         asChild
                         className="hover:bg-blue-700 hover:text-white"
                       >
-                        <Link href={`/advocate/submit?edit=${draft.id}`}>
+                        <Link href={draft.type === "ORGANIZATION" ? `/advocate/organizations/submit?edit=${draft.id}` : `/advocate/submit?edit=${draft.id}`}>
                           <Edit className="h-4 w-4 mr-1" />
                           Revise
                         </Link>
@@ -467,7 +597,7 @@ export default function AdvocateDashboard() {
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="hover:bg-yellow-50 hover:text-yellow-700"
+                        className="hover:bg-gray-50"
                         onClick={() => handleWithdraw(draft.id)}
                         disabled={isProcessing}
                       >
@@ -479,7 +609,7 @@ export default function AdvocateDashboard() {
                     {/* Copy Action - Available for all statuses */}
                     <Button 
                       size="sm" 
-                      className="hover:bg-green-50 hover:text-green-700"
+                      className="hover:text-gray-500"
                       onClick={() => handleCopy(draft.id)}
                       disabled={isProcessing}
                     >
@@ -511,7 +641,7 @@ export default function AdvocateDashboard() {
           </div>
           {recentDrafts.length > 0 && (
             <div className="mt-6 text-center">
-              <Button variant="outline" asChild>
+              <Button variant="outline" asChild className="hover:bg-gray-50">
                 <Link href="/advocate/drafts">View All Submissions</Link>
               </Button>
             </div>
@@ -571,7 +701,7 @@ export default function AdvocateDashboard() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="outline" size="sm" asChild className="hover:bg-blue-600 hover:text-white">
                   <Link href="/advocate/profile">
                     <Edit className="h-4 w-4 mr-1" />
                     {profile.status === "REJECTED" ? "Revise" : "Edit"}
@@ -583,7 +713,7 @@ export default function AdvocateDashboard() {
                     size="sm" 
                     onClick={handleToggleHideProfile}
                     disabled={isProcessing}
-                    className="hover:bg-yellow-50 hover:text-yellow-700"
+                    className="hover:bg-gray-50"
                   >
                     <EyeOff className="h-4 w-4 mr-1" />
                     {profile.status === "HIDDEN" ? "Unhide" : "Hide"}

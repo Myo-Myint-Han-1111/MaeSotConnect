@@ -252,7 +252,25 @@ export const authConfig: NextAuthConfig = {
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // Update session every 24 hours if user is active
   },
+  
+  // Enhanced security settings
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === 'production' 
+        ? `__Secure-authjs.session-token` 
+        : `authjs.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 30 * 24 * 60 * 60, // Match session maxAge
+      },
+    },
+  },
+  
   debug: false,
 };
 
