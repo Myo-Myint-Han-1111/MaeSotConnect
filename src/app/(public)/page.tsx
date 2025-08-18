@@ -17,65 +17,32 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Updated interface to match new schema
+// Updated interface to match new schema - only fields needed for CourseCard component
 interface Course {
   id: string;
   slug: string;
   title: string;
   titleMm: string | null;
-  subtitle: string;
-  subtitleMm: string | null;
   // Updated: DateTime types for dates
   startDate: string; // ISO string format for frontend
   startDateMm: string | null;
-  endDate: string; // New field
-  endDateMm: string | null; // New field
   applyByDate?: string | null;
   applyByDateMm?: string | null;
-  startByDate?: string | null; // ADD THIS LINE
-  startByDateMm?: string | null; // ADD THIS LINE
-  estimatedDate?: string | null; // Add this line
+  startByDate?: string | null;
+  startByDateMm?: string | null;
+  estimatedDate?: string | null;
   estimatedDateMm?: string | null;
   // Updated: numeric types for duration
   duration: number;
   durationMm: number | null;
-  schedule: string;
-  scheduleMm: string | null;
   // Updated: fee is now numeric
   feeAmount?: number;
   feeAmountMm?: number | null;
-  // New age range fields
-  ageMin: number;
-  ageMinMm: number | null;
-  ageMax: number;
-  ageMaxMm: number | null;
-  // New document fields
-  document: string;
-  documentMm: string | null;
   // Course location fields
   district?: string | null;
   province?: string | null;
-  availableDays: boolean[];
-  description?: string;
-  descriptionMm?: string | null;
-  outcomes?: string[];
-  outcomesMm?: string[];
-  scheduleDetails?: string;
-  scheduleDetailsMm?: string | null;
-  selectionCriteria?: string[];
-  selectionCriteriaMm?: string[];
   organizationInfo?: {
-    id: string;
     name: string;
-    description: string;
-    phone: string;
-    email: string;
-    address: string;
-    facebookPage?: string;
-    latitude: number;
-    longitude: number;
-    district?: string;
-    province?: string;
   } | null;
   images: {
     id: string;
@@ -88,12 +55,6 @@ interface Course {
     color: string;
     backgroundColor: string;
     courseId: string;
-  }[];
-  faq?: {
-    question: string;
-    questionMm: string | null;
-    answer: string;
-    answerMm: string | null;
   }[];
   createdByUser?: {
     id: string;
@@ -309,87 +270,18 @@ export default function Home() {
             ?.toLowerCase()
             .includes(searchTermLower) || false;
 
-        // Basic fields search
+        // Basic fields search - only search available CourseCard fields
         const basicFieldsMatch =
-          // Title and subtitle
+          // Title search
           course.title?.toLowerCase().includes(searchTermLower) ||
           false ||
           course.titleMm?.toLowerCase().includes(searchTermLower) ||
           false ||
-          course.subtitle?.toLowerCase().includes(searchTermLower) ||
+          // District and province search
+          course.district?.toLowerCase().includes(searchTermLower) ||
           false ||
-          course.subtitleMm?.toLowerCase().includes(searchTermLower) ||
-          false ||
-          // Location
-          course.organizationInfo?.address
-            ?.toLowerCase()
-            .includes(searchTermLower) ||
-          false ||
-          // District and province search (new fields)
-          course.organizationInfo?.district
-            ?.toLowerCase()
-            .includes(searchTermLower) ||
-          false ||
-          course.organizationInfo?.province
-            ?.toLowerCase()
-            .includes(searchTermLower) ||
-          false ||
-          // Schedule and duration
-          course.schedule?.toLowerCase().includes(searchTermLower) ||
-          false ||
-          course.scheduleMm?.toLowerCase().includes(searchTermLower) ||
-          false ||
-          // Document search (new field)
-          course.document?.toLowerCase().includes(searchTermLower) ||
-          false ||
-          course.documentMm?.toLowerCase().includes(searchTermLower) ||
+          course.province?.toLowerCase().includes(searchTermLower) ||
           false;
-
-        // Description search
-        const descriptionMatch =
-          course.description?.toLowerCase().includes(searchTermLower) ||
-          false ||
-          course.descriptionMm?.toLowerCase().includes(searchTermLower) ||
-          false;
-
-        // Outcomes search
-        const outcomesMatch =
-          course.outcomes?.some((outcome) =>
-            outcome.toLowerCase().includes(searchTermLower)
-          ) ||
-          course.outcomesMm?.some((outcome) =>
-            outcome.toLowerCase().includes(searchTermLower)
-          ) ||
-          false;
-
-        // Selection criteria search
-        const criteriaMatch =
-          course.selectionCriteria?.some((criteria) =>
-            criteria.toLowerCase().includes(searchTermLower)
-          ) ||
-          course.selectionCriteriaMm?.some((criteria) =>
-            criteria.toLowerCase().includes(searchTermLower)
-          ) ||
-          false;
-
-        // Schedule details search
-        const scheduleDetailsMatch =
-          course.scheduleDetails?.toLowerCase().includes(searchTermLower) ||
-          false ||
-          course.scheduleDetailsMm?.toLowerCase().includes(searchTermLower) ||
-          false;
-
-        // FAQ search
-        const faqMatch =
-          course.faq?.some(
-            (faqItem) =>
-              faqItem.question.toLowerCase().includes(searchTermLower) ||
-              faqItem.questionMm?.toLowerCase().includes(searchTermLower) ||
-              false ||
-              faqItem.answer.toLowerCase().includes(searchTermLower) ||
-              faqItem.answerMm?.toLowerCase().includes(searchTermLower) ||
-              false
-          ) || false;
 
         // Badges search
         const badgesMatch = course.badges.some((badge) =>
@@ -400,11 +292,6 @@ export default function Home() {
         const matchesSearch =
           organizationMatch ||
           basicFieldsMatch ||
-          descriptionMatch ||
-          outcomesMatch ||
-          criteriaMatch ||
-          scheduleDetailsMatch ||
-          faqMatch ||
           badgesMatch;
 
         return matchesSearch;

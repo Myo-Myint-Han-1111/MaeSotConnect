@@ -1172,9 +1172,10 @@ export default function PlatformAdminCourseForm({
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="applyByDate">Application Deadline</Label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Application Deadline and Registration Start Date - Side by Side */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="applyByDate">Application Deadline</Label>
                       <div>
                         <div className="text-xs text-muted-foreground mb-1">
                           English
@@ -1187,58 +1188,54 @@ export default function PlatformAdminCourseForm({
                           onChange={handleTextChange}
                         />
                       </div>
+                      <div className="flex items-center space-x-2 mt-2">
+                        <input
+                          type="checkbox"
+                          id="showEstimatedForApplyByDate"
+                          checked={formData.showEstimatedForApplyByDate}
+                          onChange={() =>
+                            handleCheckboxChange("showEstimatedForApplyByDate")
+                          }
+                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        />
+                        <label
+                          htmlFor="showEstimatedForApplyByDate"
+                          className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-1"
+                        >
+                          Mark as estimated
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="h-3 w-3 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-sm">
+                              <p>
+                                Check this if the application deadline may change.
+                                This will show an &quot;estimated&quot; badge next
+                                to the deadline.
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </label>
+                      </div>
                     </div>
 
-                    <div className="flex items-center space-x-2 mt-2">
-                      <input
-                        type="checkbox"
-                        id="showEstimatedForApplyByDate"
-                        checked={formData.showEstimatedForApplyByDate}
-                        onChange={() =>
-                          handleCheckboxChange("showEstimatedForApplyByDate")
-                        }
-                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
-                      <label
-                        htmlFor="showEstimatedForApplyByDate"
-                        className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-1"
-                      >
-                        Mark application deadline as estimated
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="startByDate">
+                          Registration Start Date
+                        </Label>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Info className="h-3 w-3 text-muted-foreground" />
+                            <Info className="h-4 w-4 text-muted-foreground" />
                           </TooltipTrigger>
                           <TooltipContent className="max-w-sm">
                             <p>
-                              Check this if the application deadline may change.
-                              This will show an &quot;estimated&quot; badge next
-                              to the deadline.
+                              The date when applications/registration opens for
+                              this course.
                             </p>
                           </TooltipContent>
                         </Tooltip>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Start By Date */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="startByDate">
-                        Registration Start Date
-                      </Label>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="h-4 w-4 text-muted-foreground" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-sm">
-                          <p>
-                            The date when applications/registration opens for
-                            this course.
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      </div>
                       <div>
                         <div className="text-xs text-muted-foreground mb-1">
                           English
@@ -1251,10 +1248,10 @@ export default function PlatformAdminCourseForm({
                           onChange={handleTextChange}
                         />
                       </div>
+                      <p className="text-xs text-muted-foreground">
+                        Leave blank if registration is always open
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Leave blank if registration is always open
-                    </p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
