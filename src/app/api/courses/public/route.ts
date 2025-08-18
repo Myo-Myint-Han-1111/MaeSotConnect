@@ -19,8 +19,12 @@ export async function GET() {
         durationMm: true,
         province: true,
         district: true,
+        schedule: true,
         applyByDate: true,
         applyByDateMm: true,
+        startByDate: true,
+        startByDateMm: true,
+        scheduleMm: true,
         // fee/feeMm fields are replaced with feeAmount/feeAmountMm
         feeAmount: true,
         feeAmountMm: true,
@@ -88,6 +92,10 @@ export async function GET() {
       applyByDate: course.applyByDate ? course.applyByDate.toISOString() : null,
       applyByDateMm: course.applyByDateMm
         ? course.applyByDateMm.toISOString()
+        : null,
+      startByDate: course.startByDate ? course.startByDate.toISOString() : null,
+      startByDateMm: course.startByDateMm
+        ? course.startByDateMm.toISOString()
         : null,
       estimatedDate: course.estimatedDate,
       estimatedDateMm: course.estimatedDateMm,

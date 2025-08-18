@@ -32,6 +32,8 @@ interface Course {
   endDateMm: string | null; // New field
   applyByDate?: string | null;
   applyByDateMm?: string | null;
+  startByDate?: string | null; // ADD THIS LINE
+  startByDateMm?: string | null; // ADD THIS LINE
   estimatedDate?: string | null; // Add this line
   estimatedDateMm?: string | null;
   // Updated: numeric types for duration
@@ -108,7 +110,7 @@ interface Course {
 }
 
 // Cache management constants
-const COURSE_CACHE_KEY = 'courseListCache';
+const COURSE_CACHE_KEY = "courseListCache";
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 interface CachedState {
@@ -133,7 +135,7 @@ export default function Home() {
   // Cache management functions
   const savePageState = useCallback(() => {
     if (typeof window === "undefined") return;
-    
+
     try {
       const state: CachedState = {
         courses,
@@ -141,46 +143,46 @@ export default function Home() {
         activeFilters,
         sortBy,
         scrollPosition: window.scrollY,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
       sessionStorage.setItem(COURSE_CACHE_KEY, JSON.stringify(state));
     } catch (error) {
-      console.error('Error saving page state:', error);
+      console.error("Error saving page state:", error);
     }
   }, [courses, searchTerm, activeFilters, sortBy]);
 
   const restorePageState = useCallback(() => {
     if (typeof window === "undefined") return false;
-    
+
     try {
       const cached = sessionStorage.getItem(COURSE_CACHE_KEY);
       if (!cached) return false;
-      
+
       const state: CachedState = JSON.parse(cached);
-      
+
       // Check if cache is still valid
       if (Date.now() - state.timestamp > CACHE_DURATION) {
         sessionStorage.removeItem(COURSE_CACHE_KEY);
         return false;
       }
-      
+
       // Restore all state immediately
       setCourses(state.courses);
       setSearchTerm(state.searchTerm);
       setActiveFilters(state.activeFilters);
       setSortBy(state.sortBy);
       setLoading(false); // Important: skip loading state
-      
+
       // Restore scroll position with double RAF to ensure DOM is ready
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           window.scrollTo(0, state.scrollPosition);
         });
       });
-      
+
       return true;
     } catch (error) {
-      console.error('Error restoring page state:', error);
+      console.error("Error restoring page state:", error);
       sessionStorage.removeItem(COURSE_CACHE_KEY);
       return false;
     }
@@ -200,7 +202,7 @@ export default function Home() {
     if (typeof window !== "undefined") {
       const restored = restorePageState();
       setCacheRestored(restored);
-      
+
       // If cache was restored, no need to load old filter state
       if (!restored) {
         try {
@@ -590,16 +592,16 @@ export default function Home() {
   // Save state when user scrolls (throttled to reduce reflows)
   useEffect(() => {
     if (typeof window === "undefined") return;
-    
+
     let scrollTimeout: NodeJS.Timeout;
     let isScrolling = false;
-    
+
     const handleScroll = () => {
       if (isScrolling) return; // Skip if already processing
-      
+
       isScrolling = true;
       clearTimeout(scrollTimeout);
-      
+
       // Use RAF to batch DOM reads with rendering
       requestAnimationFrame(() => {
         scrollTimeout = setTimeout(() => {
@@ -611,9 +613,9 @@ export default function Home() {
       });
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
       clearTimeout(scrollTimeout);
     };
   }, [loading, courses.length, savePageState]);
@@ -623,7 +625,7 @@ export default function Home() {
     const restoreToTargetCard = async () => {
       // Only use this if cache restoration failed
       if (cacheRestored) return;
-      
+
       const targetSlug = sessionStorage.getItem("targetCourseSlug");
 
       if (!targetSlug || loading || filteredCourses.length === 0) {
@@ -901,6 +903,16 @@ export default function Home() {
                     startDateMm={
                       course.startDateMm ? formatDate(course.startDateMm) : null
                     }
+                    startByDate={
+                      course.startByDate
+                        ? formatDate(course.startByDate) // Format it first
+                        : undefined
+                    }
+                    startByDateMm={
+                      course.startByDateMm
+                        ? formatDate(course.startByDateMm) // Format it first
+                        : undefined
+                    }
                     duration={formatDuration(course.duration)}
                     durationMm={
                       course.durationMm
@@ -997,7 +1009,9 @@ export default function Home() {
                 href="/youthadvocates"
                 className="text-gray-600 hover:text-primary transition-colors text-sm"
               >
-                {language === "mm" ? "လူငယ်ကိုယ်စားလှယ်များ" : "Youth Advocates"}
+                {language === "mm"
+                  ? "လူငယ်ကိုယ်စားလှယ်များ"
+                  : "Youth Advocates"}
               </Link>
             </nav>
           </div>

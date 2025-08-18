@@ -53,6 +53,16 @@ const courseSchema = z
       .optional()
       .nullable()
       .transform((val) => (val ? new Date(val) : null)),
+    startByDate: z
+      .string()
+      .optional()
+      .nullable()
+      .transform((val) => (val && val.trim() !== "" ? new Date(val) : null)),
+    startByDateMm: z
+      .string()
+      .optional()
+      .nullable()
+      .transform((val) => (val && val.trim() !== "" ? new Date(val) : null)),
     availableDays: z.array(z.boolean()).length(7, "Must provide 7 days"),
     description: z.string().optional(),
     descriptionMm: z.string().optional(),
@@ -137,6 +147,10 @@ export async function GET() {
       applyByDateMm: course.applyByDateMm
         ? course.applyByDateMm.toISOString()
         : null,
+      startByDate: course.startByDate ? course.startByDate.toISOString() : null,
+      startByDateMm: course.startByDateMm
+        ? course.startByDateMm.toISOString()
+        : null,
       startDate: course.startDate.toISOString(),
       startDateMm: course.startDateMm ? course.startDateMm.toISOString() : null,
       endDate: course.endDate.toISOString(),
@@ -163,16 +177,19 @@ export async function GET() {
       selectionCriteria: course.selectionCriteria,
       selectionCriteriaMm: course.selectionCriteriaMm || [],
       organizationId: course.organizationId,
-      organization: course.organizationInfo ? {
-        id: course.organizationInfo.id,
-        name: course.organizationInfo.name,
-      } : null,
+      organization: course.organizationInfo
+        ? {
+            id: course.organizationInfo.id,
+            name: course.organizationInfo.name,
+          }
+        : null,
       images: course.images?.map((img) => img.url) || [],
-      badges: course.badges?.map((badge) => ({
-        text: badge.text,
-        color: badge.color,
-        backgroundColor: badge.backgroundColor,
-      })) || [],
+      badges:
+        course.badges?.map((badge) => ({
+          text: badge.text,
+          color: badge.color,
+          backgroundColor: badge.backgroundColor,
+        })) || [],
     }));
 
     return NextResponse.json(formattedCourses);
@@ -362,6 +379,8 @@ export async function POST(request: NextRequest) {
           address: validatedData.address || null,
           applyByDate: validatedData.applyByDate || null,
           applyByDateMm: validatedData.applyByDateMm || null,
+          startByDate: validatedData.startByDate || null,
+          startByDateMm: validatedData.startByDateMm || null,
           availableDays: validatedData.availableDays,
           description: validatedData.description || null,
           descriptionMm: validatedData.descriptionMm || null,

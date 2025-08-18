@@ -26,6 +26,8 @@ export interface CourseCardProps {
   startDateMm: string | null;
   applyByDate?: string | null;
   applyByDateMm?: string | null;
+  startByDate?: string | null;
+  startByDateMm?: string | null;
   estimatedDate?: string | null;
   estimatedDateMm?: string | null;
   duration: string;
@@ -68,6 +70,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   startDateMm,
   applyByDate,
   applyByDateMm,
+  startByDate,
+  startByDateMm,
   estimatedDate,
   estimatedDateMm,
   duration,
@@ -134,6 +138,11 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           applyByDate={
             applyByDate
               ? getLocalizedContent(applyByDate, applyByDateMm || null)
+              : undefined
+          }
+          startByDate={
+            startByDate
+              ? getLocalizedContent(startByDate, startByDateMm || null)
               : undefined
           }
           estimatedDate={estimatedDate}

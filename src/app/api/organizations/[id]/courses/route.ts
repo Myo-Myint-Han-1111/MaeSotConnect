@@ -45,6 +45,10 @@ export async function GET(
       startDateMm: course.startDateMm?.toISOString(),
       endDate: course.endDate.toISOString(),
       endDateMm: course.endDateMm?.toISOString(),
+      startByDate: course.startByDate ? course.startByDate.toISOString() : null,
+      startByDateMm: course.startByDateMm
+        ? course.startByDateMm.toISOString()
+        : null,
       // Convert duration numbers to strings for backwards compatibility
       duration: course.duration.toString(),
       durationMm: course.durationMm?.toString(),

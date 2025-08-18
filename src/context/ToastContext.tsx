@@ -6,6 +6,7 @@ import React, {
   useContext,
   ReactNode,
   useCallback,
+  useEffect,
 } from "react";
 import { Toast } from "@/components/ui/toast";
 
@@ -30,8 +31,13 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
-// More robust ID generation with crypto.randomUUID fallback
+// Fixed ID generation to avoid hydration issues
 const generateToastId = (): string => {
+  // Only generate IDs on the client side to avoid hydration mismatches
+  if (typeof window === "undefined") {
+    return "toast-ssr"; // Temporary ID for SSR
+  }
+
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
     return `toast-${crypto.randomUUID()}`;
   }
@@ -41,6 +47,12 @@ const generateToastId = (): string => {
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastData[]>([]);
+  const [isClient, setIsClient] = useState(false);
+
+  // Ensure we're on the client side before showing toasts
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const showToast = useCallback(
     (
@@ -49,6 +61,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       variant: ToastVariant = "default",
       duration: number = 5000
     ) => {
+      // Only show toasts on the client side
+      if (!isClient) return;
+
       const id = generateToastId();
       const newToast: ToastData = {
         id,
@@ -67,7 +82,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         }, duration);
       }
     },
-    []
+    [isClient]
   );
 
   const removeToast = useCallback((id: string) => {
@@ -77,20 +92,22 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      {/* Render all toasts with unique keys */}
-      <div className="fixed top-4 right-4 z-50 space-y-2">
-        {toasts.map((toast) => (
-          <Toast
-            key={toast.id} // Unique key for each toast
-            open={true}
-            onClose={() => removeToast(toast.id)}
-            title={toast.title}
-            description={toast.description}
-            variant={toast.variant}
-            duration={0} // Disable auto-close in individual Toast since we handle it here
-          />
-        ))}
-      </div>
+      {/* Only render toasts on the client side */}
+      {isClient && (
+        <div className="fixed top-4 right-4 z-50 space-y-2">
+          {toasts.map((toast) => (
+            <Toast
+              key={toast.id} // Unique key for each toast
+              open={true}
+              onClose={() => removeToast(toast.id)}
+              title={toast.title}
+              description={toast.description}
+              variant={toast.variant}
+              duration={0} // Disable auto-close in individual Toast since we handle it here
+            />
+          ))}
+        </div>
+      )}
     </ToastContext.Provider>
   );
 }
