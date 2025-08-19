@@ -36,11 +36,12 @@ export default function DashboardPage() {
         });
         const courses = await courseResponse.json();
 
-        // Fetch pending drafts count
+        // Fetch pending drafts count (both course and organization drafts)
         const draftsResponse = await fetch('/api/admin/drafts', {
           cache: 'no-store'
         });
         const drafts = await draftsResponse.json();
+        // Count all pending drafts (courses and organizations) that need review
         const pendingDrafts = Array.isArray(drafts) ? drafts.filter(draft => draft.status === "PENDING").length : 0;
 
         setStats({
@@ -63,7 +64,7 @@ export default function DashboardPage() {
       <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card>
+        <Card className="bg-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Organizations</CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -82,7 +83,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Courses</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
@@ -101,7 +102,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Pending Reviews</CardTitle>
             <Clock className="h-4 w-4 text-yellow-500" />
@@ -115,7 +116,7 @@ export default function DashboardPage() {
               )}
             </div>
             <p className="text-xs text-muted-foreground">
-              Course drafts awaiting review
+              Course and organization drafts awaiting review
             </p>
           </CardContent>
         </Card>
@@ -138,7 +139,7 @@ export default function DashboardPage() {
           <h3 className="font-medium mb-2">Quick Links</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link href="/admin/organizations">
-              <Card className="hover:bg-gray-50 cursor-pointer">
+              <Card className="bg-white hover:bg-gray-50 cursor-pointer">
                 <CardContent className="p-4 flex items-center gap-3">
                   <Building2 className="h-5 w-5 text-blue-500" />
                   <span>Manage Organizations</span>
@@ -146,7 +147,7 @@ export default function DashboardPage() {
               </Card>
             </Link>
             <Link href="/dashboard/courses">
-              <Card className="hover:bg-gray-50 cursor-pointer">
+              <Card className="bg-white hover:bg-gray-50 cursor-pointer">
                 <CardContent className="p-4 flex items-center gap-3">
                   <BookOpen className="h-5 w-5 text-purple-500" />
                   <span>Manage Courses</span>
@@ -154,7 +155,7 @@ export default function DashboardPage() {
               </Card>
             </Link>
             <Link href="/admin/drafts">
-              <Card className="hover:bg-gray-50 cursor-pointer">
+              <Card className="bg-white hover:bg-gray-50 cursor-pointer">
                 <CardContent className="p-4 flex items-center gap-3">
                   <FileText className="h-5 w-5 text-yellow-500" />
                   <div className="flex flex-col items-start">
@@ -172,33 +173,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="mt-6 bg-white rounded-lg p-6 shadow-sm">
-        <h2 className="text-xl font-bold mb-4">System Updates</h2>
-        <div className="space-y-4">
-          <div className="border-l-4 border-blue-500 pl-4 py-1">
-            <p className="text-sm font-medium">
-              Welcome to the new Admin Dashboard
-            </p>
-            <p className="text-xs text-muted-foreground">
-              We have redesigned the admin interface to make course and
-              organization management easier.
-            </p>
-          </div>
-          <div className="border-l-4 border-green-500 pl-4 py-1">
-            <p className="text-sm font-medium">Course Management System</p>
-            <p className="text-xs text-muted-foreground">
-              You can now create and manage courses with a streamlined form
-              interface.
-            </p>
-          </div>
-          <div className="border-l-4 border-amber-500 pl-4 py-1">
-            <p className="text-sm font-medium">Need Help?</p>
-            <p className="text-xs text-muted-foreground">
-              Check the documentation or contact support if you need assistance.
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

@@ -111,10 +111,10 @@ export default function AdminLayout({
             <Link
               key={link.href}
               href={link.href}
-              className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
+              className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors duration-200 ${
                 link.active
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-gray-100"
+                  : "text-muted-foreground hover:bg-gray-200"
               }`}
             >
               {link.icon}
@@ -124,7 +124,7 @@ export default function AdminLayout({
           {/* Update Sign Out button to use confirmSignOut */}
           <Button
             variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:bg-gray-100 px-3 py-2 rounded-md text-sm"
+            className="w-full justify-start text-muted-foreground hover:bg-gray-200 px-3 py-2 rounded-md text-sm transition-colors duration-200"
             onClick={confirmSignOut}
           >
             <LogOut className="h-5 w-5 mr-3" />
