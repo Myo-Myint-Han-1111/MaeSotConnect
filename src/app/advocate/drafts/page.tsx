@@ -266,7 +266,7 @@ export default function AllDraftsPage() {
                     <Button asChild>
                       <Link href="/advocate/submit">
                         <Plus className="mr-2 h-4 w-4" />
-                        Submit Your First Course
+                        Submit a Course
                       </Link>
                     </Button>
                   </>

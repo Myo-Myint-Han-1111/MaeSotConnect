@@ -32,7 +32,9 @@ export default function AdminDraftsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [error, setError] = useState<string | null>(null);
+  const [processing, setProcessing] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDrafts();
@@ -62,7 +64,8 @@ export default function AdminDraftsPage() {
       draft.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       draft.author.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || draft.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesType = typeFilter === "all" || draft.type === typeFilter;
+    return matchesSearch && matchesStatus && matchesType;
   });
 
   const getStatusBadgeColor = (status: DraftStatus) => {
@@ -97,6 +100,69 @@ export default function AdminDraftsPage() {
     return drafts.filter(draft => draft.status === DraftStatus.PENDING).length;
   };
 
+  const handleApprove = async (draftId: string) => {
+    setProcessing(draftId);
+    try {
+      const response = await fetch(`/api/admin/drafts/${draftId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: "APPROVED",
+          reviewNotes: "Approved from drafts list",
+        }),
+      });
+
+      if (response.ok) {
+        // Refresh the drafts list
+        fetchDrafts();
+      } else {
+        const error = await response.json();
+        alert(`Error approving draft: ${error.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error("Error approving draft:", error);
+      alert("Error approving draft. Please try again.");
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleReject = async (draftId: string) => {
+    const reason = prompt("Please provide a reason for rejection:");
+    if (!reason || !reason.trim()) {
+      return; // User cancelled or provided empty reason
+    }
+
+    setProcessing(draftId);
+    try {
+      const response = await fetch(`/api/admin/drafts/${draftId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: "REJECTED",
+          reviewNotes: reason.trim(),
+        }),
+      });
+
+      if (response.ok) {
+        // Refresh the drafts list
+        fetchDrafts();
+      } else {
+        const error = await response.json();
+        alert(`Error rejecting draft: ${error.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error("Error rejecting draft:", error);
+      alert("Error rejecting draft. Please try again.");
+    } finally {
+      setProcessing(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -121,9 +187,9 @@ export default function AdminDraftsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Course Draft Reviews</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Content Draft Reviews</h1>
           <p className="text-muted-foreground">
-            Review and manage course drafts submitted by Youth Advocates and Organization Admins.
+            Review and manage course and organization drafts submitted by Youth Advocates and Organization Admins.
           </p>
         </div>
         {getPendingCount() > 0 && (
@@ -135,7 +201,7 @@ export default function AdminDraftsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="bg-white">
           <CardContent className="pt-6">
             <div className="flex items-center">
               <Clock className="h-4 w-4 text-yellow-500" />
@@ -146,7 +212,7 @@ export default function AdminDraftsPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white">
           <CardContent className="pt-6">
             <div className="flex items-center">
               <CheckCircle className="h-4 w-4 text-green-500" />
@@ -157,7 +223,7 @@ export default function AdminDraftsPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white">
           <CardContent className="pt-6">
             <div className="flex items-center">
               <XCircle className="h-4 w-4 text-red-500" />
@@ -168,7 +234,7 @@ export default function AdminDraftsPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white">
           <CardContent className="pt-6">
             <div className="flex items-center">
               <FileText className="h-4 w-4 text-blue-500" />
@@ -182,16 +248,26 @@ export default function AdminDraftsPage() {
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card className="bg-white">
         <CardContent className="pt-6">
           <div className="flex gap-4">
             <div className="flex-1">
               <Input
-                placeholder="Search by course title or author name..."
+                placeholder="Search by title or author name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filter by type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="COURSE">Courses</SelectItem>
+                <SelectItem value="ORGANIZATION">Organizations</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Filter by status" />
@@ -210,12 +286,12 @@ export default function AdminDraftsPage() {
       {/* Drafts List */}
       <div className="space-y-4">
         {filteredDrafts.length === 0 ? (
-          <Card>
+          <Card className="bg-white">
             <CardContent className="pt-6">
               <div className="text-center py-8">
                 <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                 {drafts.length === 0 ? (
-                  <p className="text-muted-foreground">No course drafts have been submitted yet.</p>
+                  <p className="text-muted-foreground">No content drafts have been submitted yet.</p>
                 ) : (
                   <p className="text-muted-foreground">No drafts match your current filters.</p>
                 )}
@@ -224,7 +300,7 @@ export default function AdminDraftsPage() {
           </Card>
         ) : (
           filteredDrafts.map((draft) => (
-            <Card key={draft.id}>
+            <Card key={draft.id} className="bg-white">
               <CardContent className="pt-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -235,9 +311,9 @@ export default function AdminDraftsPage() {
                         {draft.status === DraftStatus.REJECTED ? "Needs Revision" : draft.status}
                       </Badge>
                       {draft.status === DraftStatus.PENDING && (
-                        <Badge className="bg-blue-50 text-blue-700 border-blue-200">
+                        <span className="text-gray-500 text-sm italic">
                           Needs Review
-                        </Badge>
+                        </span>
                       )}
                     </div>
                     
@@ -262,12 +338,38 @@ export default function AdminDraftsPage() {
                   </div>
                   
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" asChild className="hover:bg-gray-50 hover:text-gray-700">
+                    <Button variant="outline" size="sm" asChild className="bg-blue-700 text-white hover:bg-blue-600 border-blue-700">
                       <Link href={`/admin/drafts/${draft.id}`}>
                         <Eye className="h-4 w-4 mr-2" />
                         Review
                       </Link>
                     </Button>
+                    
+                    {draft.status === DraftStatus.PENDING && (
+                      <>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleApprove(draft.id)}
+                          disabled={processing === draft.id}
+                          className="border-gray-300 text-gray-600 hover:bg-green-500 hover:text-white hover:border-green-500"
+                        >
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          {processing === draft.id ? "..." : "Approve"}
+                        </Button>
+                        
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleReject(draft.id)}
+                          disabled={processing === draft.id}
+                          className="border-gray-300 text-gray-600 hover:bg-red-500 hover:text-white hover:border-red-500"
+                        >
+                          <XCircle className="h-4 w-4 mr-2" />
+                          {processing === draft.id ? "..." : "Reject"}
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -279,7 +381,7 @@ export default function AdminDraftsPage() {
       {/* Summary */}
       {filteredDrafts.length > 0 && (
         <div className="text-center text-sm text-muted-foreground">
-          Showing {filteredDrafts.length} of {drafts.length} course drafts
+          Showing {filteredDrafts.length} of {drafts.length} content drafts
         </div>
       )}
     </div>

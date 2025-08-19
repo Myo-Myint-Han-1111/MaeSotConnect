@@ -9,10 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { FileText, Clock, CheckCircle, XCircle, ArrowLeft, User, Edit, X } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { DraftStatus } from "@/lib/auth/roles";
 import { ConfirmationDialog } from "@/components/common/ConfirmationDialog";
 import PlatformAdminCourseForm from "@/components/forms/PlatformAdminCourseForm";
 import YouthAdvocateCourseForm from "@/components/forms/YouthAdvocateCourseForm";
+import AdminOrganizationForm from "@/components/forms/AdminOrganizationForm";
 
 
 type Draft = {
@@ -238,7 +240,7 @@ export default function AdminDraftReviewPage() {
     }
   };
 
-  const renderContentField = (label: string, value: unknown, isList = false) => {
+  const renderContentField = (label: string, value: unknown, isList = false): React.ReactElement | null => {
     if (!value) return null;
     
     if (isList && Array.isArray(value)) {
@@ -250,7 +252,7 @@ export default function AdminDraftReviewPage() {
             {value.map((item, index) => (
               <li key={index} className="flex items-start gap-2">
                 <span className="text-muted-foreground">•</span>
-                <span>{item}</span>
+                <span>{String(item)}</span>
               </li>
             ))}
           </ul>
@@ -265,6 +267,61 @@ export default function AdminDraftReviewPage() {
       </div>
     );
   };
+
+  const renderOrganizationLogo = (logoUrl: unknown): React.ReactElement | null => {
+    if (!logoUrl || typeof logoUrl !== 'string' || logoUrl.trim() === '') return null;
+    
+    return (
+      <div className="mb-4">
+        <h4 className="font-medium mb-2">Organization Logo</h4>
+        <div className="w-48 h-32 border rounded-lg bg-gray-50 flex items-center justify-center p-2 relative">
+          <Image
+            src={logoUrl}
+            alt="Organization logo"
+            fill
+            className="object-contain cursor-pointer hover:opacity-90 transition-opacity"
+            sizes="192px"
+            onClick={() => {
+              window.open(logoUrl, '_blank', 'noopener,noreferrer');
+            }}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          Click to view full size
+        </p>
+      </div>
+    );
+  };
+
+  const renderOrganizationContent = (content: Record<string, unknown>) => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Organization Draft Details</CardTitle>
+        <CardDescription>
+          Complete information about the proposed organization
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {renderContentField("Organization Name", content.name)}
+        {renderContentField("Description", content.description)}
+        
+        <div className="grid gap-6 md:grid-cols-2">
+          {renderContentField("Phone", content.phone)}
+          {renderContentField("Email", content.email)}
+        </div>
+        
+        {renderContentField("Facebook Page", content.facebookPage)}
+        {renderContentField("Physical Address", content.address)}
+        
+        <div className="grid gap-6 md:grid-cols-2">
+          {renderContentField("Province", content.province)}
+          {renderContentField("District", content.district)}
+        </div>
+        
+        {renderOrganizationLogo(content.logoImageUrl)}
+      </CardContent>
+    </Card>
+  );
 
   if (loading) {
     return (
@@ -312,7 +369,7 @@ export default function AdminDraftReviewPage() {
             </Badge>
           </div>
           <p className="text-muted-foreground">
-            Course draft review and approval
+            {draft.type === "ORGANIZATION" ? "Organization" : "Course"} draft review and approval
           </p>
         </div>
         
@@ -325,6 +382,7 @@ export default function AdminDraftReviewPage() {
                   variant="outline" 
                   onClick={handleCancelEdit}
                   disabled={isSavingEdit}
+                  className="hover:bg-blue-600 hover:text-white hover:border-blue-600"
                 >
                   <X className="h-4 w-4 mr-2" />
                   Cancel Edit
@@ -335,6 +393,7 @@ export default function AdminDraftReviewPage() {
                 variant="outline" 
                 onClick={() => setIsEditMode(true)}
                 disabled={isProcessing}
+                className="hover:bg-blue-600 hover:text-white hover:border-blue-600"
               >
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Draft
@@ -379,10 +438,30 @@ export default function AdminDraftReviewPage() {
             </CardContent>
           </Card>
 
-          {/* Course Content */}
+          {/* Content */}
           {isEditMode ? (
             <div>
-              {draft.type === "YOUTH_ADVOCATE" ? (
+              {draft.type === "ORGANIZATION" ? (
+                <AdminOrganizationForm
+                  initialData={{
+                    name: String((editedContent || draft.content)?.name || ""),
+                    description: String((editedContent || draft.content)?.description || ""),
+                    phone: String((editedContent || draft.content)?.phone || ""),
+                    email: String((editedContent || draft.content)?.email || ""),
+                    address: String((editedContent || draft.content)?.address || ""),
+                    facebookPage: (editedContent || draft.content)?.facebookPage ? String((editedContent || draft.content).facebookPage) : "",
+                    latitude: Number((editedContent || draft.content)?.latitude) || 0,
+                    longitude: Number((editedContent || draft.content)?.longitude) || 0,
+                    district: (editedContent || draft.content)?.district ? String((editedContent || draft.content).district) : "",
+                    province: (editedContent || draft.content)?.province ? String((editedContent || draft.content).province) : "",
+                    logoImageUrl: (editedContent || draft.content)?.logoImageUrl ? String((editedContent || draft.content).logoImageUrl) : undefined,
+                  }}
+                  mode="edit"
+                  onSubmit={handleFormSubmit}
+                  isSubmitting={isSavingEdit}
+                  submitButtonText="Save Changes"
+                />
+              ) : draft.type === "YOUTH_ADVOCATE" ? (
                 <YouthAdvocateCourseForm
                   initialData={prepareInitialData(editedContent || draft.content)}
                   mode="edit"
@@ -401,6 +480,8 @@ export default function AdminDraftReviewPage() {
                 />
               )}
             </div>
+          ) : draft.type === "ORGANIZATION" ? (
+            renderOrganizationContent(draft.content)
           ) : (
             <Card>
               <CardHeader>
@@ -556,16 +637,16 @@ export default function AdminDraftReviewPage() {
 
                 <div className="space-y-2">
                   <Button 
-                    className="w-full bg-green-600 hover:bg-green-700 text-white" 
+                    className="w-full bg-blue-700 hover:bg-blue-600 text-white" 
                     onClick={() => setApproveDialogOpen(true)}
                     disabled={isProcessing}
                   >
                     <CheckCircle className="h-4 w-4 mr-2" />
-                    Approve & Create Course
+                    {draft.type === "ORGANIZATION" ? "Approve & Create Organization" : "Approve & Create Course"}
                   </Button>
                   <Button 
-                    variant="destructive" 
-                    className="w-full hover:bg-red-700 transition-colors hover:text-white"
+                    variant="outline" 
+                    className="w-full border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
                     onClick={() => setRejectDialogOpen(true)}
                     disabled={isProcessing}
                   >
@@ -618,9 +699,9 @@ export default function AdminDraftReviewPage() {
         isOpen={approveDialogOpen}
         onClose={() => setApproveDialogOpen(false)}
         onConfirm={handleApprove}
-        title="Approve Course Draft"
-        description="This will approve the course draft and create a published course. The author will be notified of the approval."
-        confirmText="Approve & Create Course"
+        title={`Approve ${draft.type === "ORGANIZATION" ? "Organization" : "Course"} Draft`}
+        description={`This will approve the ${draft.type === "ORGANIZATION" ? "organization" : "course"} draft and create a published ${draft.type === "ORGANIZATION" ? "organization" : "course"}. The author will be notified of the approval.`}
+        confirmText={draft.type === "ORGANIZATION" ? "Approve & Create Organization" : "Approve & Create Course"}
         cancelText="Cancel"
         variant="default"
       />
@@ -629,8 +710,8 @@ export default function AdminDraftReviewPage() {
         isOpen={rejectDialogOpen}
         onClose={() => setRejectDialogOpen(false)}
         onConfirm={handleReject}
-        title="Reject Course Draft"
-        description="This will reject the course draft and notify the author. Make sure you have provided clear feedback in the review notes."
+        title={`Reject ${draft.type === "ORGANIZATION" ? "Organization" : "Course"} Draft`}
+        description={`This will reject the ${draft.type === "ORGANIZATION" ? "organization" : "course"} draft and notify the author. Make sure you have provided clear feedback in the review notes.`}
         confirmText="Reject Draft"
         cancelText="Cancel"
         variant="destructive"

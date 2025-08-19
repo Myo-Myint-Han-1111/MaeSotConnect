@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/db";
 import { DraftStatus } from "@/lib/auth/roles";
+import { generateOrganizationSlug } from "@/lib/slugs";
 
 export async function GET(
   request: NextRequest,
@@ -135,167 +136,213 @@ export async function PATCH(
       return NextResponse.json({ error: "Draft not found" }, { status: 404 });
     }
 
-    // If approving, create the course
+    // If approving, create the course or organization
     if (status === DraftStatus.APPROVED) {
-      // Start a transaction to both update draft and create course
+      // Start a transaction with longer timeout to handle complex course creations
       const result = await prisma.$transaction(async (tx) => {
-        // Update the draft status
-        const updatedDraft = await tx.contentDraft.update({
-          where: { id },
-          data: {
-            status: DraftStatus.APPROVED,
-            reviewedAt: new Date(),
-            reviewedBy: session.user.id,
-            reviewNotes: reviewNotes?.trim() || null,
-            content: content || existingDraft.content, // Use provided content or existing
-          },
-          include: {
-            author: true,
-            organization: true,
-          },
-        });
+        // Get the draft content for creation (we'll delete the draft after creating the entity)
+        const draftContent = content || existingDraft.content;
 
-        // Create the course from the draft content
-        const courseData = updatedDraft.content as Record<string, unknown>;
+        // Create organization or course based on draft type
+        if (existingDraft.type === "ORGANIZATION") {
+          // Create organization from the draft content
+          const orgData = draftContent as Record<string, unknown>;
 
-        // Generate course ID
-        const courseId = crypto.randomUUID();
+          // Generate a unique slug for the organization
+          const orgId = crypto.randomUUID();
+          const baseSlug = generateOrganizationSlug(orgData.name as string, orgId);
+          let slug = baseSlug;
+          let counter = 1;
 
-        // Generate a unique slug
-        const baseSlug = ((courseData.title as string) || "course")
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/(^-|-$)/g, "");
-        let slug = baseSlug;
-        let counter = 1;
-
-        // Ensure slug uniqueness
-        while (await tx.course.findUnique({ where: { slug } })) {
-          slug = `${baseSlug}-${counter}`;
-          counter++;
-        }
-
-        const course = await tx.course.create({
-          data: {
-            id: courseId,
-            title: (courseData.title as string) || "",
-            titleMm: (courseData.titleMm as string) || "",
-            subtitle: (courseData.subtitle as string) || "",
-            subtitleMm: (courseData.subtitleMm as string) || "",
-            description: (courseData.description as string) || "",
-            descriptionMm: (courseData.descriptionMm as string) || "",
-            province: (courseData.province as string) || "",
-            district: (courseData.district as string) || "",
-            address: (courseData.address as string) || "",
-            applyByDate: courseData.applyByDate
-              ? new Date(courseData.applyByDate as string)
-              : null,
-            applyByDateMm: courseData.applyByDateMm
-              ? new Date(courseData.applyByDateMm as string)
-              : null,
-            startByDate: courseData.startByDate
-              ? new Date(courseData.startByDate as string)
-              : null,
-            startByDateMm: courseData.startByDateMm
-              ? new Date(courseData.startByDateMm as string)
-              : null,
-            startDate: new Date(courseData.startDate as string),
-            endDate: new Date(courseData.endDate as string),
-            duration: (courseData.duration as number) || 0,
-            schedule: (courseData.schedule as string) || "",
-            scheduleMm: (courseData.scheduleMm as string) || "",
-            feeAmount:
-              typeof courseData.feeAmount === "number" &&
-              courseData.feeAmount >= 0
-                ? courseData.feeAmount
-                : 0,
-            ageMin: (courseData.ageMin as number) || null,
-            ageMax: (courseData.ageMax as number) || null,
-            document: (courseData.document as string) || "",
-            documentMm: (courseData.documentMm as string) || "",
-            availableDays: (courseData.availableDays as boolean[]) || [],
-            outcomes: (courseData.outcomes as string[]) || [],
-            outcomesMm: (courseData.outcomesMm as string[]) || [],
-            scheduleDetails: (courseData.scheduleDetails as string) || "",
-            scheduleDetailsMm: (courseData.scheduleDetailsMm as string) || "",
-            selectionCriteria: (courseData.selectionCriteria as string[]) || [],
-            selectionCriteriaMm:
-              (courseData.selectionCriteriaMm as string[]) || [],
-            howToApply: (courseData.howToApply as string[]) || [],
-            howToApplyMm: (courseData.howToApplyMm as string[]) || [],
-            applyButtonText: (courseData.applyButtonText as string) || "",
-            applyButtonTextMm: (courseData.applyButtonTextMm as string) || "",
-            applyLink: (courseData.applyLink as string) || "",
-            estimatedDate: (courseData.estimatedDate as string) || "",
-            estimatedDateMm: (courseData.estimatedDateMm as string) || "",
-            organizationId:
-              (courseData.organizationId as string) ||
-              updatedDraft.organizationId,
-            updatedAt: new Date(),
-            slug: slug,
-          },
-        });
-
-        // Create badges if they exist
-        if (courseData.badges && Array.isArray(courseData.badges)) {
-          for (const badge of courseData.badges as Array<{
-            text: string;
-            color: string;
-            backgroundColor: string;
-          }>) {
-            await tx.badge.create({
-              data: {
-                id: crypto.randomUUID(),
-                text: badge.text,
-                color: badge.color,
-                backgroundColor: badge.backgroundColor,
-                courseId: courseId,
-              },
-            });
+          while (await tx.organization.findUnique({ where: { slug } })) {
+            slug = `${baseSlug}-${counter}`;
+            counter++;
           }
-        }
 
-        // Create FAQ if they exist
-        if (courseData.faq && Array.isArray(courseData.faq)) {
-          for (const faq of courseData.faq as Array<{
-            question: string;
-            questionMm?: string;
-            answer: string;
-            answerMm?: string;
-          }>) {
-            if (faq.question && faq.question.trim()) {
-              await tx.fAQ.create({
-                data: {
+          const organization = await tx.organization.create({
+            data: {
+              id: orgId,
+              name: (orgData.name as string) || "",
+              description: (orgData.description as string) || "",
+              phone: (orgData.phone as string) || "",
+              email: (orgData.email as string) || "",
+              address: (orgData.address as string) || "",
+              facebookPage: (orgData.facebookPage as string) || "",
+              latitude: (orgData.latitude as number) || 0,
+              longitude: (orgData.longitude as number) || 0,
+              district: (orgData.district as string) || "",
+              province: (orgData.province as string) || "",
+              logoImage: (orgData.logoImageUrl as string) || null,
+              slug: slug,
+            },
+          });
+
+          // Delete the draft since organization has been created
+          await tx.contentDraft.delete({
+            where: { id },
+          });
+
+          return { organization };
+        } else {
+          // Create the course from the draft content
+          const courseData = draftContent as Record<string, unknown>;
+
+          // Generate course ID
+          const courseId = crypto.randomUUID();
+
+          // Generate a unique slug
+          const baseSlug = ((courseData.title as string) || "course")
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/(^-|-$)/g, "");
+          let slug = baseSlug;
+          let counter = 1;
+
+          // Ensure slug uniqueness
+          while (await tx.course.findUnique({ where: { slug } })) {
+            slug = `${baseSlug}-${counter}`;
+            counter++;
+          }
+
+          const course = await tx.course.create({
+            data: {
+              id: courseId,
+              title: (courseData.title as string) || "",
+              titleMm: (courseData.titleMm as string) || "",
+              subtitle: (courseData.subtitle as string) || "",
+              subtitleMm: (courseData.subtitleMm as string) || "",
+              description: (courseData.description as string) || "",
+              descriptionMm: (courseData.descriptionMm as string) || "",
+              province: (courseData.province as string) || "",
+              district: (courseData.district as string) || "",
+              address: (courseData.address as string) || "",
+              applyByDate: courseData.applyByDate
+                ? new Date(courseData.applyByDate as string)
+                : null,
+              applyByDateMm: courseData.applyByDateMm
+                ? new Date(courseData.applyByDateMm as string)
+                : null,
+              startByDate: courseData.startByDate
+                ? new Date(courseData.startByDate as string)
+                : null,
+              startByDateMm: courseData.startByDateMm
+                ? new Date(courseData.startByDateMm as string)
+                : null,
+              startDate: new Date(courseData.startDate as string),
+              endDate: new Date(courseData.endDate as string),
+              duration: (courseData.duration as number) || 0,
+              schedule: (courseData.schedule as string) || "",
+              scheduleMm: (courseData.scheduleMm as string) || "",
+              feeAmount:
+                typeof courseData.feeAmount === "number" &&
+                courseData.feeAmount >= 0
+                  ? courseData.feeAmount
+                  : 0,
+              ageMin: (courseData.ageMin as number) || null,
+              ageMax: (courseData.ageMax as number) || null,
+              document: (courseData.document as string) || "",
+              documentMm: (courseData.documentMm as string) || "",
+              availableDays: (courseData.availableDays as boolean[]) || [],
+              outcomes: (courseData.outcomes as string[]) || [],
+              outcomesMm: (courseData.outcomesMm as string[]) || [],
+              scheduleDetails: (courseData.scheduleDetails as string) || "",
+              scheduleDetailsMm: (courseData.scheduleDetailsMm as string) || "",
+              selectionCriteria: (courseData.selectionCriteria as string[]) || [],
+              selectionCriteriaMm:
+                (courseData.selectionCriteriaMm as string[]) || [],
+              howToApply: (courseData.howToApply as string[]) || [],
+              howToApplyMm: (courseData.howToApplyMm as string[]) || [],
+              applyButtonText: (courseData.applyButtonText as string) || "",
+              applyButtonTextMm: (courseData.applyButtonTextMm as string) || "",
+              applyLink: (courseData.applyLink as string) || "",
+              estimatedDate: (courseData.estimatedDate as string) || "",
+              estimatedDateMm: (courseData.estimatedDateMm as string) || "",
+              organizationId:
+                (courseData.organizationId as string) ||
+                existingDraft.organizationId,
+              createdBy: existingDraft.createdBy, // Link course to original draft author
+              updatedAt: new Date(),
+              slug: slug,
+            },
+          });
+
+          // Create badges if they exist - use createMany for better performance
+          if (courseData.badges && Array.isArray(courseData.badges)) {
+            const badges = courseData.badges as Array<{
+              text: string;
+              color: string;
+              backgroundColor: string;
+            }>;
+            
+            if (badges.length > 0) {
+              await tx.badge.createMany({
+                data: badges.map(badge => ({
+                  id: crypto.randomUUID(),
+                  text: badge.text,
+                  color: badge.color,
+                  backgroundColor: badge.backgroundColor,
+                  courseId: courseId,
+                })),
+              });
+            }
+          }
+
+          // Create FAQ if they exist - use createMany for better performance
+          if (courseData.faq && Array.isArray(courseData.faq)) {
+            const faqs = (courseData.faq as Array<{
+              question: string;
+              questionMm?: string;
+              answer: string;
+              answerMm?: string;
+            }>).filter(faq => faq.question && faq.question.trim());
+            
+            if (faqs.length > 0) {
+              await tx.fAQ.createMany({
+                data: faqs.map(faq => ({
                   id: crypto.randomUUID(),
                   question: faq.question,
                   questionMm: faq.questionMm || "",
                   answer: faq.answer || "",
                   answerMm: faq.answerMm || "",
                   courseId: courseId,
-                },
+                })),
               });
             }
           }
-        }
 
-        // Create images if they exist in the draft
-        if (courseData.imageUrls && Array.isArray(courseData.imageUrls)) {
-          await tx.image.createMany({
-            data: (courseData.imageUrls as string[]).map((url) => ({
-              id: crypto.randomUUID(),
-              url,
-              courseId: courseId,
-            })),
+          // Create images if they exist in the draft
+          if (courseData.imageUrls && Array.isArray(courseData.imageUrls)) {
+            const imageUrls = courseData.imageUrls as string[];
+            if (imageUrls.length > 0) {
+              await tx.image.createMany({
+                data: imageUrls.map((url) => ({
+                  id: crypto.randomUUID(),
+                  url,
+                  courseId: courseId,
+                })),
+              });
+            }
+          }
+
+          // Delete the draft since course has been created
+          await tx.contentDraft.delete({
+            where: { id },
           });
-        }
 
-        return { updatedDraft, course };
+          return { course };
+        }
+      }, {
+        timeout: 15000, // 15 seconds timeout for complex course creation
       });
 
+      const message = result.organization 
+        ? "Draft approved and organization created successfully"
+        : "Draft approved and course created successfully";
+      
       return NextResponse.json({
-        message: "Draft approved and course created successfully",
-        draft: result.updatedDraft,
+        message,
         course: result.course,
+        organization: result.organization,
       });
     } else {
       // Just update the draft status (for rejections or other status changes)

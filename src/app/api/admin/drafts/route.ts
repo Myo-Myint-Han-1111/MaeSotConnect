@@ -17,8 +17,13 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    // Get all drafts with author and organization information
+    // Get only submitted drafts (not user drafts still being worked on)
     const drafts = await prisma.contentDraft.findMany({
+      where: {
+        status: {
+          in: ["PENDING", "REJECTED"], // Only show drafts that need admin attention
+        },
+      },
       include: {
         author: {
           select: {
@@ -33,7 +38,7 @@ export async function GET() {
         },
       },
       orderBy: [
-        { status: "asc" }, // PENDING first, then others
+        { status: "asc" }, // PENDING first, then REJECTED
         { submittedAt: "desc" }, // Most recent first within each status
       ],
     });
@@ -41,8 +46,12 @@ export async function GET() {
     return NextResponse.json(drafts);
   } catch (error) {
     console.error("Error fetching drafts for admin:", error);
+    console.error("Error details:", {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return NextResponse.json(
-      { error: "Failed to fetch drafts" },
+      { error: "Failed to fetch drafts", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

@@ -34,13 +34,20 @@ interface AdminOrganizationFormProps {
     district?: string;
     province?: string;
     logoImage?: string;
+    logoImageUrl?: string;
   };
   mode: "create" | "edit";
+  onSubmit?: (data: Record<string, unknown>) => Promise<void>;
+  isSubmitting?: boolean;
+  submitButtonText?: string;
 }
 
 export default function AdminOrganizationForm({
   initialData,
   mode,
+  onSubmit,
+  isSubmitting: externalIsSubmitting = false,
+  submitButtonText = "Save",
 }: AdminOrganizationFormProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -49,23 +56,25 @@ export default function AdminOrganizationForm({
   const [logoPreview, setLogoPreview] = useState<string>("");
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [uploadError, setUploadError] = useState<string>("");
-  const [existingLogo, setExistingLogo] = useState<string | null>(
-    initialData?.logoImage || null
-  );
+  const [existingLogo, setExistingLogo] = useState<string | null>(() => {
+    if (!initialData) return null;
+    const logo = initialData.logoImage || initialData.logoImageUrl;
+    return logo && typeof logo === 'string' && logo.trim() !== "" ? logo : null;
+  });
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState(() => ({
     name: initialData?.name || "",
     description: initialData?.description || "",
     phone: initialData?.phone || "",
     email: initialData?.email || "",
     address: initialData?.address || "",
     facebookPage: initialData?.facebookPage || "",
-    latitude: initialData?.latitude || 0,
-    longitude: initialData?.longitude || 0,
+    latitude: typeof initialData?.latitude === 'number' ? initialData.latitude : 0,
+    longitude: typeof initialData?.longitude === 'number' ? initialData.longitude : 0,
     district: initialData?.district || "",
     province: initialData?.province || "",
     logoImage: undefined as File | undefined,
-  });
+  }));
 
   const getWordCount = (text: string) => {
     return text.trim().split(/\s+/).filter(word => word.length > 0).length;
@@ -145,6 +154,25 @@ export default function AdminOrganizationForm({
     setError(null);
 
     try {
+      // If onSubmit callback is provided (draft editing mode), use it instead of API call
+      if (onSubmit) {
+        const submissionData = {
+          name: formData.name,
+          description: formData.description,
+          phone: formData.phone,
+          email: formData.email,
+          address: formData.address,
+          facebookPage: formData.facebookPage,
+          latitude: Number(formData.latitude),
+          longitude: Number(formData.longitude),
+          district: formData.district,
+          province: formData.province,
+          logoImageUrl: existingLogo && existingLogo.trim() !== "" ? existingLogo : null, // Keep existing logo URL for draft
+        };
+
+        await onSubmit(submissionData);
+        return;
+      }
       console.log("Form data before submission:", formData);
       console.log("Latitude (type):", typeof formData.latitude);
       console.log("Longitude (type):", typeof formData.longitude);
@@ -414,7 +442,7 @@ export default function AdminOrganizationForm({
                     <X className="h-3 w-3" />
                   </Button>
                 </>
-              ) : existingLogo ? (
+              ) : existingLogo && existingLogo.trim() !== "" ? (
                 <>
                   <Image 
                     src={existingLogo} 
@@ -482,8 +510,8 @@ export default function AdminOrganizationForm({
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Saving..." : mode === "create" ? "Create" : "Update"}
+          <Button type="submit" disabled={isLoading || externalIsSubmitting}>
+            {isLoading || externalIsSubmitting ? "Saving..." : onSubmit ? submitButtonText : mode === "create" ? "Create" : "Update"}
           </Button>
         </CardFooter>
       </form>

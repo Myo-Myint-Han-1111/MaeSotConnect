@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Clock, CheckCircle, XCircle, Plus, Edit, Undo2, Trash2, Copy, User, EyeOff, AlertTriangle, Building, BookOpen } from "lucide-react";
+import { FileText, Clock, CheckCircle, XCircle, Plus, Edit, Undo2, Trash2, Copy, User, EyeOff, AlertTriangle, Building, BookOpen, CheckCircle2, Calendar } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { DraftStatus } from "@/lib/auth/roles";
@@ -30,9 +30,18 @@ type ProfileSummary = {
   reviewedAt?: string;
 };
 
+type ApprovedCourse = {
+  id: string;
+  title: string;
+  organizationName?: string;
+  isPublic: boolean;
+  approvedAt: string;
+};
+
 export default function AdvocateDashboard() {
   const { data: session } = useSession();
   const [recentDrafts, setRecentDrafts] = useState<DraftSummary[]>([]);
+  const [approvedCourses, setApprovedCourses] = useState<ApprovedCourse[]>([]);
   const [profile, setProfile] = useState<ProfileSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -50,9 +59,24 @@ export default function AdvocateDashboard() {
   } | null>(null);
 
   useEffect(() => {
-    fetchDrafts();
-    fetchProfile();
-    fetchRank();
+    const fetchAllData = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([
+          fetchDrafts(),
+          fetchProfile(),
+          fetchRank(),
+          fetchStats(),
+          fetchApprovedCourses()
+        ]);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchAllData();
   }, []);
 
   const fetchDrafts = async () => {
@@ -63,32 +87,42 @@ export default function AdvocateDashboard() {
       if (response.ok) {
         const drafts = await response.json();
         setRecentDrafts(drafts.slice(0, 5)); // Show last 5 drafts
-        
-        // Calculate stats
-        const stats = drafts.reduce(
-          (acc: { total: number; pending: number; approved: number; rejected: number }, draft: DraftSummary) => {
-            acc.total++;
-            switch (draft.status) {
-              case DraftStatus.PENDING:
-                acc.pending++;
-                break;
-              case DraftStatus.APPROVED:
-                acc.approved++;
-                break;
-              case DraftStatus.REJECTED:
-                acc.rejected++;
-                break;
-            }
-            return acc;
-          },
-          { total: 0, pending: 0, approved: 0, rejected: 0 }
-        );
-        setStats(stats);
       }
     } catch (error) {
       console.error("Error fetching drafts:", error);
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch("/api/advocate/stats", {
+        cache: 'no-store'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setStats({
+          total: data.totalSubmissions,
+          pending: data.drafts.pending,
+          approved: data.approvedCourses,
+          rejected: data.drafts.rejected,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    }
+  };
+
+  const fetchApprovedCourses = async () => {
+    try {
+      const response = await fetch("/api/advocate/courses", {
+        cache: 'no-store'
+      });
+      if (response.ok) {
+        const courses = await response.json();
+        setApprovedCourses(courses);
+      }
+    } catch (error) {
+      console.error("Error fetching approved courses:", error);
     }
   };
 
@@ -142,8 +176,9 @@ export default function AdvocateDashboard() {
       });
 
       if (response.ok) {
-        // Refresh the drafts
+        // Refresh the drafts and stats
         await fetchDrafts();
+        await fetchStats();
       } else {
         alert("Error withdrawing draft. Please try again.");
       }
@@ -169,8 +204,9 @@ export default function AdvocateDashboard() {
       });
 
       if (response.ok) {
-        // Refresh the drafts
+        // Refresh the drafts and stats
         await fetchDrafts();
+        await fetchStats();
       } else {
         const error = await response.json();
         alert(`Error deleting draft: ${error.message || 'Unknown error'}`);
@@ -194,8 +230,9 @@ export default function AdvocateDashboard() {
 
       if (response.ok) {
         const result = await response.json();
-        // Refresh the drafts to show the new copy
+        // Refresh the drafts and stats to show the new copy
         await fetchDrafts();
+        await fetchStats();
         alert(`Draft copied successfully as "${result.draft.title}"`);
       } else {
         const error = await response.json();
@@ -503,11 +540,11 @@ export default function AdvocateDashboard() {
             {recentDrafts.length === 0 ? (
               <div className="text-center py-8">
                 <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground mb-4">You haven&apos;t submitted any courses yet.</p>
+                <p className="text-muted-foreground mb-4">No recent submissions to display.</p>
                 <Button asChild>
                   <Link href="/advocate/submit">
                     <Plus className="mr-2 h-4 w-4" />
-                    Submit Your First Course
+                    Submit a Course
                   </Link>
                 </Button>
               </div>
@@ -734,6 +771,57 @@ export default function AdvocateDashboard() {
           </CardContent>
         </Card>
       )}
+
+      {/* Approved Courses */}
+      <Card className="bg-white border border-gray-200">
+        <CardHeader className="bg-white rounded-t-lg">
+          <CardTitle>Your Approved Courses</CardTitle>
+          <CardDescription>
+            Courses you&apos;ve submitted that are now live on the platform
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="bg-white rounded-b-lg">
+          {approvedCourses.length > 0 ? (
+            <div className="space-y-3">
+              {approvedCourses.map((course) => (
+                <div
+                  key={course.id}
+                  className="flex items-center justify-between p-3 border border-gray-100 rounded-lg bg-green-50"
+                >
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    <div>
+                      <h4 className="font-medium text-gray-900">{course.title}</h4>
+                      {course.organizationName && (
+                        <p className="text-sm text-gray-600">{course.organizationName}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <div className="flex items-center gap-1">
+                      <span className={course.isPublic ? "text-green-600" : "text-gray-400"}>
+                        {course.isPublic ? "Public" : "Private"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      <span>{new Date(course.approvedAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <BookOpen className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground mb-2">No approved courses yet.</p>
+              <p className="text-sm text-muted-foreground">
+                Once your submitted courses are approved, they&apos;ll appear here.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
