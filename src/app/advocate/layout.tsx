@@ -1,10 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { LogOut, FileText, Send, LayoutDashboard, User, Building } from "lucide-react";
+import {
+  LogOut,
+  FileText,
+  Send,
+  LayoutDashboard,
+  User,
+  Building,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/common/ConfirmationDialog";
 import { Role } from "@/lib/auth/roles";
@@ -14,16 +21,24 @@ export default function AdvocateLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session, status } = useSession({
-    required: true,
-    onUnauthenticated() {
-      router.push("/auth/signin");
-    },
-  });
+  const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
 
   const [isSignOutDialogOpen, setIsSignOutDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (status === "loading") return;
+
+    if (!session) {
+      router.push("/auth/signin");
+      return;
+    }
+
+    if (session.user?.role !== Role.YOUTH_ADVOCATE) {
+      router.push("/auth/signin");
+    }
+  }, [session, status, router]);
 
   const confirmSignOut = () => {
     setIsSignOutDialogOpen(true);
@@ -41,10 +56,21 @@ export default function AdvocateLayout({
     );
   }
 
-  // Only Youth Advocates can access this section
-  if (session?.user?.role !== Role.YOUTH_ADVOCATE) {
-    router.push("/auth/signin");
-    return null;
+  // ADD THESE EARLY RETURNS:
+  if (!session) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="h-16 w-16 border-t-4 border-primary border-solid rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (session.user?.role !== Role.YOUTH_ADVOCATE) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="h-16 w-16 border-t-4 border-primary border-solid rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   const sidebarLinks = [
@@ -64,7 +90,9 @@ export default function AdvocateLayout({
       label: "Create Course",
       href: "/advocate/submit",
       icon: <Send className="h-5 w-5" />,
-      active: pathname.startsWith("/advocate/submit") && !pathname.startsWith("/advocate/submit/organizations"),
+      active:
+        pathname.startsWith("/advocate/submit") &&
+        !pathname.startsWith("/advocate/submit/organizations"),
     },
     {
       label: "Add Organization",

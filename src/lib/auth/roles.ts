@@ -6,7 +6,7 @@ export enum Role {
 
 export enum UserStatus {
   ACTIVE = "ACTIVE",
-  INACTIVE = "INACTIVE", 
+  INACTIVE = "INACTIVE",
   SUSPENDED = "SUSPENDED",
 }
 
@@ -28,4 +28,11 @@ export enum DraftType {
   COURSE = "COURSE",
   ORGANIZATION_UPDATE = "ORGANIZATION_UPDATE",
   ORGANIZATION = "ORGANIZATION",
+}
+
+export enum CourseStatus {
+  DRAFT = "DRAFT",
+  PUBLISHED = "PUBLISHED",
+  UNDER_REVIEW = "UNDER_REVIEW",
+  ARCHIVED = "ARCHIVED",
 }

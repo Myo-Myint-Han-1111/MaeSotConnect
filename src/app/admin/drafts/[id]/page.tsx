@@ -2,20 +2,34 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { FileText, Clock, CheckCircle, XCircle, ArrowLeft, User, Edit, X } from "lucide-react";
+import {
+  FileText,
+  Clock,
+  CheckCircle,
+  XCircle,
+  ArrowLeft,
+  User,
+  Edit,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { DraftStatus } from "@/lib/auth/roles";
+import { DraftStatus, CourseStatus } from "@/lib/auth/roles";
 import { ConfirmationDialog } from "@/components/common/ConfirmationDialog";
 import PlatformAdminCourseForm from "@/components/forms/PlatformAdminCourseForm";
 import YouthAdvocateCourseForm from "@/components/forms/YouthAdvocateCourseForm";
 import AdminOrganizationForm from "@/components/forms/AdminOrganizationForm";
-
 
 type Draft = {
   id: string;
@@ -46,7 +60,10 @@ export default function AdminDraftReviewPage() {
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [editedContent, setEditedContent] = useState<Record<string, unknown> | null>(null);
+  const [editedContent, setEditedContent] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   useEffect(() => {
@@ -59,7 +76,7 @@ export default function AdminDraftReviewPage() {
   const fetchDraft = async () => {
     try {
       const response = await fetch(`/api/admin/drafts/${params.id}`, {
-        cache: 'no-store'
+        cache: "no-store",
       });
       if (response.ok) {
         const data = await response.json();
@@ -77,10 +94,101 @@ export default function AdminDraftReviewPage() {
 
   const handleApprove = async () => {
     if (!draft) return;
-    
+
     setIsProcessing(true);
     try {
-      const response = await fetch(`/api/admin/drafts/${draft.id}`, {
+      const courseData = editedContent || draft.content;
+
+      if (draft.type === "COURSE") {
+        // Check if this is an update to an existing course
+        if (courseData.originalCourseId) {
+          // This is an update to an existing course
+          const updateResponse = await fetch(
+            `/api/courses/${courseData.originalCourseId}`,
+            {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                title: courseData.title,
+                titleMm: courseData.titleMm || null,
+                subtitle: courseData.subtitle,
+                subtitleMm: courseData.subtitleMm || null,
+                description: courseData.description || null,
+                descriptionMm: courseData.descriptionMm || null,
+                startDate: courseData.startDate,
+                startDateMm: courseData.startDateMm || null,
+                endDate: courseData.endDate,
+                endDateMm: courseData.endDateMm || null,
+                duration: courseData.duration,
+                durationMm: courseData.durationMm || null,
+                schedule: courseData.schedule,
+                scheduleMm: courseData.scheduleMm || null,
+                feeAmount: courseData.feeAmount,
+                feeAmountMm: courseData.feeAmountMm || null,
+                province: courseData.province || null,
+                district: courseData.district || null,
+                address: courseData.address || null,
+                applyByDate: courseData.applyByDate || null,
+                applyByDateMm: courseData.applyByDateMm || null,
+                ageMin: courseData.ageMin || null,
+                ageMax: courseData.ageMax || null,
+                ageMinMm: courseData.ageMinMm || null,
+                ageMaxMm: courseData.ageMaxMm || null,
+                outcomes: courseData.outcomes || [],
+                outcomesMm: courseData.outcomesMm || [],
+                selectionCriteria: courseData.selectionCriteria || [],
+                selectionCriteriaMm: courseData.selectionCriteriaMm || [],
+                howToApply: courseData.howToApply || [],
+                howToApplyMm: courseData.howToApplyMm || [],
+                applyButtonText: courseData.applyButtonText || null,
+                applyButtonTextMm: courseData.applyButtonTextMm || null,
+                applyLink: courseData.applyLink || null,
+                status: CourseStatus.PUBLISHED,
+                faq: courseData.faq || [],
+              }),
+            }
+          );
+
+          if (!updateResponse.ok) {
+            throw new Error("Failed to update course");
+          }
+        } else {
+          // This is a new course creation
+          const createResponse = await fetch("/api/courses", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              ...courseData,
+              status: CourseStatus.PUBLISHED,
+              publishedAt: new Date().toISOString(),
+            }),
+          });
+
+          if (!createResponse.ok) {
+            throw new Error("Failed to create course");
+          }
+        }
+      } else if (draft.type === "ORGANIZATION") {
+        // Handle organization creation
+        const createResponse = await fetch("/api/organizations", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(courseData),
+        });
+
+        if (!createResponse.ok) {
+          throw new Error("Failed to create organization");
+        }
+      }
+
+      // Update the draft status to APPROVED and delete it
+      const draftResponse = await fetch(`/api/admin/drafts/${draft.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -88,15 +196,15 @@ export default function AdminDraftReviewPage() {
         body: JSON.stringify({
           status: "APPROVED",
           reviewNotes: reviewNotes.trim(),
-          content: editedContent || draft.content, // Use edited content if available
+          content: courseData,
         }),
       });
 
-      if (response.ok) {
+      if (draftResponse.ok) {
         router.push("/admin/drafts?approved=true");
       } else {
-        const error = await response.json();
-        alert(`Error approving draft: ${error.message || 'Unknown error'}`);
+        const error = await draftResponse.json();
+        alert(`Error updating draft: ${error.message || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Error approving draft:", error);
@@ -109,14 +217,31 @@ export default function AdminDraftReviewPage() {
 
   const handleReject = async () => {
     if (!draft) return;
-    
+
     if (!reviewNotes.trim()) {
-      alert("Please provide review notes explaining why this draft is being rejected.");
+      alert(
+        "Please provide review notes explaining why this draft is being rejected."
+      );
       return;
     }
 
     setIsProcessing(true);
     try {
+      const courseData = editedContent || draft.content;
+
+      // If this was a course update, change the course status back to PUBLISHED
+      if (draft.type === "COURSE" && courseData.originalCourseId) {
+        await fetch(`/api/courses/${courseData.originalCourseId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            status: CourseStatus.PUBLISHED,
+          }),
+        });
+      }
+
       const response = await fetch(`/api/admin/drafts/${draft.id}`, {
         method: "PATCH",
         headers: {
@@ -125,7 +250,7 @@ export default function AdminDraftReviewPage() {
         body: JSON.stringify({
           status: "REJECTED",
           reviewNotes: reviewNotes.trim(),
-          content: editedContent || draft.content, // Use edited content if available
+          content: courseData,
         }),
       });
 
@@ -133,7 +258,7 @@ export default function AdminDraftReviewPage() {
         router.push("/admin/drafts?rejected=true");
       } else {
         const error = await response.json();
-        alert(`Error rejecting draft: ${error.message || 'Unknown error'}`);
+        alert(`Error rejecting draft: ${error.message || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Error rejecting draft:", error);
@@ -144,7 +269,6 @@ export default function AdminDraftReviewPage() {
     }
   };
 
-
   const handleCancelEdit = () => {
     setIsEditMode(false);
     setEditedContent(null);
@@ -153,7 +277,7 @@ export default function AdminDraftReviewPage() {
   // Helper function to convert dates to YYYY-MM-DD format for form inputs
   const formatDateForInput = (dateValue: unknown): string => {
     if (!dateValue) return "";
-    
+
     let date: Date;
     if (typeof dateValue === "string") {
       date = new Date(dateValue);
@@ -162,10 +286,10 @@ export default function AdminDraftReviewPage() {
     } else {
       return "";
     }
-    
+
     if (isNaN(date.getTime())) return "";
-    
-    return date.toISOString().split('T')[0];
+
+    return date.toISOString().split("T")[0];
   };
 
   // Prepare initial data with properly formatted dates
@@ -181,7 +305,7 @@ export default function AdminDraftReviewPage() {
 
   const handleFormSubmit = async (formData: Record<string, unknown>) => {
     setEditedContent(formData);
-    
+
     // Save the changes
     setIsSavingEdit(true);
     try {
@@ -197,12 +321,12 @@ export default function AdminDraftReviewPage() {
 
       if (response.ok) {
         // Update the local draft state with the edited content
-        setDraft(prev => prev ? { ...prev, content: formData } : null);
+        setDraft((prev) => (prev ? { ...prev, content: formData } : null));
         setIsEditMode(false);
         setEditedContent(null);
       } else {
         const error = await response.json();
-        alert(`Error saving changes: ${error.message || 'Unknown error'}`);
+        alert(`Error saving changes: ${error.message || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Error saving changes:", error);
@@ -240,9 +364,13 @@ export default function AdminDraftReviewPage() {
     }
   };
 
-  const renderContentField = (label: string, value: unknown, isList = false): React.ReactElement | null => {
+  const renderContentField = (
+    label: string,
+    value: unknown,
+    isList = false
+  ): React.ReactElement | null => {
     if (!value) return null;
-    
+
     if (isList && Array.isArray(value)) {
       if (value.length === 0) return null;
       return (
@@ -268,9 +396,12 @@ export default function AdminDraftReviewPage() {
     );
   };
 
-  const renderOrganizationLogo = (logoUrl: unknown): React.ReactElement | null => {
-    if (!logoUrl || typeof logoUrl !== 'string' || logoUrl.trim() === '') return null;
-    
+  const renderOrganizationLogo = (
+    logoUrl: unknown
+  ): React.ReactElement | null => {
+    if (!logoUrl || typeof logoUrl !== "string" || logoUrl.trim() === "")
+      return null;
+
     return (
       <div className="mb-4">
         <h4 className="font-medium mb-2">Organization Logo</h4>
@@ -282,7 +413,7 @@ export default function AdminDraftReviewPage() {
             className="object-contain cursor-pointer hover:opacity-90 transition-opacity"
             sizes="192px"
             onClick={() => {
-              window.open(logoUrl, '_blank', 'noopener,noreferrer');
+              window.open(logoUrl, "_blank", "noopener,noreferrer");
             }}
           />
         </div>
@@ -304,20 +435,20 @@ export default function AdminDraftReviewPage() {
       <CardContent className="space-y-6">
         {renderContentField("Organization Name", content.name)}
         {renderContentField("Description", content.description)}
-        
+
         <div className="grid gap-6 md:grid-cols-2">
           {renderContentField("Phone", content.phone)}
           {renderContentField("Email", content.email)}
         </div>
-        
+
         {renderContentField("Facebook Page", content.facebookPage)}
         {renderContentField("Physical Address", content.address)}
-        
+
         <div className="grid gap-6 md:grid-cols-2">
           {renderContentField("Province", content.province)}
           {renderContentField("District", content.district)}
         </div>
-        
+
         {renderOrganizationLogo(content.logoImageUrl)}
       </CardContent>
     </Card>
@@ -336,7 +467,9 @@ export default function AdminDraftReviewPage() {
       <div className="text-center py-12">
         <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
         <h2 className="text-xl font-semibold mb-2">Draft not found</h2>
-        <p className="text-muted-foreground mb-4">The course draft you&apos;re looking for doesn&apos;t exist.</p>
+        <p className="text-muted-foreground mb-4">
+          The course draft you&apos;re looking for doesn&apos;t exist.
+        </p>
         <Button asChild>
           <Link href="/admin/drafts">Back to Draft Reviews</Link>
         </Button>
@@ -350,7 +483,12 @@ export default function AdminDraftReviewPage() {
     <div className="space-y-6">
       {/* Back Button */}
       <div>
-        <Button variant="ghost" size="sm" asChild className="hover:text-gray-500">
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="hover:text-gray-500"
+        >
           <Link href="/admin/drafts">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Draft Reviews
@@ -365,21 +503,24 @@ export default function AdminDraftReviewPage() {
             {getStatusIcon(draft.status)}
             <h1 className="text-3xl font-bold tracking-tight">{draft.title}</h1>
             <Badge className={getStatusBadgeColor(draft.status)}>
-              {draft.status === DraftStatus.REJECTED ? "Needs Revision" : draft.status}
+              {draft.status === DraftStatus.REJECTED
+                ? "Needs Revision"
+                : draft.status}
             </Badge>
           </div>
           <p className="text-muted-foreground">
-            {draft.type === "ORGANIZATION" ? "Organization" : "Course"} draft review and approval
+            {draft.type === "ORGANIZATION" ? "Organization" : "Course"} draft
+            review and approval
           </p>
         </div>
-        
+
         {/* Edit Mode Toggle */}
         {isPending && (
           <div className="flex gap-2">
             {isEditMode ? (
               <>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={handleCancelEdit}
                   disabled={isSavingEdit}
                   className="hover:bg-blue-600 hover:text-white hover:border-blue-600"
@@ -389,8 +530,8 @@ export default function AdminDraftReviewPage() {
                 </Button>
               </>
             ) : (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setIsEditMode(true)}
                 disabled={isProcessing}
                 className="hover:bg-blue-600 hover:text-white hover:border-blue-600"
@@ -426,11 +567,15 @@ export default function AdminDraftReviewPage() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Submitted</p>
-                  <p className="font-medium">{new Date(draft.submittedAt).toLocaleDateString()}</p>
+                  <p className="font-medium">
+                    {new Date(draft.submittedAt).toLocaleDateString()}
+                  </p>
                 </div>
                 {draft.organization && (
                   <div>
-                    <p className="text-sm text-muted-foreground">Organization</p>
+                    <p className="text-sm text-muted-foreground">
+                      Organization
+                    </p>
                     <p className="font-medium">{draft.organization.name}</p>
                   </div>
                 )}
@@ -445,16 +590,34 @@ export default function AdminDraftReviewPage() {
                 <AdminOrganizationForm
                   initialData={{
                     name: String((editedContent || draft.content)?.name || ""),
-                    description: String((editedContent || draft.content)?.description || ""),
-                    phone: String((editedContent || draft.content)?.phone || ""),
-                    email: String((editedContent || draft.content)?.email || ""),
-                    address: String((editedContent || draft.content)?.address || ""),
-                    facebookPage: (editedContent || draft.content)?.facebookPage ? String((editedContent || draft.content).facebookPage) : "",
-                    latitude: Number((editedContent || draft.content)?.latitude) || 0,
-                    longitude: Number((editedContent || draft.content)?.longitude) || 0,
-                    district: (editedContent || draft.content)?.district ? String((editedContent || draft.content).district) : "",
-                    province: (editedContent || draft.content)?.province ? String((editedContent || draft.content).province) : "",
-                    logoImageUrl: (editedContent || draft.content)?.logoImageUrl ? String((editedContent || draft.content).logoImageUrl) : undefined,
+                    description: String(
+                      (editedContent || draft.content)?.description || ""
+                    ),
+                    phone: String(
+                      (editedContent || draft.content)?.phone || ""
+                    ),
+                    email: String(
+                      (editedContent || draft.content)?.email || ""
+                    ),
+                    address: String(
+                      (editedContent || draft.content)?.address || ""
+                    ),
+                    facebookPage: (editedContent || draft.content)?.facebookPage
+                      ? String((editedContent || draft.content).facebookPage)
+                      : "",
+                    latitude:
+                      Number((editedContent || draft.content)?.latitude) || 0,
+                    longitude:
+                      Number((editedContent || draft.content)?.longitude) || 0,
+                    district: (editedContent || draft.content)?.district
+                      ? String((editedContent || draft.content).district)
+                      : "",
+                    province: (editedContent || draft.content)?.province
+                      ? String((editedContent || draft.content).province)
+                      : "",
+                    logoImageUrl: (editedContent || draft.content)?.logoImageUrl
+                      ? String((editedContent || draft.content).logoImageUrl)
+                      : undefined,
                   }}
                   mode="edit"
                   onSubmit={handleFormSubmit}
@@ -463,7 +626,9 @@ export default function AdminDraftReviewPage() {
                 />
               ) : draft.type === "YOUTH_ADVOCATE" ? (
                 <YouthAdvocateCourseForm
-                  initialData={prepareInitialData(editedContent || draft.content)}
+                  initialData={prepareInitialData(
+                    editedContent || draft.content
+                  )}
                   mode="edit"
                   onSubmit={handleFormSubmit as never}
                   isSubmitting={isSavingEdit}
@@ -472,7 +637,9 @@ export default function AdminDraftReviewPage() {
                 />
               ) : (
                 <PlatformAdminCourseForm
-                  initialData={prepareInitialData(editedContent || draft.content)}
+                  initialData={prepareInitialData(
+                    editedContent || draft.content
+                  )}
                   mode="edit"
                   onSubmit={handleFormSubmit as never}
                   isSubmitting={isSavingEdit}
@@ -491,121 +658,197 @@ export default function AdminDraftReviewPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-              {/* Basic Information */}
-              {renderContentField("Course Title", draft.content.title)}
-              {renderContentField("Subtitle", draft.content.subtitle)}
-              {renderContentField("Description", draft.content.description)}
-              
-              {/* Schedule and Duration */}
-              <div className="grid gap-6 md:grid-cols-2">
-                {renderContentField("Schedule", draft.content.schedule)}
-                {renderContentField("Duration", `${draft.content.duration} days`)}
-              </div>
+                {/* Basic Information */}
+                {renderContentField("Course Title", draft.content.title)}
+                {renderContentField("Subtitle", draft.content.subtitle)}
+                {renderContentField("Description", draft.content.description)}
 
-              {/* Dates */}
-              <div className="grid gap-6 md:grid-cols-2">
-                {renderContentField("Start Date", draft.content.startDate ? new Date(draft.content.startDate as string).toLocaleDateString() : null)}
-                {renderContentField("End Date", draft.content.endDate ? new Date(draft.content.endDate as string).toLocaleDateString() : null)}
-              </div>
+                {/* Schedule and Duration */}
+                <div className="grid gap-6 md:grid-cols-2">
+                  {renderContentField("Schedule", draft.content.schedule)}
+                  {renderContentField(
+                    "Duration",
+                    `${draft.content.duration} days`
+                  )}
+                </div>
 
-              {/* Location */}
-              <div className="grid gap-6 md:grid-cols-2">
-                {renderContentField("Province", draft.content.province)}
-                {renderContentField("District", draft.content.district)}
-              </div>
-              {renderContentField("Address", draft.content.address)}
+                {/* Dates */}
+                <div className="grid gap-6 md:grid-cols-2">
+                  {renderContentField(
+                    "Start Date",
+                    draft.content.startDate
+                      ? new Date(
+                          draft.content.startDate as string
+                        ).toLocaleDateString()
+                      : null
+                  )}
+                  {renderContentField(
+                    "End Date",
+                    draft.content.endDate
+                      ? new Date(
+                          draft.content.endDate as string
+                        ).toLocaleDateString()
+                      : null
+                  )}
+                </div>
 
-              {/* Lists */}
-              {renderContentField("Learning Outcomes", draft.content.outcomes, true)}
-              {renderContentField("Selection Criteria", draft.content.selectionCriteria, true)}
-              {renderContentField("How to Apply", draft.content.howToApply, true)}
+                {/* Location */}
+                <div className="grid gap-6 md:grid-cols-2">
+                  {renderContentField("Province", draft.content.province)}
+                  {renderContentField("District", draft.content.district)}
+                </div>
+                {renderContentField("Address", draft.content.address)}
 
-              {/* Age and Requirements */}
-              <div className="grid gap-6 md:grid-cols-2">
-                {renderContentField("Age Range", 
-                  (draft.content.ageMin && draft.content.ageMax) 
-                    ? `${draft.content.ageMin} - ${draft.content.ageMax} years`
-                    : draft.content.ageMin 
-                      ? `Minimum ${draft.content.ageMin} years`
-                      : draft.content.ageMax 
-                        ? `Maximum ${draft.content.ageMax} years`
-                        : null
+                {/* Lists */}
+                {renderContentField(
+                  "Learning Outcomes",
+                  draft.content.outcomes,
+                  true
                 )}
-                {renderContentField("Fee Amount", typeof draft.content.feeAmount === 'number' && draft.content.feeAmount >= 0 ? `${draft.content.feeAmount} THB` : "Not specified")}
-              </div>
+                {renderContentField(
+                  "Selection Criteria",
+                  draft.content.selectionCriteria,
+                  true
+                )}
+                {renderContentField(
+                  "How to Apply",
+                  draft.content.howToApply,
+                  true
+                )}
 
-              {renderContentField("Required Documents", draft.content.document)}
+                {/* Age and Requirements */}
+                <div className="grid gap-6 md:grid-cols-2">
+                  {renderContentField(
+                    "Age Range",
+                    draft.content.ageMin && draft.content.ageMax
+                      ? `${draft.content.ageMin} - ${draft.content.ageMax} years`
+                      : draft.content.ageMin
+                      ? `Minimum ${draft.content.ageMin} years`
+                      : draft.content.ageMax
+                      ? `Maximum ${draft.content.ageMax} years`
+                      : null
+                  )}
+                  {renderContentField(
+                    "Fee Amount",
+                    typeof draft.content.feeAmount === "number" &&
+                      draft.content.feeAmount >= 0
+                      ? `${draft.content.feeAmount} THB`
+                      : "Not specified"
+                  )}
+                </div>
 
-              {/* Course Images */}
-              {Array.isArray(draft.content.imageUrls) && draft.content.imageUrls.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="font-medium mb-3">Course Images</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {(draft.content.imageUrls as string[]).map((imageUrl, index) => (
-                      <div
-                        key={index}
-                        className="relative h-32 border rounded-md overflow-hidden bg-gray-50"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={imageUrl}
-                          alt={`Course image ${index + 1}`}
-                          className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                          onClick={() => {
-                            // Open image in new tab for full view
-                            window.open(imageUrl, '_blank', 'noopener,noreferrer');
-                          }}
-                        />
-                        <div className="absolute bottom-0 left-0 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-tr-md">
-                          {index + 1} of {(draft.content.imageUrls as string[]).length}
-                        </div>
+                {renderContentField(
+                  "Required Documents",
+                  draft.content.document
+                )}
+
+                {/* Course Images */}
+                {Array.isArray(draft.content.imageUrls) &&
+                  draft.content.imageUrls.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="font-medium mb-3">Course Images</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                        {(draft.content.imageUrls as string[]).map(
+                          (imageUrl, index) => (
+                            <div
+                              key={index}
+                              className="relative h-32 border rounded-md overflow-hidden bg-gray-50"
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={imageUrl}
+                                alt={`Course image ${index + 1}`}
+                                className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={() => {
+                                  // Open image in new tab for full view
+                                  window.open(
+                                    imageUrl,
+                                    "_blank",
+                                    "noopener,noreferrer"
+                                  );
+                                }}
+                              />
+                              <div className="absolute bottom-0 left-0 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-tr-md">
+                                {index + 1} of{" "}
+                                {(draft.content.imageUrls as string[]).length}
+                              </div>
+                            </div>
+                          )
+                        )}
                       </div>
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Click on any image to view it in full size
-                  </p>
-                </div>
-              )}
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Click on any image to view it in full size
+                      </p>
+                    </div>
+                  )}
 
-              {/* Badges */}
-              {Array.isArray(draft.content.badges) && draft.content.badges.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="font-medium mb-2">Course Badges</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {(draft.content.badges as Array<{text: string; backgroundColor: string; color: string}>).map((badge, index: number) => (
-                      <Badge 
-                        key={index} 
-                        style={{ 
-                          backgroundColor: badge.backgroundColor, 
-                          color: badge.color 
-                        }}
-                      >
-                        {badge.text}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
+                {/* Badges */}
+                {Array.isArray(draft.content.badges) &&
+                  draft.content.badges.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="font-medium mb-2">Course Badges</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {(
+                          draft.content.badges as Array<{
+                            text: string;
+                            backgroundColor: string;
+                            color: string;
+                          }>
+                        ).map((badge, index: number) => (
+                          <Badge
+                            key={index}
+                            style={{
+                              backgroundColor: badge.backgroundColor,
+                              color: badge.color,
+                            }}
+                          >
+                            {badge.text}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-              {/* FAQ */}
-              {Array.isArray(draft.content.faq) && draft.content.faq.length > 0 && (draft.content.faq as Array<{question: string; answer: string}>).some((f) => f.question) && (
-                <div>
-                  <h4 className="font-medium mb-4">Frequently Asked Questions</h4>
-                  <div className="space-y-4">
-                    {(draft.content.faq as Array<{question: string; answer: string}>).map((faq, index: number) => 
-                      faq.question && (
-                        <div key={index} className="border-l-4 border-blue-200 pl-4">
-                          <h5 className="font-medium text-sm">{faq.question}</h5>
-                          <p className="text-sm text-muted-foreground mt-1">{faq.answer}</p>
-                        </div>
-                      )
-                    )}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                {/* FAQ */}
+                {Array.isArray(draft.content.faq) &&
+                  draft.content.faq.length > 0 &&
+                  (
+                    draft.content.faq as Array<{
+                      question: string;
+                      answer: string;
+                    }>
+                  ).some((f) => f.question) && (
+                    <div>
+                      <h4 className="font-medium mb-4">
+                        Frequently Asked Questions
+                      </h4>
+                      <div className="space-y-4">
+                        {(
+                          draft.content.faq as Array<{
+                            question: string;
+                            answer: string;
+                          }>
+                        ).map(
+                          (faq, index: number) =>
+                            faq.question && (
+                              <div
+                                key={index}
+                                className="border-l-4 border-blue-200 pl-4"
+                              >
+                                <h5 className="font-medium text-sm">
+                                  {faq.question}
+                                </h5>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {faq.answer}
+                                </p>
+                              </div>
+                            )
+                        )}
+                      </div>
+                    </div>
+                  )}
+              </CardContent>
+            </Card>
           )}
         </div>
 
@@ -636,16 +879,18 @@ export default function AdminDraftReviewPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Button 
-                    className="w-full bg-blue-700 hover:bg-blue-600 text-white" 
+                  <Button
+                    className="w-full bg-blue-700 hover:bg-blue-600 text-white"
                     onClick={() => setApproveDialogOpen(true)}
                     disabled={isProcessing}
                   >
                     <CheckCircle className="h-4 w-4 mr-2" />
-                    {draft.type === "ORGANIZATION" ? "Approve & Create Organization" : "Approve & Create Course"}
+                    {draft.type === "ORGANIZATION"
+                      ? "Approve & Create Organization"
+                      : "Approve & Create Course"}
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="w-full border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
                     onClick={() => setRejectDialogOpen(true)}
                     disabled={isProcessing}
@@ -669,20 +914,26 @@ export default function AdminDraftReviewPage() {
                   {getStatusIcon(draft.status)}
                   <span className="font-medium">{draft.status}</span>
                   <Badge className={getStatusBadgeColor(draft.status)}>
-                    {draft.status === DraftStatus.REJECTED ? "Needs Revision" : draft.status}
+                    {draft.status === DraftStatus.REJECTED
+                      ? "Needs Revision"
+                      : draft.status}
                   </Badge>
                 </div>
-                
+
                 {draft.reviewedAt && (
                   <div>
                     <p className="text-sm text-muted-foreground">Reviewed on</p>
-                    <p className="font-medium">{new Date(draft.reviewedAt).toLocaleDateString()}</p>
+                    <p className="font-medium">
+                      {new Date(draft.reviewedAt).toLocaleDateString()}
+                    </p>
                   </div>
                 )}
 
                 {draft.reviewNotes && !isPending && (
                   <div>
-                    <p className="text-sm text-muted-foreground">Review Notes</p>
+                    <p className="text-sm text-muted-foreground">
+                      Review Notes
+                    </p>
                     <div className="mt-1 p-3 bg-muted rounded-md">
                       <p className="text-sm">{draft.reviewNotes}</p>
                     </div>
@@ -699,9 +950,19 @@ export default function AdminDraftReviewPage() {
         isOpen={approveDialogOpen}
         onClose={() => setApproveDialogOpen(false)}
         onConfirm={handleApprove}
-        title={`Approve ${draft.type === "ORGANIZATION" ? "Organization" : "Course"} Draft`}
-        description={`This will approve the ${draft.type === "ORGANIZATION" ? "organization" : "course"} draft and create a published ${draft.type === "ORGANIZATION" ? "organization" : "course"}. The author will be notified of the approval.`}
-        confirmText={draft.type === "ORGANIZATION" ? "Approve & Create Organization" : "Approve & Create Course"}
+        title={`Approve ${
+          draft.type === "ORGANIZATION" ? "Organization" : "Course"
+        } Draft`}
+        description={`This will approve the ${
+          draft.type === "ORGANIZATION" ? "organization" : "course"
+        } draft and create a published ${
+          draft.type === "ORGANIZATION" ? "organization" : "course"
+        }. The author will be notified of the approval.`}
+        confirmText={
+          draft.type === "ORGANIZATION"
+            ? "Approve & Create Organization"
+            : "Approve & Create Course"
+        }
         cancelText="Cancel"
         variant="default"
       />
@@ -710,8 +971,12 @@ export default function AdminDraftReviewPage() {
         isOpen={rejectDialogOpen}
         onClose={() => setRejectDialogOpen(false)}
         onConfirm={handleReject}
-        title={`Reject ${draft.type === "ORGANIZATION" ? "Organization" : "Course"} Draft`}
-        description={`This will reject the ${draft.type === "ORGANIZATION" ? "organization" : "course"} draft and notify the author. Make sure you have provided clear feedback in the review notes.`}
+        title={`Reject ${
+          draft.type === "ORGANIZATION" ? "Organization" : "Course"
+        } Draft`}
+        description={`This will reject the ${
+          draft.type === "ORGANIZATION" ? "organization" : "course"
+        } draft and notify the author. Make sure you have provided clear feedback in the review notes.`}
         confirmText="Reject Draft"
         cancelText="Cancel"
         variant="destructive"

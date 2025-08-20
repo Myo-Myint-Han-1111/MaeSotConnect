@@ -98,13 +98,26 @@ model Course {
   estimatedDateMm     String?
   startByDate         DateTime?
   startByDateMm       DateTime?
+  status              CourseStatus  @default(PUBLISHED)  // Track if course is published or draft
+  lastModifiedBy      String?                           // Track who last modified the course
+  publishedAt         DateTime?                         // When the course was first published
   badges              Badge[]
   organizationInfo    Organization? @relation(fields: [organizationId], references: [id])
   createdByUser       User?         @relation("CreatedCourses", fields: [createdBy], references: [id])
+  lastModifiedByUser  User?         @relation("ModifiedCourses", fields: [lastModifiedBy], references: [id])
   faq                 FAQ[]
   images              Image[]
 
   @@index([startByDate])
+  @@index([organizationId])      // index for better org admin queries
+  @@index([status])              // index for status filtering
+}
+
+enum CourseStatus {
+  DRAFT          // Course is being created/edited
+  PUBLISHED      // Course is live and visible
+  UNDER_REVIEW   // Course modifications are being reviewed
+  ARCHIVED       // Course is no longer active
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -168,6 +181,7 @@ model User {
   drafts         ContentDraft[]
   advocateProfile AdvocateProfile?
   createdCourses Course[]      @relation("CreatedCourses")
+  modifiedCourses Course[]     @relation("ModifiedCourses")
 }
 
 enum Role {
