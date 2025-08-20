@@ -117,7 +117,7 @@ export default function ProfileReviewsPage() {
         <Button
           variant={selectedStatus === "all" ? "default" : "outline"}
           onClick={() => setSelectedStatus("all")}
-          className="text-sm"
+          className={`text-sm ${selectedStatus === "all" ? "bg-blue-700 hover:bg-blue-600 text-white" : "hover:bg-gray-100"}`}
         >
           All ({profiles.length})
         </Button>
@@ -126,7 +126,7 @@ export default function ProfileReviewsPage() {
             key={status}
             variant={selectedStatus === status ? "default" : "outline"}
             onClick={() => setSelectedStatus(status)}
-            className="text-sm"
+            className={`text-sm ${selectedStatus === status ? "bg-blue-700 hover:bg-blue-600 text-white" : "hover:bg-gray-100"}`}
           >
             <config.icon className="h-4 w-4 mr-1" />
             {config.label} ({statusCounts[status as ProfileStatus] || 0})
@@ -192,7 +192,7 @@ export default function ProfileReviewsPage() {
 
                 <div className="flex justify-end">
                   <Link href={`/admin/profiles/${profile.id}`}>
-                    <Button variant="outline" size="sm" className="gap-2">
+                    <Button variant="outline" size="sm" className="gap-2 hover:bg-blue-600 hover:text-white">
                       <Eye className="h-4 w-4" />
                       Review
                     </Button>

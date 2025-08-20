@@ -122,7 +122,7 @@ export default function OrganizationsPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h1 className="text-3xl font-bold">Organizations</h1>
         <Link href="/admin/organizations/new">
-          <Button>
+          <Button className="bg-blue-700 hover:bg-blue-600 text-white">
             <Plus className="mr-2 h-4 w-4" />
             Add New Organization
           </Button>
@@ -158,7 +158,7 @@ export default function OrganizationsPage() {
           </p>
           {!searchTerm && (
             <Link href="/admin/organizations/new">
-              <Button>
+              <Button className="bg-blue-700 hover:bg-blue-600 text-white">
                 <Plus className="mr-2 h-4 w-4" />
                 Add New Organization
               </Button>
@@ -168,7 +168,7 @@ export default function OrganizationsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredOrganizations.map((org) => (
-            <Card key={org.id} className="overflow-hidden">
+            <Card key={org.id} className="overflow-hidden bg-white">
               <CardHeader className="pb-3">
                 <CardTitle>{org.name}</CardTitle>
                 <CardDescription className="line-clamp-2">
@@ -190,7 +190,7 @@ export default function OrganizationsPage() {
               </CardContent>
               <CardFooter className="flex justify-between border-t p-4 bg-gray-50">
                 <Link href={`/dashboard/courses/new?organizationId=${org.id}`}>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="hover:bg-gray-100">
                     <Plus className="mr-2 h-4 w-4" />
                     Add Course
                   </Button>
@@ -199,6 +199,7 @@ export default function OrganizationsPage() {
                   <Button
                     variant="outline"
                     size="sm"
+                    className="hover:bg-blue-600 hover:text-white"
                     onClick={() =>
                       router.push(`/admin/organizations/${org.id}/edit`)
                     }
@@ -209,6 +210,7 @@ export default function OrganizationsPage() {
                   <Button
                     variant="destructive"
                     size="sm"
+                    className="hover:text-gray-500"
                     onClick={() => confirmDeleteOrganization(org.id)}
                   >
                     <Trash2 className="mr-2 h-4 w-4" />

@@ -242,7 +242,7 @@ export default function CoursesPage() {
           </div>
         </div>
         <Link href="/dashboard/courses/new">
-          <Button>
+          <Button className="bg-blue-700 hover:bg-blue-600 text-white">
             <Plus className="mr-2 h-4 w-4" />
             Add New Course
           </Button>
@@ -363,7 +363,7 @@ export default function CoursesPage() {
           </p>
           {!searchTerm && statusFilter === "all" && (
             <Link href="/dashboard/courses/new">
-              <Button>
+              <Button className="bg-blue-700 hover:bg-blue-600 text-white">
                 <Plus className="mr-2 h-4 w-4" />
                 Add New Course
               </Button>
@@ -376,7 +376,7 @@ export default function CoursesPage() {
             const status = getCourseStatus(course);
 
             return (
-              <Card key={course.id} className="overflow-hidden relative">
+              <Card key={course.id} className="overflow-hidden relative bg-white">
                 {/* NEW: Status Badge */}
                 <div className="absolute top-2 right-2 z-10">
                   <span
@@ -484,6 +484,7 @@ export default function CoursesPage() {
                   <Button
                     variant="outline"
                     size="sm"
+                    className="hover:bg-gray-100"
                     onClick={() => router.push(`/courses/${course.id}`)}
                   >
                     View Public
@@ -493,6 +494,7 @@ export default function CoursesPage() {
                     <Button
                       variant="outline"
                       size="sm"
+                      className="hover:bg-blue-600 hover:text-white"
                       onClick={() =>
                         router.push(`/dashboard/courses/${course.id}/edit`)
                       }
@@ -504,6 +506,7 @@ export default function CoursesPage() {
                     <Button
                       variant="destructive"
                       size="sm"
+                      className="hover:text-gray-500"
                       onClick={() => confirmDeleteCourse(course.id)}
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
