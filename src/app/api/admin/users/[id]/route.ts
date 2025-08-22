@@ -86,7 +86,7 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    
+
     // Check if user exists
     const user = await prisma.user.findUnique({
       where: { id },
@@ -118,14 +118,58 @@ export async function DELETE(
       }
     }
 
-    // Delete user (this will cascade delete accounts and sessions)
-    await prisma.user.delete({
-      where: { id },
+    // Use a transaction to handle all related records before deletion
+    await prisma.$transaction(async (tx) => {
+      // Handle ContentDraft records created by this user
+      await tx.contentDraft.deleteMany({
+        where: { createdBy: id },
+      });
+
+      // Clean up references where this user was a reviewer
+      await tx.contentDraft.updateMany({
+        where: { reviewedBy: id },
+        data: {
+          reviewedBy: null,
+          reviewedAt: null,
+          reviewNotes: null,
+        },
+      });
+
+      // Handle AdvocateProfile records reviewed by this user
+      await tx.advocateProfile.updateMany({
+        where: { reviewedBy: id },
+        data: {
+          reviewedBy: null,
+          reviewedAt: null,
+          reviewNotes: null,
+        },
+      });
+
+      // Now delete the user (this will cascade delete accounts and sessions)
+      await tx.user.delete({
+        where: { id },
+      });
     });
 
     return NextResponse.json({ message: "User deleted successfully" });
   } catch (error) {
     console.error("Error deleting user:", error);
+
+    // Type guard for error handling
+    const errorWithCode = error as { code?: string };
+
+    // Provide specific error message for foreign key constraints
+    if (errorWithCode.code === "P2003") {
+      return NextResponse.json(
+        {
+          message:
+            "Cannot delete user due to existing related records. Please contact support.",
+          error: "Foreign key constraint violation",
+        },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 }

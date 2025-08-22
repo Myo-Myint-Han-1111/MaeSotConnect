@@ -314,10 +314,26 @@ export default function CourseForm({
     const fetchOrganizations = async () => {
       try {
         setOrganizationsLoading(true);
+
+        // First try the main organizations endpoint
         const response = await fetch("/api/organizations");
+
         if (response.ok) {
           const data = await response.json();
           setOrganizations(data);
+        } else if (response.status === 403) {
+          // If we get 403 (Unauthorized), try the org-admin endpoint
+          console.log(
+            "Access denied to /api/organizations, trying org-admin endpoint..."
+          );
+          const orgAdminResponse = await fetch("/api/org-admin/organizations");
+
+          if (orgAdminResponse.ok) {
+            const orgAdminData = await orgAdminResponse.json();
+            setOrganizations(orgAdminData);
+          } else {
+            console.error("Failed to fetch organizations from both endpoints");
+          }
         } else {
           console.error("Failed to fetch organizations");
         }
@@ -950,8 +966,23 @@ export default function CourseForm({
           }
         }
 
-        const url = editDraftId ? `/api/drafts/${editDraftId}` : "/api/drafts";
-        const method = editDraftId ? "PATCH" : "POST";
+        // 🎯 FIXED: Use the correct endpoint for org-admin course edits
+        let url: string;
+        let method: string;
+
+        if (editDraftId) {
+          // Editing an existing draft
+          url = `/api/drafts/${editDraftId}`;
+          method = "PATCH";
+        } else if (mode === "edit" && initialData?.id) {
+          // 🆕 THIS IS THE KEY FIX: Editing an existing course (org-admin)
+          url = `/api/org-admin/courses/${initialData.id}/edit`;
+          method = "POST";
+        } else {
+          // Creating a new draft (youth advocate)
+          url = "/api/drafts";
+          method = "POST";
+        }
 
         const response = await fetch(url, {
           method: method,
@@ -1228,7 +1259,14 @@ export default function CourseForm({
                       onValueChange={handleOrganizationChange}
                       required
                     >
-                      <SelectTrigger className={(!formData.organizationId || formData.organizationId === "") ? "border-red-200 focus:border-red-500" : ""}>
+                      <SelectTrigger
+                        className={
+                          !formData.organizationId ||
+                          formData.organizationId === ""
+                            ? "border-red-200 focus:border-red-500"
+                            : ""
+                        }
+                      >
                         <SelectValue placeholder="Select an organization" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1271,7 +1309,11 @@ export default function CourseForm({
                           value={formData.title ?? ""}
                           onChange={handleTextChange}
                           required
-                          className={!formData.title ? "bg-white border-red-200 focus:border-red-500" : "bg-white"}
+                          className={
+                            !formData.title
+                              ? "bg-white border-red-200 focus:border-red-500"
+                              : "bg-white"
+                          }
                           aria-invalid={!formData.title}
                           aria-describedby={
                             !formData.title ? "title-error" : undefined
@@ -1325,7 +1367,11 @@ export default function CourseForm({
                           value={formData.subtitle ?? ""}
                           onChange={handleTextChange}
                           required
-                          className={!formData.subtitle ? "bg-white border-red-200 focus:border-red-500" : "bg-white"}
+                          className={
+                            !formData.subtitle
+                              ? "bg-white border-red-200 focus:border-red-500"
+                              : "bg-white"
+                          }
                           aria-invalid={!formData.subtitle}
                           aria-describedby={
                             !formData.subtitle ? "subtitle-error" : undefined
@@ -1517,7 +1563,11 @@ export default function CourseForm({
                         value={formData.startDate ?? ""}
                         onChange={handleTextChange}
                         required
-                        className={!formData.startDate ? "border-red-200 focus:border-red-500" : ""}
+                        className={
+                          !formData.startDate
+                            ? "border-red-200 focus:border-red-500"
+                            : ""
+                        }
                         aria-invalid={!formData.startDate}
                         aria-describedby={
                           !formData.startDate ? "startDate-error" : undefined
@@ -1579,7 +1629,11 @@ export default function CourseForm({
                         value={formData.endDate ?? ""}
                         onChange={handleTextChange}
                         required
-                        className={!formData.endDate ? "border-red-200 focus:border-red-500" : ""}
+                        className={
+                          !formData.endDate
+                            ? "border-red-200 focus:border-red-500"
+                            : ""
+                        }
                         aria-invalid={!formData.endDate}
                         aria-describedby={
                           !formData.endDate ? "endDate-error" : undefined
@@ -1592,14 +1646,17 @@ export default function CourseForm({
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <Label htmlFor="applyByDate">Application Deadline</Label>
+                        <Label htmlFor="applyByDate">
+                          Application Deadline
+                        </Label>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Info className="h-4 w-4 text-muted-foreground" />
                           </TooltipTrigger>
                           <TooltipContent className="max-w-sm">
                             <p>
-                              Set the final date for youth to submit applications.
+                              Set the final date for youth to submit
+                              applications.
                             </p>
                           </TooltipContent>
                         </Tooltip>
@@ -1637,9 +1694,9 @@ export default function CourseForm({
                             </TooltipTrigger>
                             <TooltipContent className="max-w-sm">
                               <p>
-                                Check this if the application deadline may change.
-                                This will show an &quot;estimated&quot; badge next
-                                to the deadline.
+                                Check this if the application deadline may
+                                change. This will show an &quot;estimated&quot;
+                                badge next to the deadline.
                               </p>
                             </TooltipContent>
                           </Tooltip>
@@ -1717,7 +1774,11 @@ export default function CourseForm({
                         onChange={(e) => handleNumberChange(e, "duration")}
                         required
                         placeholder="Number of days"
-                        className={(!formData.duration || formData.duration <= 0) ? "border-red-200 focus:border-red-500" : ""}
+                        className={
+                          !formData.duration || formData.duration <= 0
+                            ? "border-red-200 focus:border-red-500"
+                            : ""
+                        }
                         aria-invalid={
                           !formData.duration || formData.duration <= 0
                         }
@@ -1784,7 +1845,11 @@ export default function CourseForm({
                           onChange={handleTextChange}
                           required
                           placeholder="e.g. Mon, Wed, Fri: 2-4 PM"
-                          className={!formData.schedule ? "border-red-200 focus:border-red-500" : ""}
+                          className={
+                            !formData.schedule
+                              ? "border-red-200 focus:border-red-500"
+                              : ""
+                          }
                           aria-invalid={!formData.schedule}
                           aria-describedby={
                             !formData.schedule ? "schedule-error" : undefined

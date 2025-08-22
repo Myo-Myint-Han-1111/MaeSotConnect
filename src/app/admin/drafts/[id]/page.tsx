@@ -99,95 +99,8 @@ export default function AdminDraftReviewPage() {
     try {
       const courseData = editedContent || draft.content;
 
-      if (draft.type === "COURSE") {
-        // Check if this is an update to an existing course
-        if (courseData.originalCourseId) {
-          // This is an update to an existing course
-          const updateResponse = await fetch(
-            `/api/courses/${courseData.originalCourseId}`,
-            {
-              method: "PATCH",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                title: courseData.title,
-                titleMm: courseData.titleMm || null,
-                subtitle: courseData.subtitle,
-                subtitleMm: courseData.subtitleMm || null,
-                description: courseData.description || null,
-                descriptionMm: courseData.descriptionMm || null,
-                startDate: courseData.startDate,
-                startDateMm: courseData.startDateMm || null,
-                endDate: courseData.endDate,
-                endDateMm: courseData.endDateMm || null,
-                duration: courseData.duration,
-                durationMm: courseData.durationMm || null,
-                schedule: courseData.schedule,
-                scheduleMm: courseData.scheduleMm || null,
-                feeAmount: courseData.feeAmount,
-                feeAmountMm: courseData.feeAmountMm || null,
-                province: courseData.province || null,
-                district: courseData.district || null,
-                address: courseData.address || null,
-                applyByDate: courseData.applyByDate || null,
-                applyByDateMm: courseData.applyByDateMm || null,
-                ageMin: courseData.ageMin || null,
-                ageMax: courseData.ageMax || null,
-                ageMinMm: courseData.ageMinMm || null,
-                ageMaxMm: courseData.ageMaxMm || null,
-                outcomes: courseData.outcomes || [],
-                outcomesMm: courseData.outcomesMm || [],
-                selectionCriteria: courseData.selectionCriteria || [],
-                selectionCriteriaMm: courseData.selectionCriteriaMm || [],
-                howToApply: courseData.howToApply || [],
-                howToApplyMm: courseData.howToApplyMm || [],
-                applyButtonText: courseData.applyButtonText || null,
-                applyButtonTextMm: courseData.applyButtonTextMm || null,
-                applyLink: courseData.applyLink || null,
-                status: CourseStatus.PUBLISHED,
-                faq: courseData.faq || [],
-              }),
-            }
-          );
-
-          if (!updateResponse.ok) {
-            throw new Error("Failed to update course");
-          }
-        } else {
-          // This is a new course creation
-          const createResponse = await fetch("/api/courses", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              ...courseData,
-              status: CourseStatus.PUBLISHED,
-              publishedAt: new Date().toISOString(),
-            }),
-          });
-
-          if (!createResponse.ok) {
-            throw new Error("Failed to create course");
-          }
-        }
-      } else if (draft.type === "ORGANIZATION") {
-        // Handle organization creation
-        const createResponse = await fetch("/api/organizations", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(courseData),
-        });
-
-        if (!createResponse.ok) {
-          throw new Error("Failed to create organization");
-        }
-      }
-
-      // Update the draft status to APPROVED and delete it
+      // ✅ SIMPLIFIED: Use only the admin drafts API
+      // This endpoint already handles both course updates and new course creation
       const draftResponse = await fetch(`/api/admin/drafts/${draft.id}`, {
         method: "PATCH",
         headers: {
@@ -204,7 +117,7 @@ export default function AdminDraftReviewPage() {
         router.push("/admin/drafts?approved=true");
       } else {
         const error = await draftResponse.json();
-        alert(`Error updating draft: ${error.message || "Unknown error"}`);
+        alert(`Error approving draft: ${error.message || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Error approving draft:", error);

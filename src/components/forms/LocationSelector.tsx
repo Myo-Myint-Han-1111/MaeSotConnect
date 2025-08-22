@@ -749,20 +749,20 @@ export default function LocationSelector({
     }
   }, [selectedProvinceCode]);
 
-  // Initialize selected province from existing value
   useEffect(() => {
     if (value.province) {
       const province = provinces.find(
         (p) => p.provinceNameEn === value.province
       );
-      if (province) {
+      if (province && province.provinceCode !== selectedProvinceCode) {
         setSelectedProvinceCode(province.provinceCode);
       }
     } else {
-      // Reset if no province is selected
-      setSelectedProvinceCode(null);
+      if (selectedProvinceCode !== null) {
+        setSelectedProvinceCode(null);
+      }
     }
-  }, [value.province]);
+  }, [value.province, selectedProvinceCode]);
 
   const handleProvinceChange = (provinceNameEn: string) => {
     const selectedProvince = provinces.find(
@@ -844,8 +844,8 @@ export default function LocationSelector({
           </Select>
           {availableDistricts.length === 0 && selectedProvinceCode && (
             <p className="text-xs text-muted-foreground">
-              No districts available for selected province. You can still save the
-              course with just the province selected.
+              No districts available for selected province. You can still save
+              the course with just the province selected.
             </p>
           )}
         </div>

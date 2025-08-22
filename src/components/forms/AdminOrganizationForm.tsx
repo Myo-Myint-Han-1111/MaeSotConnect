@@ -59,7 +59,7 @@ export default function AdminOrganizationForm({
   const [existingLogo, setExistingLogo] = useState<string | null>(() => {
     if (!initialData) return null;
     const logo = initialData.logoImage || initialData.logoImageUrl;
-    return logo && typeof logo === 'string' && logo.trim() !== "" ? logo : null;
+    return logo && typeof logo === "string" && logo.trim() !== "" ? logo : null;
   });
 
   const [formData, setFormData] = useState(() => ({
@@ -69,15 +69,20 @@ export default function AdminOrganizationForm({
     email: initialData?.email || "",
     address: initialData?.address || "",
     facebookPage: initialData?.facebookPage || "",
-    latitude: typeof initialData?.latitude === 'number' ? initialData.latitude : 0,
-    longitude: typeof initialData?.longitude === 'number' ? initialData.longitude : 0,
+    latitude:
+      typeof initialData?.latitude === "number" ? initialData.latitude : 0,
+    longitude:
+      typeof initialData?.longitude === "number" ? initialData.longitude : 0,
     district: initialData?.district || "",
     province: initialData?.province || "",
     logoImage: undefined as File | undefined,
   }));
 
   const getWordCount = (text: string) => {
-    return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+    return text
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 0).length;
   };
 
   const MAX_DESCRIPTION_WORDS = 200;
@@ -92,20 +97,25 @@ export default function AdminOrganizationForm({
     }));
   };
 
-  const handleLocationChange = (locationData: { province: string; district: string }) => {
-    setFormData(prev => ({
+  const handleLocationChange = (locationData: {
+    province: string;
+    district: string;
+  }) => {
+    setFormData((prev) => ({
       ...prev,
       province: locationData.province,
-      district: locationData.district
+      district: locationData.district,
     }));
   };
 
-  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     setUploadError("");
-    
+
     const validationError = validateImageFile(file);
     if (validationError) {
       setUploadError(validationError);
@@ -113,13 +123,13 @@ export default function AdminOrganizationForm({
     }
 
     setIsUploadingLogo(true);
-    
+
     try {
       const compressionResult = await compressImage(file, {
         maxWidth: 300,
         maxHeight: 300,
         quality: 0.8,
-        maxSizeKB: 200
+        maxSizeKB: 200,
       });
 
       const reader = new FileReader();
@@ -130,7 +140,7 @@ export default function AdminOrganizationForm({
       reader.readAsDataURL(compressionResult.file);
 
       // Store compressed file for form submission
-      setFormData(prev => ({ ...prev, logoImage: compressionResult.file }));
+      setFormData((prev) => ({ ...prev, logoImage: compressionResult.file }));
     } catch (error) {
       setUploadError("Failed to process logo. Please try again.");
       console.error("Logo upload error:", error);
@@ -141,7 +151,7 @@ export default function AdminOrganizationForm({
 
   const handleRemoveLogo = () => {
     setLogoPreview("");
-    setFormData(prev => ({ ...prev, logoImage: undefined }));
+    setFormData((prev) => ({ ...prev, logoImage: undefined }));
     setUploadError("");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -167,7 +177,8 @@ export default function AdminOrganizationForm({
           longitude: Number(formData.longitude),
           district: formData.district,
           province: formData.province,
-          logoImageUrl: existingLogo && existingLogo.trim() !== "" ? existingLogo : null, // Keep existing logo URL for draft
+          logoImageUrl:
+            existingLogo && existingLogo.trim() !== "" ? existingLogo : null, // Keep existing logo URL for draft
         };
 
         await onSubmit(submissionData);
@@ -252,13 +263,35 @@ export default function AdminOrganizationForm({
           const errorData = await response.json();
           console.error("Error response:", errorData);
 
-          // Better error handling for Zod validation errors
+          // Enhanced error handling for validation errors
+          if (errorData.error && Array.isArray(errorData.error)) {
+            // Handle Zod validation errors array format
+            const fieldErrors: string[] = [];
+
+            errorData.error.forEach(
+              (err: { path?: string[]; message?: string }) => {
+                if (err.path && err.message) {
+                  const fieldName = err.path.join(".");
+                  // Capitalize and format field names nicely
+                  const formattedField =
+                    fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
+                  fieldErrors.push(`${formattedField}: ${err.message}`);
+                } else if (err.message) {
+                  fieldErrors.push(err.message);
+                }
+              }
+            );
+
+            if (fieldErrors.length > 0) {
+              throw new Error(fieldErrors.join("\n"));
+            }
+          }
+
+          // Handle other error formats
           if (errorData.details && typeof errorData.details === "object") {
             const fieldErrors: string[] = [];
 
-            // Extract field errors from the nested Zod format
             for (const [field, error] of Object.entries(errorData.details)) {
-              // Type guard to check if it's an array with _errors property
               if (
                 field === "_errors" &&
                 Array.isArray(error) &&
@@ -266,24 +299,27 @@ export default function AdminOrganizationForm({
               ) {
                 fieldErrors.push(error.join(", "));
               } else if (error !== null && typeof error === "object") {
-                // Create a more specific type for Zod errors
                 type ZodErrorObject = { _errors?: string[] };
                 const zodError = error as ZodErrorObject;
 
                 if (zodError._errors && Array.isArray(zodError._errors)) {
-                  fieldErrors.push(`${field}: ${zodError._errors.join(", ")}`);
+                  const formattedField =
+                    field.charAt(0).toUpperCase() + field.slice(1);
+                  fieldErrors.push(
+                    `${formattedField}: ${zodError._errors.join(", ")}`
+                  );
                 }
               }
             }
 
             if (fieldErrors.length > 0) {
-              throw new Error(fieldErrors.join("; "));
+              throw new Error(fieldErrors.join("\n"));
             }
           }
 
           throw new Error(
             errorData.error ||
-              errorData.details ||
+              errorData.message ||
               "Failed to save organization"
           );
         }
@@ -311,11 +347,36 @@ export default function AdminOrganizationForm({
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4 bg-white">
           {error && (
-            <div className="p-3 rounded-md bg-red-50 text-red-500 text-sm">
-              {error}
+            <div className="p-4 rounded-md bg-red-50 border border-red-200 text-red-700 text-sm">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <svg
+                    className="h-4 w-4 text-red-400 mt-0.5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-2">
+                  <h4 className="font-medium text-red-800 mb-1">
+                    Please fix the following errors:
+                  </h4>
+                  <div className="space-y-1">
+                    {error.split("\n").map((line, index) => (
+                      <div key={index} className="text-sm">
+                        • {line}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
-
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm font-medium">
               Organization Name <span className="text-red-500">*</span>
@@ -325,7 +386,11 @@ export default function AdminOrganizationForm({
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className={!formData.name.trim() ? "border-red-200 focus:border-red-500" : ""}
+              className={
+                !formData.name.trim()
+                  ? "border-red-200 focus:border-red-500"
+                  : ""
+              }
               required
             />
           </div>
@@ -340,27 +405,39 @@ export default function AdminOrganizationForm({
               value={formData.description}
               onChange={handleChange}
               rows={4}
-              className={!formData.description.trim() || getWordCount(formData.description) > MAX_DESCRIPTION_WORDS ? "border-red-200 focus:border-red-500" : ""}
+              className={
+                !formData.description.trim() ||
+                getWordCount(formData.description) > MAX_DESCRIPTION_WORDS
+                  ? "border-red-200 focus:border-red-500"
+                  : ""
+              }
               required
             />
             <div className="flex justify-between items-center">
               <p className="text-sm text-muted-foreground">
-                Provide a clear description that helps youth understand what your organization offers.
+                Provide a clear description that helps youth understand what
+                your organization offers.
               </p>
-              <p className={`text-xs ${
-                getWordCount(formData.description) > MAX_DESCRIPTION_WORDS 
-                  ? "text-red-600" 
-                  : getWordCount(formData.description) > MAX_DESCRIPTION_WORDS * 0.8 
-                    ? "text-yellow-600" 
+              <p
+                className={`text-xs ${
+                  getWordCount(formData.description) > MAX_DESCRIPTION_WORDS
+                    ? "text-red-600"
+                    : getWordCount(formData.description) >
+                      MAX_DESCRIPTION_WORDS * 0.8
+                    ? "text-yellow-600"
                     : "text-muted-foreground"
-              }`}>
-                {getWordCount(formData.description)}/{MAX_DESCRIPTION_WORDS} words
+                }`}
+              >
+                {getWordCount(formData.description)}/{MAX_DESCRIPTION_WORDS}{" "}
+                words
               </p>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="facebookPage" className="text-sm font-medium">Facebook Page</Label>
+            <Label htmlFor="facebookPage" className="text-sm font-medium">
+              Facebook Page
+            </Label>
             <Input
               id="facebookPage"
               name="facebookPage"
@@ -373,7 +450,9 @@ export default function AdminOrganizationForm({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
+              <Label htmlFor="phone" className="text-sm font-medium">
+                Phone Number
+              </Label>
               <Input
                 id="phone"
                 name="phone"
@@ -383,7 +462,9 @@ export default function AdminOrganizationForm({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
+              <Label htmlFor="email" className="text-sm font-medium">
+                Email Address
+              </Label>
               <Input
                 id="email"
                 name="email"
@@ -395,7 +476,9 @@ export default function AdminOrganizationForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address" className="text-sm font-medium">Physical Address</Label>
+            <Label htmlFor="address" className="text-sm font-medium">
+              Physical Address
+            </Label>
             <Textarea
               id="address"
               name="address"
@@ -405,14 +488,15 @@ export default function AdminOrganizationForm({
               rows={2}
             />
             <p className="text-sm text-muted-foreground">
-              Include street address, city, and any landmark information that helps people find the location.
+              Include street address, city, and any landmark information that
+              helps people find the location.
             </p>
           </div>
 
           <LocationSelector
             value={{
               province: formData.province,
-              district: formData.district
+              district: formData.district,
             }}
             onChange={handleLocationChange}
             disabled={isLoading}
@@ -422,13 +506,13 @@ export default function AdminOrganizationForm({
 
           <div className="space-y-2">
             <Label className="text-sm font-medium">Organization Logo</Label>
-            
+
             <div className="w-48 h-32 border rounded-lg bg-gray-50 flex items-center justify-center p-2 relative">
               {logoPreview ? (
                 <>
-                  <Image 
-                    src={logoPreview} 
-                    alt="Logo preview" 
+                  <Image
+                    src={logoPreview}
+                    alt="Logo preview"
                     fill
                     className="object-contain"
                     sizes="192px"
@@ -444,9 +528,9 @@ export default function AdminOrganizationForm({
                 </>
               ) : existingLogo && existingLogo.trim() !== "" ? (
                 <>
-                  <Image 
-                    src={existingLogo} 
-                    alt="Current logo" 
+                  <Image
+                    src={existingLogo}
+                    alt="Current logo"
                     fill
                     className="object-contain"
                     sizes="192px"
@@ -463,9 +547,7 @@ export default function AdminOrganizationForm({
               ) : (
                 <div className="flex flex-col items-center justify-center text-center">
                   <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">
-                    Upload logo
-                  </p>
+                  <p className="text-sm text-muted-foreground">Upload logo</p>
                 </div>
               )}
             </div>
@@ -477,7 +559,7 @@ export default function AdminOrganizationForm({
               onChange={handleLogoUpload}
               className="hidden"
             />
-            
+
             <div className="flex gap-2">
               <Button
                 type="button"
@@ -487,12 +569,17 @@ export default function AdminOrganizationForm({
                 size="sm"
                 className="hover:bg-gray-50"
               >
-                {isUploadingLogo ? "Processing..." : logoPreview || existingLogo ? "Change Logo" : "Upload Logo"}
+                {isUploadingLogo
+                  ? "Processing..."
+                  : logoPreview || existingLogo
+                  ? "Change Logo"
+                  : "Upload Logo"}
               </Button>
             </div>
 
             <p className="text-xs text-muted-foreground">
-              Supported formats: JPEG, PNG, WebP. Max size: 50MB (will be compressed automatically)
+              Supported formats: JPEG, PNG, WebP. Max size: 50MB (will be
+              compressed automatically)
             </p>
 
             {uploadError && (
@@ -511,7 +598,13 @@ export default function AdminOrganizationForm({
             Cancel
           </Button>
           <Button type="submit" disabled={isLoading || externalIsSubmitting}>
-            {isLoading || externalIsSubmitting ? "Saving..." : onSubmit ? submitButtonText : mode === "create" ? "Create" : "Update"}
+            {isLoading || externalIsSubmitting
+              ? "Saving..."
+              : onSubmit
+              ? submitButtonText
+              : mode === "create"
+              ? "Create"
+              : "Update"}
           </Button>
         </CardFooter>
       </form>

@@ -5,7 +5,14 @@ import { prisma } from "@/lib/db";
 export async function GET() {
   try {
     // Fetch courses with only fields needed for CourseCard component
+    // Check if status field exists in Course table
+    const hasStatusField = await checkFieldExists("Course", "status");
+
     const courses = await prisma.course.findMany({
+      where: {
+        // 🎯 ONLY SHOW PUBLISHED COURSES if status field exists
+        ...(hasStatusField && { status: "PUBLISHED" }),
+      },
       select: {
         id: true,
         slug: true,
@@ -111,5 +118,18 @@ export async function GET() {
       { error: "Failed to fetch courses" },
       { status: 500 }
     );
+  }
+}
+
+// Helper function to check if a field exists in a table
+async function checkFieldExists(
+  tableName: string,
+  fieldName: string
+): Promise<boolean> {
+  try {
+    await prisma.$queryRaw`SELECT ${fieldName} FROM ${tableName} LIMIT 1`;
+    return true;
+  } catch (_error) {
+    return false;
   }
 }

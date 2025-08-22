@@ -96,6 +96,7 @@ export interface ContentDraft {
   status: DraftStatus;
   createdBy: string;
   organizationId?: string | null;
+  originalCourseId?: string | null;
   submittedAt: Date;
   reviewedAt?: Date | null;
   reviewedBy?: string | null;

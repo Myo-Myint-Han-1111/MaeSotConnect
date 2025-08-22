@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import {
@@ -208,6 +208,7 @@ export default function OrganizationAdminCourseForm({
   const [existingImageList, setExistingImageList] =
     useState<string[]>(existingImages);
   const [isCompressing, setIsCompressing] = useState(false);
+  const hasInitialized = useRef(false);
 
   // Initialize form data with default values
   const [formData, setFormData] = useState<CourseFormData>(() => {
@@ -281,22 +282,25 @@ export default function OrganizationAdminCourseForm({
   }, []);
 
   // Add this useEffect to debug the form data
-  useEffect(() => {
-    console.log(
-      "Current form data - Province:",
-      formData.province,
-      "District:",
-      formData.district
-    );
-  }, [formData.province, formData.district]);
+  // useEffect(() => {
+  //   console.log(
+  //     "Current form data - Province:",
+  //     formData.province,
+  //     "District:",
+  //     formData.district
+  //   );
+  // }, [formData.province, formData.district]);
 
   useEffect(() => {
     setExistingImageList(existingImages);
   }, [existingImages]);
 
   useEffect(() => {
-    if (initialData) {
-      console.log("=== CourseForm: Syncing with initialData ===");
+    // ✅ SAFEST FIX: Only run once when initialData exists and hasn't been initialized
+    if (initialData && mode === "edit" && !hasInitialized.current) {
+      hasInitialized.current = true;
+
+      console.log("=== CourseForm: Syncing with initialData (ONE TIME) ===");
       console.log("Mode:", mode);
       console.log("InitialData:", initialData);
       console.log("Raw estimatedDate:", initialData.estimatedDate);
@@ -400,6 +404,13 @@ export default function OrganizationAdminCourseForm({
       console.log("showEstimatedForApplyByDate set to:", showApply);
     }
   }, [initialData, mode]);
+
+  // Reset the ref when mode changes to create
+  useEffect(() => {
+    if (mode === "create") {
+      hasInitialized.current = false;
+    }
+  }, [mode]);
 
   // Debug effect to monitor form data changes
   useEffect(() => {
@@ -1296,7 +1307,7 @@ export default function OrganizationAdminCourseForm({
                     }}
                     onChange={handleLocationChange}
                     disabled={isLoading}
-                    key={`${formData.province}-${formData.district}`}
+                    // key={`${formData.province}-${formData.district}`}
                   />
 
                   {/* Age Requirements - Fixed controlled input */}

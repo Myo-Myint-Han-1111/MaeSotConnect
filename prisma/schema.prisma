@@ -211,6 +211,7 @@ model ContentDraft {
   status         DraftStatus  @default(PENDING)
   createdBy      String
   organizationId String?
+  originalCourseId String?
   submittedAt    DateTime     @default(now())
   reviewedAt     DateTime?
   reviewedBy     String?

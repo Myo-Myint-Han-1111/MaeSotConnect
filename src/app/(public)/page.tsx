@@ -290,9 +290,7 @@ export default function Home() {
 
         // Combine all search results
         const matchesSearch =
-          organizationMatch ||
-          basicFieldsMatch ||
-          badgesMatch;
+          organizationMatch || basicFieldsMatch || badgesMatch;
 
         return matchesSearch;
       }
@@ -331,7 +329,12 @@ export default function Home() {
           weeks % 1 === 0 ? weeks.toString() : weeks.toFixed(1);
 
         return `${formattedWeeks} ${language === "mm" ? "ပတ်" : "week"}`;
-      } else if (duration < 365) {
+      } else if (duration >= 365) {
+        const years = duration / 365;
+        const formattedYears =
+          years % 1 === 0 ? years.toString() : years.toFixed(1);
+        return `${formattedYears} ${language === "mm" ? "နှစ်" : "year"}`;
+      } else {
         const months = duration / 30.44;
         const formattedMonths =
           months % 1 < 0.1 || months % 1 > 0.9
@@ -339,11 +342,6 @@ export default function Home() {
             : months.toFixed(1);
 
         return `${formattedMonths} ${language === "mm" ? "လ" : "month"}`;
-      } else {
-        const years = duration / 365;
-        const formattedYears =
-          years % 1 === 0 ? years.toString() : years.toFixed(1);
-        return `${formattedYears} ${language === "mm" ? "နှစ်" : "year"}`;
       }
     },
     [language]
@@ -565,7 +563,6 @@ export default function Home() {
       sessionStorage.removeItem("courseDetailsCache"); // Also clear course details cache
     }
   };
-
 
   // Show loading state
   if (loading) {
@@ -827,7 +824,11 @@ export default function Home() {
                       course.feeAmountMm ? formatFee(course.feeAmountMm) : null
                     }
                     badges={course.badges}
-                    organizationInfo={course.organizationInfo ? { name: course.organizationInfo.name } : null}
+                    organizationInfo={
+                      course.organizationInfo
+                        ? { name: course.organizationInfo.name }
+                        : null
+                    }
                     createdByUser={course.createdByUser}
                     district={course.district}
                     province={course.province}

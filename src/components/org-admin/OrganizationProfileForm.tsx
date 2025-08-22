@@ -8,15 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Save, MapPin, Phone, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
+import LocationSelector from "@/components/forms/LocationSelector";
 
 interface Organization {
   id: string;
@@ -38,29 +32,12 @@ interface OrganizationProfileFormProps {
   organization: Organization;
 }
 
-const provinces = [
-  "Yangon",
-  "Mandalay",
-  "Naypyidaw",
-  "Bago",
-  "Magway",
-  "Tanintharyi",
-  "Ayeyarwady",
-  "Sagaing",
-  "Shan",
-  "Kachin",
-  "Chin",
-  "Kayah",
-  "Kayin",
-  "Mon",
-  "Rakhine",
-];
-
 export default function OrganizationProfileForm({
   organization,
 }: OrganizationProfileFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: organization.name,
@@ -83,9 +60,22 @@ export default function OrganizationProfileForm({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // ✅ Added proper location change handler for LocationSelector
+  const handleLocationChange = (locationData: {
+    province: string;
+    district: string;
+  }) => {
+    setFormData((prev) => ({
+      ...prev,
+      province: locationData.province,
+      district: locationData.district,
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
     try {
       const response = await fetch(
@@ -108,9 +98,22 @@ export default function OrganizationProfileForm({
       router.push("/org-admin/profile");
     } catch (error) {
       console.error("Error updating organization:", error);
-      alert(
-        error instanceof Error ? error.message : "Failed to update organization"
-      );
+
+      if (error instanceof Error) {
+        // Try to parse API validation errors
+        try {
+          // If it's a fetch error, try to get more details
+          if (error.message.includes("Failed to update organization")) {
+            setError("Please check all required fields and try again.");
+          } else {
+            setError(error.message);
+          }
+        } catch {
+          setError(error.message);
+        }
+      } else {
+        setError("Failed to update organization profile");
+      }
     } finally {
       setLoading(false);
     }
@@ -119,6 +122,29 @@ export default function OrganizationProfileForm({
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <form onSubmit={handleSubmit} className="space-y-6">
+        {error && (
+          <div className="p-4 rounded-md bg-red-50 border border-red-200 text-red-700 text-sm">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-4 w-4 text-red-400 mt-0.5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="ml-2">
+                <h4 className="font-medium text-red-800 mb-1">Error:</h4>
+                <div className="text-sm">{error}</div>
+              </div>
+            </div>
+          </div>
+        )}
         {/* Basic Information */}
         <Card>
           <CardHeader>
@@ -201,7 +227,7 @@ export default function OrganizationProfileForm({
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => handleInputChange("phone", e.target.value)}
-                  placeholder="+95 9 xxx xxx xxx"
+                  placeholder="+66 x xxxx xxxx"
                   required
                 />
               </div>
@@ -241,39 +267,17 @@ export default function OrganizationProfileForm({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="province">Province</Label>
-                <Select
-                  value={formData.province}
-                  onValueChange={(value) =>
-                    handleInputChange("province", value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select province" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {provinces.map((province) => (
-                      <SelectItem key={province} value={province}>
-                        {province}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="district">District</Label>
-                <Input
-                  id="district"
-                  value={formData.district}
-                  onChange={(e) =>
-                    handleInputChange("district", e.target.value)
-                  }
-                  placeholder="Enter district"
-                />
-              </div>
-            </div>
+            {/* ✅ Replaced hardcoded Myanmar provinces with proper LocationSelector */}
+            <LocationSelector
+              value={{
+                province: formData.province,
+                district: formData.district,
+              }}
+              onChange={handleLocationChange}
+              disabled={loading}
+              key={`${formData.province}-${formData.district}`}
+              className="hover:bg-gray-50"
+            />
 
             <div>
               <Label htmlFor="address">Full Address</Label>
@@ -300,7 +304,7 @@ export default function OrganizationProfileForm({
                       parseFloat(e.target.value) || 0
                     )
                   }
-                  placeholder="16.8661"
+                  placeholder="13.7563" // ✅ Updated to Thailand coordinates
                 />
               </div>
               <div>
@@ -316,7 +320,7 @@ export default function OrganizationProfileForm({
                       parseFloat(e.target.value) || 0
                     )
                   }
-                  placeholder="96.1951"
+                  placeholder="100.5018" // ✅ Updated to Thailand coordinates
                 />
               </div>
             </div>

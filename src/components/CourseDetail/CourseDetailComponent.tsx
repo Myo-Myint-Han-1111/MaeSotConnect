@@ -220,21 +220,8 @@ export default function CourseDetailComponent({
           ? "ပတ်"
           : "week" // ← REMOVED PLURAL
       }`;
-    } else if (durationInDays < 365) {
-      // Less than a year, show as months with decimal precision
-      const months = durationInDays / 30.44;
-
-      // Show decimal only if it's significant
-      const formattedMonths =
-        months % 1 < 0.1 || months % 1 > 0.9
-          ? Math.round(months).toString()
-          : months.toFixed(1);
-
-      return `${formattedMonths} ${
-        language === "mm" ? "လ" : "month" // ← REMOVED PLURAL, always "month"
-      }`;
-    } else {
-      // Show as years and months with more precision
+    } else if (durationInDays >= 365) {
+      // Show as years and months with more precision - CHECK YEARS FIRST
       const totalMonths = durationInDays / 30.44;
       const years = Math.floor(totalMonths / 12);
       const remainingMonths = totalMonths % 12;
@@ -269,6 +256,19 @@ export default function CourseDetailComponent({
           language === "mm" ? "လ" : "month" // ← REMOVED PLURAL
         }`;
       }
+    } else {
+      // Less than a year, show as months with decimal precision (30-364 days)
+      const months = durationInDays / 30.44;
+
+      // Show decimal only if it's significant
+      const formattedMonths =
+        months % 1 < 0.1 || months % 1 > 0.9
+          ? Math.round(months).toString()
+          : months.toFixed(1);
+
+      return `${formattedMonths} ${
+        language === "mm" ? "လ" : "month" // ← REMOVED PLURAL, always "month"
+      }`;
     }
   };
 
@@ -324,11 +324,14 @@ export default function CourseDetailComponent({
         role: "YOUTH_ADVOCATE",
       };
     }
-    
+
     // For youth advocates, use their publicName from profile if available
-    if (course.createdByUser.role === 'YOUTH_ADVOCATE' && course.createdByUser.advocateProfile) {
+    if (
+      course.createdByUser.role === "YOUTH_ADVOCATE" &&
+      course.createdByUser.advocateProfile
+    ) {
       const profile = course.createdByUser.advocateProfile;
-      if (profile.status === 'APPROVED') {
+      if (profile.status === "APPROVED") {
         return {
           name: profile.publicName || t("course.anonymousYouthAdvocate"),
           image: profile.avatarUrl || "/images/AnonYouthAdvocate.png",
@@ -336,7 +339,7 @@ export default function CourseDetailComponent({
         };
       }
     }
-    
+
     // For organization admins and platform admins, use their regular profile
     return {
       name: course.createdByUser.name,
@@ -400,69 +403,70 @@ export default function CourseDetailComponent({
 
         {/* Course Info Card */}
         <div className="mb-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("course.details")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Left Column */}
-                  <div className="space-y-4">
-                    {/* Location */}
-                    <div className="flex items-start">
-                      <MapPin className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium text-foreground">
-                          {t("course.location")}
-                        </p>
-                        <p className="text-sm text-muted-foreground" dir="auto">
-                          {course.province || course.district
-                            ? course.district && course.province
-                              ? `${course.district}, ${course.province}`
-                              : course.district || course.province
-                            : "Location information not available"}
-                        </p>
-                      </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("course.details")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Left Column */}
+                <div className="space-y-4">
+                  {/* Location */}
+                  <div className="flex items-start">
+                    <MapPin className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {t("course.location")}
+                      </p>
+                      <p className="text-sm text-muted-foreground" dir="auto">
+                        {course.province || course.district
+                          ? course.district && course.province
+                            ? `${course.district}, ${course.province}`
+                            : course.district || course.province
+                          : "Location information not available"}
+                      </p>
                     </div>
+                  </div>
 
-                    {/* Date Range (Start & End Date) with DD/MM/YYYY format */}
-                    <div className="flex items-start">
-                      <Calendar className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium text-foreground">
-                          {t("course.dates")}
-                        </p>
-                        <p className="text-sm text-muted-foreground" dir="auto">
-                          {getLocalizedDateContent(
-                            course.startDate,
-                            course.startDateMm
-                          )}
-                          {course.endDate &&
-                            ` - ${getLocalizedDateContent(
-                              course.endDate,
-                              course.endDateMm
-                            )}`}
-                        </p>
-                      </div>
+                  {/* Date Range (Start & End Date) with DD/MM/YYYY format */}
+                  <div className="flex items-start">
+                    <Calendar className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {t("course.dates")}
+                      </p>
+                      <p className="text-sm text-muted-foreground" dir="auto">
+                        {getLocalizedDateContent(
+                          course.startDate,
+                          course.startDateMm
+                        )}
+                        {course.endDate &&
+                          ` - ${getLocalizedDateContent(
+                            course.endDate,
+                            course.endDateMm
+                          )}`}
+                      </p>
                     </div>
+                  </div>
 
-                    {/* Duration */}
-                    <div className="flex items-start">
-                      <Clock className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium text-foreground">
-                          {t("course.duration")}
-                        </p>
-                        <p className="text-sm text-muted-foreground" dir="auto">
-                          {language === "mm"
-                            ? formatDuration(course.durationMm ?? course.duration)
-                            : formatDuration(course.duration)}
-                        </p>
-                      </div>
+                  {/* Duration */}
+                  <div className="flex items-start">
+                    <Clock className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {t("course.duration")}
+                      </p>
+                      <p className="text-sm text-muted-foreground" dir="auto">
+                        {language === "mm"
+                          ? formatDuration(course.durationMm ?? course.duration)
+                          : formatDuration(course.duration)}
+                      </p>
                     </div>
+                  </div>
 
-                    {/* Fee - Updated to handle three conditions */}
-                    {course.feeAmount !== -1 && course.feeAmount !== undefined && (
+                  {/* Fee - Updated to handle three conditions */}
+                  {course.feeAmount !== -1 &&
+                    course.feeAmount !== undefined && (
                       <div className="flex items-start">
                         <div className="h-5 w-5 mr-2 mt-0.5 flex items-center justify-center text-muted-foreground">
                           ฿
@@ -471,7 +475,10 @@ export default function CourseDetailComponent({
                           <p className="text-sm font-medium text-foreground">
                             {t("course.fee")}
                           </p>
-                          <p className="text-sm text-muted-foreground" dir="auto">
+                          <p
+                            className="text-sm text-muted-foreground"
+                            dir="auto"
+                          >
                             {language === "mm"
                               ? formatCurrency(
                                   course.feeAmountMm ?? course.feeAmount
@@ -481,93 +488,93 @@ export default function CourseDetailComponent({
                         </div>
                       </div>
                     )}
+                </div>
+
+                {/* Right Column */}
+                <div className="space-y-4">
+                  {/* Schedule */}
+                  <div className="flex items-start">
+                    <BookOpen className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {t("course.schedule")}
+                      </p>
+                      <p className="text-sm text-muted-foreground" dir="auto">
+                        {getLocalizedDateContent(
+                          course.schedule,
+                          course.scheduleMm
+                        )}
+                      </p>
+                    </div>
                   </div>
 
-                  {/* Right Column */}
-                  <div className="space-y-4">
-                    {/* Schedule */}
+                  {/* Age Range - Only show if at least one age limit is defined and greater than 0 */}
+                  {((course.ageMin !== null &&
+                    course.ageMin !== undefined &&
+                    course.ageMin > 0) ||
+                    (course.ageMax !== null &&
+                      course.ageMax !== undefined &&
+                      course.ageMax > 0)) && (
                     <div className="flex items-start">
-                      <BookOpen className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                      <Users className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
                       <div>
                         <p className="text-sm font-medium text-foreground">
-                          {t("course.schedule")}
+                          {t("course.ageRange")}
+                        </p>
+                        <p className="text-sm text-muted-foreground" dir="auto">
+                          {language === "mm"
+                            ? formatAgeRange(
+                                course.ageMinMm ?? course.ageMin,
+                                course.ageMaxMm ?? course.ageMax
+                              )
+                            : formatAgeRange(course.ageMin, course.ageMax)}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Required Documents - Only show if documents are specified */}
+                  {(course.document && course.document.trim() !== "") ||
+                  (course.documentMm && course.documentMm.trim() !== "") ? (
+                    <div className="flex items-start">
+                      <FileText className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          {t("course.requiredDocuments")}
                         </p>
                         <p className="text-sm text-muted-foreground" dir="auto">
                           {getLocalizedDateContent(
-                            course.schedule,
-                            course.scheduleMm
+                            course.document,
+                            course.documentMm
                           )}
                         </p>
                       </div>
                     </div>
-
-                    {/* Age Range - Only show if at least one age limit is defined and greater than 0 */}
-                    {((course.ageMin !== null &&
-                      course.ageMin !== undefined &&
-                      course.ageMin > 0) ||
-                      (course.ageMax !== null &&
-                        course.ageMax !== undefined &&
-                        course.ageMax > 0)) && (
-                      <div className="flex items-start">
-                        <Users className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-medium text-foreground">
-                            {t("course.ageRange")}
-                          </p>
-                          <p className="text-sm text-muted-foreground" dir="auto">
-                            {language === "mm"
-                              ? formatAgeRange(
-                                  course.ageMinMm ?? course.ageMin,
-                                  course.ageMaxMm ?? course.ageMax
-                                )
-                              : formatAgeRange(course.ageMin, course.ageMax)}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Required Documents - Only show if documents are specified */}
-                    {(course.document && course.document.trim() !== "") ||
-                    (course.documentMm && course.documentMm.trim() !== "") ? (
-                      <div className="flex items-start">
-                        <FileText className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-medium text-foreground">
-                            {t("course.requiredDocuments")}
-                          </p>
-                          <p className="text-sm text-muted-foreground" dir="auto">
-                            {getLocalizedDateContent(
-                              course.document,
-                              course.documentMm
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                    ) : null}
-                  </div>
+                  ) : null}
                 </div>
+              </div>
 
-                {/* Day Availability Section */}
-                <div className="mt-6 pt-4 border-t border-gray-200">
-                  <h3 className="text-sm font-medium mb-3">
-                    {t("course.availableDays")}
-                  </h3>
-                  <DayIndicator
-                    days={[
-                      t("course.days.sun"),
-                      t("course.days.mon"),
-                      t("course.days.tue"),
-                      t("course.days.wed"),
-                      t("course.days.thu"),
-                      t("course.days.fri"),
-                      t("course.days.sat"),
-                    ]}
-                    availableDays={course.availableDays}
-                    size="medium"
-                  />
-                </div>
-              </CardContent>
-            </Card>
+              {/* Day Availability Section */}
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <h3 className="text-sm font-medium mb-3">
+                  {t("course.availableDays")}
+                </h3>
+                <DayIndicator
+                  days={[
+                    t("course.days.sun"),
+                    t("course.days.mon"),
+                    t("course.days.tue"),
+                    t("course.days.wed"),
+                    t("course.days.thu"),
+                    t("course.days.fri"),
+                    t("course.days.sat"),
+                  ]}
+                  availableDays={course.availableDays}
+                  size="medium"
+                />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Course Details Accordion */}
@@ -754,45 +761,45 @@ export default function CourseDetailComponent({
             </h2>
             <div>
               <ul className="list-decimal pl-6 space-y-3">
-                  {getLocalizedArray(course.howToApply, course.howToApplyMm)
-                    .filter((step) => step.trim() !== "")
-                    .map((step, index) => (
-                      <li
-                        key={index}
-                        className="text-muted-foreground"
-                        dir="auto"
-                      >
-                        {step}
-                      </li>
-                    ))}
-                </ul>
-
-                {/* Apply Button inside How to Apply section */}
-                {(course.applyButtonText || course.applyButtonTextMm) && (
-                  <div className="mt-6 text-center">
-                    <Button
-                      className="bg-blue-700 hover:bg-blue-600 text-white cursor-pointer px-6 py-2 text-base"
-                      onClick={() => {
-                        if (course.applyLink) {
-                          if (course.applyLink.startsWith("mailto:")) {
-                            window.location.href = course.applyLink;
-                          } else {
-                            window.open(
-                              course.applyLink,
-                              "_blank",
-                              "noopener,noreferrer"
-                            );
-                          }
-                        }
-                      }}
-                      disabled={!course.applyLink}
+                {getLocalizedArray(course.howToApply, course.howToApplyMm)
+                  .filter((step) => step.trim() !== "")
+                  .map((step, index) => (
+                    <li
+                      key={index}
+                      className="text-muted-foreground"
+                      dir="auto"
                     >
-                      {language === "mm" && course.applyButtonTextMm
-                        ? course.applyButtonTextMm
-                        : course.applyButtonText}
-                    </Button>
-                  </div>
-                )}
+                      {step}
+                    </li>
+                  ))}
+              </ul>
+
+              {/* Apply Button inside How to Apply section */}
+              {(course.applyButtonText || course.applyButtonTextMm) && (
+                <div className="mt-6 text-center">
+                  <Button
+                    className="bg-blue-700 hover:bg-blue-600 text-white cursor-pointer px-6 py-2 text-base"
+                    onClick={() => {
+                      if (course.applyLink) {
+                        if (course.applyLink.startsWith("mailto:")) {
+                          window.location.href = course.applyLink;
+                        } else {
+                          window.open(
+                            course.applyLink,
+                            "_blank",
+                            "noopener,noreferrer"
+                          );
+                        }
+                      }
+                    }}
+                    disabled={!course.applyLink}
+                  >
+                    {language === "mm" && course.applyButtonTextMm
+                      ? course.applyButtonTextMm
+                      : course.applyButtonText}
+                  </Button>
+                </div>
+              )}
             </div>
           </section>
         )}
@@ -802,7 +809,7 @@ export default function CourseDetailComponent({
           <section className="mb-10">
             {/* Title */}
             <h2 className="text-2xl font-bold mb-4">
-              {language === "mm" 
+              {language === "mm"
                 ? `${course.organizationInfo.name} အကြောင်း`
                 : `About ${course.organizationInfo.name}`}
             </h2>
@@ -823,7 +830,13 @@ export default function CourseDetailComponent({
             {/* Two-column layout for desktop */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Content Column */}
-              <div className={course.organizationInfo.logoImage ? "lg:col-span-2" : "lg:col-span-3"}>
+              <div
+                className={
+                  course.organizationInfo.logoImage
+                    ? "lg:col-span-2"
+                    : "lg:col-span-3"
+                }
+              >
                 {/* Description */}
                 <div className="mb-6">
                   <p className="text-muted-foreground text-lg leading-relaxed">
@@ -931,17 +944,19 @@ export default function CourseDetailComponent({
         {/* Youth Advocates Promotion - Subtle */}
         <div className="mt-8 p-5 bg-gray-50 rounded-lg mb-10">
           <p className="text-sm text-muted-foreground leading-relaxed italic mb-3">
-            {language === "mm" 
+            {language === "mm"
               ? "ကျွန်ုပ်တို့၏ လူငယ်ကိုယ်စားလှယ်များသည် ပညာရေးအစီအစဉ်များအကြောင်း လူငယ်များအား သတင်းအချက်အလက်များ မျှဝေပေးသူများဖြစ်ပါသည်။"
               : "Our youth advocates help connect young people with educational opportunities by sharing information about programs like this one."}
           </p>
           <Link href="/youthadvocates">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               className="text-xs bg-white hover:bg-blue-700 hover:text-white"
             >
-              {language === "mm" ? "လူငယ်ကိုယ်စားလှယ်များကို မိတ်ဆက်ပါ" : "Meet Our Youth Advocates"}
+              {language === "mm"
+                ? "လူငယ်ကိုယ်စားလှယ်များကို မိတ်ဆက်ပါ"
+                : "Meet Our Youth Advocates"}
             </Button>
           </Link>
         </div>

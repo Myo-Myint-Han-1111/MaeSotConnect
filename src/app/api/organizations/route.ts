@@ -31,7 +31,10 @@ export async function GET() {
     }
 
     // Platform admins and youth advocates can list organizations
-    if (session.user.role !== "PLATFORM_ADMIN" && session.user.role !== "YOUTH_ADVOCATE") {
+    if (
+      session.user.role !== "PLATFORM_ADMIN" &&
+      session.user.role !== "YOUTH_ADVOCATE"
+    ) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
