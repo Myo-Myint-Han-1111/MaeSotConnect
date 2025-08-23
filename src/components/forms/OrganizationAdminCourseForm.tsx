@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
 import {
@@ -153,12 +153,13 @@ const badgeOptions: BadgeOption[] = [
   { text: "Chess", color: "#fff", backgroundColor: "#8b4513" },
 ];
 
-// Helper function to decode estimated date and preferences when loading existing data
+/**
+ * Parses estimated date strings that may contain encoded preference flags
+ * Format: "date|startFlag|applyFlag" where flags are "1" or "0"
+ */
 const parseExistingEstimatedDate = (
   estimatedDateString: string | null | undefined
 ) => {
-  console.log("Parsing estimated date string:", estimatedDateString);
-
   if (!estimatedDateString || estimatedDateString === "") {
     return {
       estimatedDate: "",
@@ -167,32 +168,28 @@ const parseExistingEstimatedDate = (
     };
   }
 
-  // Check if the string contains our encoding (text|startFlag|applyFlag)
+  // Check if the string contains encoded flags (text|startFlag|applyFlag)
   const parts = estimatedDateString.split("|");
   if (parts.length === 3) {
-    const result = {
+    return {
       estimatedDate: parts[0],
       showEstimatedForStartDate: parts[1] === "1",
       showEstimatedForApplyByDate: parts[2] === "1",
     };
-    console.log("Decoded result:", result);
-    return result;
   }
 
-  // If no encoding found, it's old data - default to showing for both (backward compatibility)
-  const result = {
+  // Legacy format - default to showing for both (backward compatibility)
+  return {
     estimatedDate: estimatedDateString,
     showEstimatedForStartDate: true,
     showEstimatedForApplyByDate: true,
   };
-  console.log("Old format detected, using defaults:", result);
-  return result;
 };
 
 export default function OrganizationAdminCourseForm({
   initialData,
   mode,
-  existingImages = [],
+  existingImages,
   draftMode = false,
   backUrl = "/org-admin",
   editDraftId,
@@ -200,62 +197,70 @@ export default function OrganizationAdminCourseForm({
   isSubmitting,
   submitButtonText,
 }: CourseFormProps) {
+  
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("basic-info");
   const [isMobile, setIsMobile] = useState(false);
   const [existingImageList, setExistingImageList] =
-    useState<string[]>(existingImages);
+    useState<string[]>(existingImages || []);
   const [isCompressing, setIsCompressing] = useState(false);
-  const hasInitialized = useRef(false);
 
-  // Initialize form data with default values
+  // Initialize form data using lazy initialization for performance
   const [formData, setFormData] = useState<CourseFormData>(() => {
-    // Don't parse estimated dates here - wait for initialData to be stable
+    // Parse estimated date data from initialData if provided
+    const parsedEstimatedData = initialData?.estimatedDate
+      ? parseExistingEstimatedDate(initialData.estimatedDate)
+      : { estimatedDate: "", showEstimatedForStartDate: false, showEstimatedForApplyByDate: false };
+
+    const parsedEstimatedDataMm = initialData?.estimatedDateMm
+      ? parseExistingEstimatedDate(initialData.estimatedDateMm)
+      : { estimatedDate: "", showEstimatedForStartDate: false, showEstimatedForApplyByDate: false };
+
     return {
-      title: "",
-      titleMm: "",
-      subtitle: "",
-      subtitleMm: "",
-      province: "",
-      district: "",
-      address: "",
-      applyByDate: "",
-      applyByDateMm: "",
-      startByDate: "",
-      startByDateMm: "",
-      startDate: "",
-      endDate: "",
-      duration: null,
-      schedule: "",
-      scheduleMm: "",
-      feeAmount: 0,
-      ageMin: null,
-      ageMax: null,
-      document: "",
-      documentMm: "",
-      availableDays: [false, false, false, false, false, false, false],
-      description: "",
-      descriptionMm: "",
-      outcomes: [""],
-      outcomesMm: [""],
-      scheduleDetails: "",
-      scheduleDetailsMm: "",
-      selectionCriteria: [""],
-      selectionCriteriaMm: [""],
-      howToApply: [""],
-      howToApplyMm: [""],
-      applyButtonText: "",
-      applyButtonTextMm: "",
-      applyLink: "",
-      estimatedDate: "",
-      estimatedDateMm: "",
-      showEstimatedForStartDate: false,
-      showEstimatedForApplyByDate: false,
-      images: [],
-      badges: [],
-      faq: [{ question: "", questionMm: "", answer: "", answerMm: "" }],
+    title: initialData?.title || "",
+    titleMm: initialData?.titleMm || "",
+    subtitle: initialData?.subtitle || "",
+    subtitleMm: initialData?.subtitleMm || "",
+    province: initialData?.province || "",
+    district: initialData?.district || "",
+    address: initialData?.address || "",
+    applyByDate: initialData?.applyByDate || "",
+    applyByDateMm: initialData?.applyByDateMm || "",
+    startByDate: initialData?.startByDate || "",
+    startByDateMm: initialData?.startByDateMm || "",
+    startDate: initialData?.startDate || "",
+    endDate: initialData?.endDate || "",
+    duration: initialData?.duration || null,
+    schedule: initialData?.schedule || "",
+    scheduleMm: initialData?.scheduleMm || "",
+    feeAmount: initialData?.feeAmount ?? 0,
+    ageMin: initialData?.ageMin || null,
+    ageMax: initialData?.ageMax || null,
+    document: initialData?.document || "",
+    documentMm: initialData?.documentMm || "",
+    availableDays: initialData?.availableDays || [false, false, false, false, false, false, false],
+    description: initialData?.description || "",
+    descriptionMm: initialData?.descriptionMm || "",
+    outcomes: initialData?.outcomes || [""],
+    outcomesMm: initialData?.outcomesMm || [""],
+    scheduleDetails: initialData?.scheduleDetails || "",
+    scheduleDetailsMm: initialData?.scheduleDetailsMm || "",
+    selectionCriteria: initialData?.selectionCriteria || [""],
+    selectionCriteriaMm: initialData?.selectionCriteriaMm || [""],
+    howToApply: initialData?.howToApply || [""],
+    howToApplyMm: initialData?.howToApplyMm || [""],
+    applyButtonText: initialData?.applyButtonText || "",
+    applyButtonTextMm: initialData?.applyButtonTextMm || "",
+    applyLink: initialData?.applyLink || "",
+    estimatedDate: parsedEstimatedData.estimatedDate,
+    estimatedDateMm: parsedEstimatedDataMm.estimatedDate,
+    showEstimatedForStartDate: parsedEstimatedData.showEstimatedForStartDate || parsedEstimatedDataMm.showEstimatedForStartDate,
+    showEstimatedForApplyByDate: parsedEstimatedData.showEstimatedForApplyByDate || parsedEstimatedDataMm.showEstimatedForApplyByDate,
+    images: [],
+    badges: initialData?.badges || [],
+    faq: initialData?.faq || [{ question: "", questionMm: "", answer: "", answerMm: "" }],
     };
   });
 
@@ -281,159 +286,11 @@ export default function OrganizationAdminCourseForm({
     return () => mediaQuery.removeEventListener("change", handleMediaChange);
   }, []);
 
-  // Add this useEffect to debug the form data
-  // useEffect(() => {
-  //   console.log(
-  //     "Current form data - Province:",
-  //     formData.province,
-  //     "District:",
-  //     formData.district
-  //   );
-  // }, [formData.province, formData.district]);
-
   useEffect(() => {
-    setExistingImageList(existingImages);
+    if (existingImages) {
+      setExistingImageList(existingImages);
+    }
   }, [existingImages]);
-
-  useEffect(() => {
-    // ✅ SAFEST FIX: Only run once when initialData exists and hasn't been initialized
-    if (initialData && mode === "edit" && !hasInitialized.current) {
-      hasInitialized.current = true;
-
-      console.log("=== CourseForm: Syncing with initialData (ONE TIME) ===");
-      console.log("Mode:", mode);
-      console.log("InitialData:", initialData);
-      console.log("Raw estimatedDate:", initialData.estimatedDate);
-      console.log("Raw estimatedDateMm:", initialData.estimatedDateMm);
-
-      // Parse existing estimated date data
-      const estimatedPrefs = parseExistingEstimatedDate(
-        initialData.estimatedDate
-      );
-      const estimatedPrefsMm = parseExistingEstimatedDate(
-        initialData.estimatedDateMm
-      );
-
-      console.log("Parsed English prefs:", estimatedPrefs);
-      console.log("Parsed Myanmar prefs:", estimatedPrefsMm);
-
-      // Use the same checkbox preferences for both languages
-      const showStart =
-        estimatedPrefs.showEstimatedForStartDate ||
-        estimatedPrefsMm.showEstimatedForStartDate;
-      const showApply =
-        estimatedPrefs.showEstimatedForApplyByDate ||
-        estimatedPrefsMm.showEstimatedForApplyByDate;
-
-      setFormData({
-        title: initialData.title ?? "",
-        titleMm: initialData.titleMm ?? "",
-        subtitle: initialData.subtitle ?? "",
-        subtitleMm: initialData.subtitleMm ?? "",
-        province: initialData.province ?? "",
-        district: initialData.district ?? "",
-        address: initialData.address ?? "",
-        applyByDate: initialData.applyByDate ?? "",
-        applyByDateMm: initialData.applyByDateMm ?? "",
-        startByDate: initialData.startByDate ?? "",
-        startByDateMm: initialData.startByDateMm ?? "",
-        startDate: initialData.startDate ?? "",
-        endDate: initialData.endDate ?? "",
-        duration: initialData.duration ?? null,
-        schedule: initialData.schedule ?? "",
-        scheduleMm: initialData.scheduleMm ?? "",
-        feeAmount: initialData.feeAmount ?? -1,
-        ageMin:
-          initialData.ageMin && initialData.ageMin > 0
-            ? initialData.ageMin
-            : null,
-        ageMax:
-          initialData.ageMax && initialData.ageMax > 0
-            ? initialData.ageMax
-            : null,
-        document: initialData.document ?? "",
-        documentMm: initialData.documentMm ?? "",
-        availableDays: initialData.availableDays ?? [
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-        ],
-        description: initialData.description ?? "",
-        descriptionMm: initialData.descriptionMm ?? "",
-        outcomes: initialData.outcomes?.length ? initialData.outcomes : [""],
-        outcomesMm: initialData.outcomesMm?.length
-          ? initialData.outcomesMm
-          : [""],
-        scheduleDetails: initialData.scheduleDetails ?? "",
-        scheduleDetailsMm: initialData.scheduleDetailsMm ?? "",
-        selectionCriteria: initialData.selectionCriteria?.length
-          ? initialData.selectionCriteria
-          : [""],
-        selectionCriteriaMm: initialData.selectionCriteriaMm?.length
-          ? initialData.selectionCriteriaMm
-          : [""],
-        howToApply: initialData.howToApply?.length
-          ? initialData.howToApply
-          : [""],
-        howToApplyMm: initialData.howToApplyMm?.length
-          ? initialData.howToApplyMm
-          : [""],
-        applyButtonText: initialData.applyButtonText ?? "",
-        applyButtonTextMm: initialData.applyButtonTextMm ?? "",
-        applyLink: initialData.applyLink ?? "",
-        // Set the decoded estimated date values
-        estimatedDate: estimatedPrefs.estimatedDate,
-        estimatedDateMm: estimatedPrefsMm.estimatedDate,
-        showEstimatedForStartDate: showStart,
-        showEstimatedForApplyByDate: showApply,
-        images: [],
-        badges: initialData.badges ?? [],
-        faq: initialData.faq?.length
-          ? initialData.faq
-          : [{ question: "", questionMm: "", answer: "", answerMm: "" }],
-      });
-
-      console.log("=== Form data updated with estimated dates ===");
-      console.log("estimatedDate set to:", estimatedPrefs.estimatedDate);
-      console.log("estimatedDateMm set to:", estimatedPrefsMm.estimatedDate);
-      console.log("showEstimatedForStartDate set to:", showStart);
-      console.log("showEstimatedForApplyByDate set to:", showApply);
-    }
-  }, [initialData, mode]);
-
-  // Reset the ref when mode changes to create
-  useEffect(() => {
-    if (mode === "create") {
-      hasInitialized.current = false;
-    }
-  }, [mode]);
-
-  // Debug effect to monitor form data changes
-  useEffect(() => {
-    if (mode === "edit") {
-      console.log("=== Form Data State Changed ===");
-      console.log("estimatedDate:", formData.estimatedDate);
-      console.log("estimatedDateMm:", formData.estimatedDateMm);
-      console.log(
-        "showEstimatedForStartDate:",
-        formData.showEstimatedForStartDate
-      );
-      console.log(
-        "showEstimatedForApplyByDate:",
-        formData.showEstimatedForApplyByDate
-      );
-    }
-  }, [
-    formData.estimatedDate,
-    formData.estimatedDateMm,
-    formData.showEstimatedForStartDate,
-    formData.showEstimatedForApplyByDate,
-    mode,
-  ]);
 
   const handleTextChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -453,15 +310,12 @@ export default function OrganizationAdminCourseForm({
 
     // Special handling for age fields to prevent auto-fill
     if (fieldName === "ageMin" || fieldName === "ageMax") {
-      console.log(`Age field ${fieldName} input:`, inputValue); // Debug log
-
       // If the input is completely empty, set to null (no auto-fill)
       if (
         inputValue === "" ||
         inputValue === null ||
         inputValue === undefined
       ) {
-        console.log(`Setting ${fieldName} to null`); // Debug log
         setFormData((prev) => ({
           ...prev,
           [fieldName]: null,
@@ -474,14 +328,12 @@ export default function OrganizationAdminCourseForm({
 
       // Only set the value if it's a valid positive number
       if (!isNaN(numericValue) && numericValue > 0) {
-        console.log(`Setting ${fieldName} to:`, numericValue); // Debug log
         setFormData((prev) => ({
           ...prev,
           [fieldName]: numericValue,
         }));
       } else {
         // For invalid values (0, negative, or NaN), set to null
-        console.log(`Invalid value for ${fieldName}, setting to null`); // Debug log
         setFormData((prev) => ({
           ...prev,
           [fieldName]: null,
@@ -711,7 +563,6 @@ export default function OrganizationAdminCourseForm({
 
           compressedImages.push(result.file);
         } catch (compressionError) {
-          console.error(`Failed to compress ${file.name}:`, compressionError);
           alert(
             `Failed to compress ${file.name}. Please try a different image.`
           );
@@ -724,7 +575,6 @@ export default function OrganizationAdminCourseForm({
         images: [...prev.images, ...compressedImages],
       }));
     } catch (error) {
-      console.error("Error during image upload:", error);
       alert("Failed to process images. Please try again.");
     } finally {
       setIsCompressing(false);
@@ -764,6 +614,12 @@ export default function OrganizationAdminCourseForm({
     }));
   };
 
+  // Memoize the location value to prevent infinite re-renders
+  const locationValue = useMemo(() => ({
+    province: formData.province,
+    district: formData.district,
+  }), [formData.province, formData.district]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -792,16 +648,6 @@ export default function OrganizationAdminCourseForm({
       }
     }
 
-    // Add debugging here
-    console.log("Form data before submission:", formData);
-    console.log("Draft mode:", draftMode);
-    console.log("How to Apply data:", formData.howToApply);
-    console.log("How to Apply MM data:", formData.howToApplyMm);
-
-    // THIS DEBUG CODE HERE (before cleanedFormData processing):
-    console.log("=== FORM SUBMIT DEBUG ===");
-    console.log("Form ageMin:", formData.ageMin, typeof formData.ageMin);
-    console.log("Form ageMax:", formData.ageMax, typeof formData.ageMax);
 
     // IMPORTANT: Ensure howToApply arrays are properly filtered and encode estimated date preferences
     const cleanedFormData = {
@@ -834,26 +680,11 @@ export default function OrganizationAdminCourseForm({
         : "",
     };
 
-    // THIS DEBUG CODE HERE (after cleanedFormData processing):
-    console.log("=== FORM CLEANED DATA DEBUG ===");
-    console.log(
-      "Cleaned ageMin:",
-      cleanedFormData.ageMin,
-      typeof cleanedFormData.ageMin
-    );
-    console.log(
-      "Cleaned ageMax:",
-      cleanedFormData.ageMax,
-      typeof cleanedFormData.ageMax
-    );
-
     // Remove UI-only fields before submission
     delete (cleanedFormData as Partial<CourseFormData>)
       .showEstimatedForStartDate;
     delete (cleanedFormData as Partial<CourseFormData>)
       .showEstimatedForApplyByDate;
-
-    console.log("Cleaned form data:", cleanedFormData);
 
     // If external onSubmit is provided, use it instead of internal logic
     if (onSubmit) {
@@ -938,7 +769,6 @@ export default function OrganizationAdminCourseForm({
           images: undefined,
         };
 
-        console.log("JSON data being sent:", jsonData);
         formDataToSend.append("data", JSON.stringify(jsonData));
 
         // Append new images
@@ -1301,13 +1131,9 @@ export default function OrganizationAdminCourseForm({
 
                   {/* Location - Updated to use LocationSelector */}
                   <LocationSelector
-                    value={{
-                      province: formData.province,
-                      district: formData.district,
-                    }}
+                    value={locationValue}
                     onChange={handleLocationChange}
                     disabled={isLoading}
-                    // key={`${formData.province}-${formData.district}`}
                   />
 
                   {/* Age Requirements - Fixed controlled input */}

@@ -25,12 +25,12 @@ const courseSchema = z.object({
   startDate: z.string().transform((str) => new Date(str)),
   startDateMm: z
     .string()
-    .transform((str) => new Date(str))
+    .transform((str) => str ? new Date(str) : undefined)
     .optional(),
   endDate: z.string().transform((str) => new Date(str)),
   endDateMm: z
     .string()
-    .transform((str) => new Date(str))
+    .transform((str) => str ? new Date(str) : undefined)
     .optional(),
   duration: z.number().positive(),
   durationMm: z.number().positive().optional(),
@@ -43,11 +43,11 @@ const courseSchema = z.object({
   address: z.string().optional(),
   applyByDate: z
     .string()
-    .transform((str) => new Date(str))
+    .transform((str) => str ? new Date(str) : undefined)
     .optional(),
   applyByDateMm: z
     .string()
-    .transform((str) => new Date(str))
+    .transform((str) => str ? new Date(str) : undefined)
     .optional(),
   ageMin: z.number().optional(),
   ageMax: z.number().optional(),
@@ -91,7 +91,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    let body;
+    const contentType = request.headers.get("content-type");
+    
+    if (contentType && contentType.includes("multipart/form-data")) {
+      const formData = await request.formData();
+      const dataString = formData.get("data") as string;
+      if (!dataString) {
+        return NextResponse.json({ error: "No data provided in form" }, { status: 400 });
+      }
+      
+      try {
+        const parsedData = JSON.parse(dataString);
+        body = parsedData.content || parsedData;
+      } catch (parseError) {
+        console.error("Failed to parse JSON from FormData:", parseError);
+        return NextResponse.json({ error: "Invalid JSON in form data" }, { status: 400 });
+      }
+    } else {
+      body = await request.json();
+    }
+    
     const validatedData = courseSchema.parse(body);
 
     // Create a content draft for platform admin review
@@ -103,10 +123,10 @@ export async function POST(request: NextRequest) {
       // Convert dates back to ISO strings for JSON storage
       startDate: validatedData.startDate.toISOString(),
       endDate: validatedData.endDate.toISOString(),
-      startDateMm: validatedData.startDateMm?.toISOString(),
-      endDateMm: validatedData.endDateMm?.toISOString(),
-      applyByDate: validatedData.applyByDate?.toISOString(),
-      applyByDateMm: validatedData.applyByDateMm?.toISOString(),
+      startDateMm: validatedData.startDateMm?.toISOString() || undefined,
+      endDateMm: validatedData.endDateMm?.toISOString() || undefined,
+      applyByDate: validatedData.applyByDate?.toISOString() || undefined,
+      applyByDateMm: validatedData.applyByDateMm?.toISOString() || undefined,
     };
 
     const draft = await prisma.contentDraft.create({

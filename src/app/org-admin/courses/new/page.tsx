@@ -1,7 +1,7 @@
 "use client";
 
 // app/org-admin/courses/new/page.tsx
-import OrgAdminCourseForm from "@/components/forms/OrganizationAdminCourseForm";
+import OrganizationAdminCourseForm from "@/components/forms/OrganizationAdminCourseForm";
 
 export default function NewCoursePage() {
   return (
@@ -14,7 +14,11 @@ export default function NewCoursePage() {
         </p>
       </div>
 
-      <OrgAdminCourseForm mode="create" />
+      <OrganizationAdminCourseForm
+        mode="create"
+        draftMode={true}
+        backUrl="/org-admin/courses"
+      />
     </div>
   );
 }
