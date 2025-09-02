@@ -33,6 +33,9 @@ interface Course {
   startDate: string;
   endDate?: string;
   duration?: number;
+  durationUnit?: string;
+  durationMm?: number;
+  durationUnitMm?: string;
   images: string[];
   badges: {
     text: string;
@@ -40,6 +43,20 @@ interface Course {
     backgroundColor: string;
   }[];
 }
+
+const formatDuration = (duration: number, unit: string = "DAYS"): string => {
+  if (!duration) return "";
+
+  const unitLabels: { [key: string]: { single: string; plural: string } } = {
+    DAYS: { single: "day", plural: "days" },
+    WEEKS: { single: "week", plural: "weeks" },
+    MONTHS: { single: "month", plural: "months" },
+    YEARS: { single: "year", plural: "years" },
+  };
+
+  const label = unitLabels[unit] || unitLabels.DAYS;
+  return `${duration} ${duration === 1 ? label.single : label.plural}`;
+};
 
 interface Organization {
   id: string;
@@ -127,8 +144,8 @@ export default function CoursesPage() {
     async function fetchData() {
       try {
         // Fetch all courses
-        const coursesResponse = await fetch('/api/courses', {
-          cache: 'no-store'
+        const coursesResponse = await fetch("/api/courses", {
+          cache: "no-store",
         });
         if (!coursesResponse.ok) {
           throw new Error("Failed to fetch courses");
@@ -136,8 +153,8 @@ export default function CoursesPage() {
         const coursesData = await coursesResponse.json();
 
         // Fetch organizations for display
-        const orgsResponse = await fetch('/api/organizations', {
-          cache: 'no-store'
+        const orgsResponse = await fetch("/api/organizations", {
+          cache: "no-store",
         });
         if (!orgsResponse.ok) {
           throw new Error("Failed to fetch organizations");
@@ -376,7 +393,10 @@ export default function CoursesPage() {
             const status = getCourseStatus(course);
 
             return (
-              <Card key={course.id} className="overflow-hidden relative bg-white">
+              <Card
+                key={course.id}
+                className="overflow-hidden relative bg-white"
+              >
                 {/* NEW: Status Badge */}
                 <div className="absolute top-2 right-2 z-10">
                   <span
@@ -450,9 +470,10 @@ export default function CoursesPage() {
                         {formatDateToDDMMYYYY(course.endDate)}
                       </p>
                     )}
-                    {course.duration && (
+                    {course.duration && course.durationUnit && (
                       <p>
-                        <strong>Duration:</strong> {course.duration} days
+                        <strong>Duration:</strong>{" "}
+                        {formatDuration(course.duration, course.durationUnit)}
                       </p>
                     )}
                   </div>

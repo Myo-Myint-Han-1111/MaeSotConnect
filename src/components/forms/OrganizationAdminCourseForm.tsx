@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
 import {
@@ -15,6 +15,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import LocationSelector from "@/components/forms/LocationSelector";
 import Image from "next/image";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Tooltip,
   TooltipContent,
@@ -56,9 +63,12 @@ interface CourseFormData {
   startDate: string;
   endDate: string;
   duration: number | null;
+  durationUnit: string;
+  durationMm: number | null;
+  durationUnitMm?: string;
   schedule: string;
   scheduleMm: string;
-  feeAmount: number;
+  feeAmount: number | null;
   ageMin?: number | null;
   ageMax?: number | null;
   document: string;
@@ -153,6 +163,17 @@ const badgeOptions: BadgeOption[] = [
   { text: "Chess", color: "#fff", backgroundColor: "#8b4513" },
 ];
 
+// Helper function to check if estimated date is already encoded
+const isAlreadyEncoded = (dateString: string): boolean => {
+  if (!dateString) return false;
+  const parts = dateString.split("|");
+  return (
+    parts.length === 3 &&
+    (parts[1] === "0" || parts[1] === "1") &&
+    (parts[2] === "0" || parts[2] === "1")
+  );
+};
+
 /**
  * Parses estimated date strings that may contain encoded preference flags
  * Format: "date|startFlag|applyFlag" where flags are "1" or "0"
@@ -168,13 +189,28 @@ const parseExistingEstimatedDate = (
     };
   }
 
-  // Check if the string contains encoded flags (text|startFlag|applyFlag)
+  // Handle corrupted data with too many pipe symbols
   const parts = estimatedDateString.split("|");
+
+  // If we have exactly 3 parts, it's properly encoded
   if (parts.length === 3) {
     return {
       estimatedDate: parts[0],
       showEstimatedForStartDate: parts[1] === "1",
       showEstimatedForApplyByDate: parts[2] === "1",
+    };
+  }
+
+  // If we have more than 3 parts, it's corrupted - take only the first part as the actual date
+  if (parts.length > 3) {
+    console.warn(
+      "Corrupted estimated date detected, cleaning:",
+      estimatedDateString
+    );
+    return {
+      estimatedDate: parts[0], // Only use the actual date text
+      showEstimatedForStartDate: true, // Default to showing
+      showEstimatedForApplyByDate: true, // Default to showing
     };
   }
 
@@ -197,14 +233,14 @@ export default function OrganizationAdminCourseForm({
   isSubmitting,
   submitButtonText,
 }: CourseFormProps) {
-  
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("basic-info");
   const [isMobile, setIsMobile] = useState(false);
-  const [existingImageList, setExistingImageList] =
-    useState<string[]>(existingImages || []);
+  const [existingImageList, setExistingImageList] = useState<string[]>(
+    existingImages || []
+  );
   const [isCompressing, setIsCompressing] = useState(false);
 
   // Initialize form data using lazy initialization for performance
@@ -212,55 +248,80 @@ export default function OrganizationAdminCourseForm({
     // Parse estimated date data from initialData if provided
     const parsedEstimatedData = initialData?.estimatedDate
       ? parseExistingEstimatedDate(initialData.estimatedDate)
-      : { estimatedDate: "", showEstimatedForStartDate: false, showEstimatedForApplyByDate: false };
+      : {
+          estimatedDate: "",
+          showEstimatedForStartDate: false,
+          showEstimatedForApplyByDate: false,
+        };
 
     const parsedEstimatedDataMm = initialData?.estimatedDateMm
       ? parseExistingEstimatedDate(initialData.estimatedDateMm)
-      : { estimatedDate: "", showEstimatedForStartDate: false, showEstimatedForApplyByDate: false };
+      : {
+          estimatedDate: "",
+          showEstimatedForStartDate: false,
+          showEstimatedForApplyByDate: false,
+        };
 
     return {
-    title: initialData?.title || "",
-    titleMm: initialData?.titleMm || "",
-    subtitle: initialData?.subtitle || "",
-    subtitleMm: initialData?.subtitleMm || "",
-    province: initialData?.province || "",
-    district: initialData?.district || "",
-    address: initialData?.address || "",
-    applyByDate: initialData?.applyByDate || "",
-    applyByDateMm: initialData?.applyByDateMm || "",
-    startByDate: initialData?.startByDate || "",
-    startByDateMm: initialData?.startByDateMm || "",
-    startDate: initialData?.startDate || "",
-    endDate: initialData?.endDate || "",
-    duration: initialData?.duration || null,
-    schedule: initialData?.schedule || "",
-    scheduleMm: initialData?.scheduleMm || "",
-    feeAmount: initialData?.feeAmount ?? 0,
-    ageMin: initialData?.ageMin || null,
-    ageMax: initialData?.ageMax || null,
-    document: initialData?.document || "",
-    documentMm: initialData?.documentMm || "",
-    availableDays: initialData?.availableDays || [false, false, false, false, false, false, false],
-    description: initialData?.description || "",
-    descriptionMm: initialData?.descriptionMm || "",
-    outcomes: initialData?.outcomes || [""],
-    outcomesMm: initialData?.outcomesMm || [""],
-    scheduleDetails: initialData?.scheduleDetails || "",
-    scheduleDetailsMm: initialData?.scheduleDetailsMm || "",
-    selectionCriteria: initialData?.selectionCriteria || [""],
-    selectionCriteriaMm: initialData?.selectionCriteriaMm || [""],
-    howToApply: initialData?.howToApply || [""],
-    howToApplyMm: initialData?.howToApplyMm || [""],
-    applyButtonText: initialData?.applyButtonText || "",
-    applyButtonTextMm: initialData?.applyButtonTextMm || "",
-    applyLink: initialData?.applyLink || "",
-    estimatedDate: parsedEstimatedData.estimatedDate,
-    estimatedDateMm: parsedEstimatedDataMm.estimatedDate,
-    showEstimatedForStartDate: parsedEstimatedData.showEstimatedForStartDate || parsedEstimatedDataMm.showEstimatedForStartDate,
-    showEstimatedForApplyByDate: parsedEstimatedData.showEstimatedForApplyByDate || parsedEstimatedDataMm.showEstimatedForApplyByDate,
-    images: [],
-    badges: initialData?.badges || [],
-    faq: initialData?.faq || [{ question: "", questionMm: "", answer: "", answerMm: "" }],
+      title: initialData?.title || "",
+      titleMm: initialData?.titleMm || "",
+      subtitle: initialData?.subtitle || "",
+      subtitleMm: initialData?.subtitleMm || "",
+      province: initialData?.province || "",
+      district: initialData?.district || "",
+      address: initialData?.address || "",
+      applyByDate: initialData?.applyByDate || "",
+      applyByDateMm: initialData?.applyByDateMm || "",
+      startByDate: initialData?.startByDate || "",
+      startByDateMm: initialData?.startByDateMm || "",
+      startDate: initialData?.startDate || "",
+      endDate: initialData?.endDate || "",
+      duration: initialData?.duration || null,
+      durationUnit: initialData?.durationUnit || "DAYS",
+      durationMm: initialData?.durationMm || null,
+      durationUnitMm: initialData?.durationUnitMm,
+      schedule: initialData?.schedule || "",
+      scheduleMm: initialData?.scheduleMm || "",
+      feeAmount: initialData?.feeAmount ?? null,
+      ageMin: initialData?.ageMin || null,
+      ageMax: initialData?.ageMax || null,
+      document: initialData?.document || "",
+      documentMm: initialData?.documentMm || "",
+      availableDays: initialData?.availableDays || [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+      ],
+      description: initialData?.description || "",
+      descriptionMm: initialData?.descriptionMm || "",
+      outcomes: initialData?.outcomes || [""],
+      outcomesMm: initialData?.outcomesMm || [""],
+      scheduleDetails: initialData?.scheduleDetails || "",
+      scheduleDetailsMm: initialData?.scheduleDetailsMm || "",
+      selectionCriteria: initialData?.selectionCriteria || [""],
+      selectionCriteriaMm: initialData?.selectionCriteriaMm || [""],
+      howToApply: initialData?.howToApply || [""],
+      howToApplyMm: initialData?.howToApplyMm || [""],
+      applyButtonText: initialData?.applyButtonText || "",
+      applyButtonTextMm: initialData?.applyButtonTextMm || "",
+      applyLink: initialData?.applyLink || "",
+      estimatedDate: parsedEstimatedData.estimatedDate,
+      estimatedDateMm: parsedEstimatedDataMm.estimatedDate,
+      showEstimatedForStartDate:
+        parsedEstimatedData.showEstimatedForStartDate ||
+        parsedEstimatedDataMm.showEstimatedForStartDate,
+      showEstimatedForApplyByDate:
+        parsedEstimatedData.showEstimatedForApplyByDate ||
+        parsedEstimatedDataMm.showEstimatedForApplyByDate,
+      images: [],
+      badges: initialData?.badges || [],
+      faq: initialData?.faq || [
+        { question: "", questionMm: "", answer: "", answerMm: "" },
+      ],
     };
   });
 
@@ -562,7 +623,7 @@ export default function OrganizationAdminCourseForm({
           });
 
           compressedImages.push(result.file);
-        } catch (compressionError) {
+        } catch (_compressionError) {
           alert(
             `Failed to compress ${file.name}. Please try a different image.`
           );
@@ -574,7 +635,7 @@ export default function OrganizationAdminCourseForm({
         ...prev,
         images: [...prev.images, ...compressedImages],
       }));
-    } catch (error) {
+    } catch (_error) {
       alert("Failed to process images. Please try again.");
     } finally {
       setIsCompressing(false);
@@ -615,10 +676,13 @@ export default function OrganizationAdminCourseForm({
   };
 
   // Memoize the location value to prevent infinite re-renders
-  const locationValue = useMemo(() => ({
-    province: formData.province,
-    district: formData.district,
-  }), [formData.province, formData.district]);
+  const locationValue = useMemo(
+    () => ({
+      province: formData.province,
+      district: formData.district,
+    }),
+    [formData.province, formData.district]
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -646,8 +710,20 @@ export default function OrganizationAdminCourseForm({
         setIsLoading(false);
         return;
       }
-    }
 
+      // FOR EDITING MODE: Don't require all 7 days to be selected
+      // Only validate if this is a new course creation, not editing
+      if (mode === "create") {
+        const hasSelectedDays = formData.availableDays.some(
+          (day) => day === true
+        );
+        if (!hasSelectedDays) {
+          setError("Please select at least one available day");
+          setIsLoading(false);
+          return;
+        }
+      }
+    }
 
     // IMPORTANT: Ensure howToApply arrays are properly filtered and encode estimated date preferences
     const cleanedFormData = {
@@ -669,14 +745,18 @@ export default function OrganizationAdminCourseForm({
           : Number(formData.ageMax),
       // Encode the display preferences into the estimated date field
       estimatedDate: formData.estimatedDate
-        ? `${formData.estimatedDate}|${
-            formData.showEstimatedForStartDate ? "1" : "0"
-          }|${formData.showEstimatedForApplyByDate ? "1" : "0"}`
+        ? isAlreadyEncoded(formData.estimatedDate)
+          ? formData.estimatedDate // Already encoded, don't re-encode
+          : `${formData.estimatedDate}|${
+              formData.showEstimatedForStartDate ? "1" : "0"
+            }|${formData.showEstimatedForApplyByDate ? "1" : "0"}`
         : "",
       estimatedDateMm: formData.estimatedDateMm
-        ? `${formData.estimatedDateMm}|${
-            formData.showEstimatedForStartDate ? "1" : "0"
-          }|${formData.showEstimatedForApplyByDate ? "1" : "0"}`
+        ? isAlreadyEncoded(formData.estimatedDateMm)
+          ? formData.estimatedDateMm // Already encoded, don't re-encode
+          : `${formData.estimatedDateMm}|${
+              formData.showEstimatedForStartDate ? "1" : "0"
+            }|${formData.showEstimatedForApplyByDate ? "1" : "0"}`
         : "",
     };
 
@@ -705,10 +785,35 @@ export default function OrganizationAdminCourseForm({
         // Submit as draft to the org admin API with image support
         const formDataToSend = new FormData();
 
+        // ENSURE ALL FORM DATA IS PRESERVED
+        const completeFormData = {
+          ...cleanedFormData,
+          // Explicitly include critical fields that might be missing
+          availableDays: formData.availableDays || [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+          ],
+          badges: formData.badges || [],
+          imageUrls: [] as string[], // Fix TypeScript type inference
+        };
+
+        // Include existing images that were kept
+        if (existingImageList.length > 0) {
+          const existingImages = existingImageList.filter(
+            (url) => !url.startsWith("blob:") // Exclude blob URLs (new uploads)
+          );
+          completeFormData.imageUrls = existingImages;
+        }
+
         const draftData = {
-          title: cleanedFormData.title,
+          title: completeFormData.title,
           type: "COURSE",
-          content: cleanedFormData,
+          content: completeFormData,
           status: "PENDING", // Submit directly for review
         };
 
@@ -718,18 +823,6 @@ export default function OrganizationAdminCourseForm({
         formData.images.forEach((file, index) => {
           formDataToSend.append(`image_${index}`, file);
         });
-
-        // Include existing images that were kept
-        if (existingImageList.length > 0) {
-          const existingImages = existingImageList.filter(
-            (url) => !url.startsWith("blob:") // Exclude blob URLs (new uploads)
-          );
-          if (existingImages.length > 0) {
-            Object.assign(cleanedFormData, { imageUrls: existingImages });
-            draftData.content = cleanedFormData;
-            formDataToSend.set("data", JSON.stringify(draftData));
-          }
-        }
 
         const url = editDraftId
           ? `/api/org-admin/courses/edit/${editDraftId}`
@@ -1454,92 +1547,151 @@ export default function OrganizationAdminCourseForm({
                     </div>
                   </div>
 
+                  {/* Estimated Date Text Fields - Show if either checkbox is checked */}
+                  {(formData.showEstimatedForStartDate ||
+                    formData.showEstimatedForApplyByDate) && (
+                    <div className="space-y-2 mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                      <Label>Estimated Date Text</Label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <div className="text-xs text-muted-foreground mb-1">
+                            English
+                          </div>
+                          <Input
+                            id="estimatedDate"
+                            name="estimatedDate"
+                            value={formData.estimatedDate ?? ""}
+                            onChange={handleTextChange}
+                            placeholder="e.g. Late January, Early March, Mid-2025"
+                          />
+                        </div>
+                        <div>
+                          <div className="text-xs text-muted-foreground mb-1">
+                            Myanmar
+                          </div>
+                          <Input
+                            id="estimatedDateMm"
+                            name="estimatedDateMm"
+                            value={formData.estimatedDateMm ?? ""}
+                            onChange={handleTextChange}
+                            placeholder="Myanmar translation..."
+                            dir="auto"
+                          />
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Enter text that describes when the date might change
+                        (e.g., Late January, Early Spring, Mid-2025)
+                      </p>
+                    </div>
+                  )}
+
                   {/* Duration and Fee */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* English Duration and Unit */}
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <Label htmlFor="duration">
                           <Clock className="h-4 w-4 inline mr-1" />
-                          Duration (days)*
+                          Duration*
                         </Label>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Info className="h-4 w-4 text-muted-foreground" />
                           </TooltipTrigger>
                           <TooltipContent className="max-w-sm">
-                            <p>
-                              Enter the total number of active program days, not
-                              the time span.
-                            </p>
+                            <p>Enter the total duration of the program.</p>
                             <p className="mt-1 text-xs text-gray-600">
-                              <strong>Example:</strong> A 3-day program spread
-                              over 3 weeks = 3 days, not 21
+                              <strong>Example:</strong> 3 days, 2 weeks, 6
+                              months, etc.
                             </p>
                           </TooltipContent>
                         </Tooltip>
                       </div>
-                      <Input
-                        id="duration"
-                        name="duration"
-                        type="number"
-                        min="1"
-                        value={
-                          formData.duration === null ? "" : formData.duration
-                        }
-                        onChange={(e) => handleNumberChange(e, "duration")}
-                        required
-                        placeholder="Number of days"
-                        className={
-                          !formData.duration || formData.duration <= 0
-                            ? "border-red-200 focus:border-red-500"
-                            : ""
-                        }
-                        aria-invalid={
-                          !formData.duration || formData.duration <= 0
-                        }
-                        aria-describedby={
-                          !formData.duration || formData.duration <= 0
-                            ? "duration-error"
-                            : undefined
-                        }
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="feeAmount">
-                        <DollarSign className="h-4 w-4 inline mr-1" />
-                        Course Fee (THB)
-                      </Label>
-                      <Input
-                        id="feeAmount"
-                        name="feeAmount"
-                        type="number"
-                        min="0"
-                        step="100"
-                        value={
-                          formData.feeAmount === 0 ? "" : formData.feeAmount
-                        }
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (value === "") {
-                            setFormData((prev) => ({ ...prev, feeAmount: 0 }));
-                          } else {
-                            const numValue = parseFloat(value);
-                            if (!isNaN(numValue) && numValue >= 0) {
-                              setFormData((prev) => ({
-                                ...prev,
-                                feeAmount: numValue,
-                              }));
-                            }
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input
+                          id="duration"
+                          name="duration"
+                          type="number"
+                          min="1"
+                          value={
+                            formData.duration === null ? "" : formData.duration
                           }
-                        }}
-                        placeholder="Leave blank to hide, 0 for free, or enter amount"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Leave blank to hide fee, enter 0 for free courses, or
-                        enter amount for paid courses
-                      </p>
+                          onChange={(e) => handleNumberChange(e, "duration")}
+                          required
+                          placeholder="Number"
+                          className={
+                            !formData.duration || formData.duration <= 0
+                              ? "border-red-200 focus:border-red-500"
+                              : ""
+                          }
+                          aria-invalid={
+                            !formData.duration || formData.duration <= 0
+                          }
+                          aria-describedby={
+                            !formData.duration || formData.duration <= 0
+                              ? "duration-error"
+                              : undefined
+                          }
+                        />
+                        <Select
+                          value={formData.durationUnit || "DAYS"}
+                          onValueChange={(value) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              durationUnit: value,
+                            }))
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="DAYS">Days</SelectItem>
+                            <SelectItem value="WEEKS">Weeks</SelectItem>
+                            <SelectItem value="MONTHS">Months</SelectItem>
+                            <SelectItem value="YEARS">Years</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
+                  </div>
+
+                  {/* Course Fee */}
+                  <div className="space-y-2">
+                    <Label htmlFor="feeAmount">
+                      <DollarSign className="h-4 w-4 inline mr-1" />
+                      Course Fee (THB)
+                    </Label>
+                    <Input
+                      id="feeAmount"
+                      name="feeAmount"
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={
+                        formData.feeAmount === null ? "" : formData.feeAmount
+                      }
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === "") {
+                          setFormData((prev) => ({ ...prev, feeAmount: null }));
+                        } else {
+                          const numValue = parseFloat(value);
+                          if (!isNaN(numValue) && numValue >= 0) {
+                            setFormData((prev) => ({
+                              ...prev,
+                              feeAmount: numValue,
+                            }));
+                          }
+                        }
+                      }}
+                      placeholder="Leave blank to hide, 0 for free, or enter amount"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Leave blank to hide fee, enter 0 for free courses, or
+                      enter amount for paid courses
+                    </p>
                   </div>
 
                   {/* Schedule - English and Myanmar */}

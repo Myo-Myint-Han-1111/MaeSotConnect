@@ -20,7 +20,10 @@ export async function GET(request: NextRequest) {
     // Platform admins can see all drafts, others only see their own or org-specific ones
     if (session.user.role === Role.PLATFORM_ADMIN) {
       // No additional filters - see all drafts
-    } else if (session.user.role === Role.ORGANIZATION_ADMIN && session.user.organizationId) {
+    } else if (
+      session.user.role === Role.ORGANIZATION_ADMIN &&
+      session.user.organizationId
+    ) {
       // Org admins see drafts from their organization or drafts they created
       whereClause = {
         OR: [
@@ -86,15 +89,25 @@ export async function POST(request: NextRequest) {
     }
 
     // Only Youth Advocates and Organization Admins can create drafts
-    if (![Role.YOUTH_ADVOCATE, Role.ORGANIZATION_ADMIN].includes(session.user.role)) {
+    if (
+      ![Role.YOUTH_ADVOCATE, Role.ORGANIZATION_ADMIN].includes(
+        session.user.role
+      )
+    ) {
       return NextResponse.json(
-        { message: "Only Youth Advocates and Organization Admins can create drafts" },
+        {
+          message:
+            "Only Youth Advocates and Organization Admins can create drafts",
+        },
         { status: 403 }
       );
     }
 
     // Handle both JSON and FormData submissions
-    let title, type, content, status = DraftStatus.DRAFT;
+    let title,
+      type,
+      content,
+      status = DraftStatus.DRAFT;
     const imageUrls: string[] = [];
 
     const contentType = request.headers.get("content-type");
@@ -102,7 +115,7 @@ export async function POST(request: NextRequest) {
       // Handle FormData (with images)
       const formData = await request.formData();
       const jsonData = formData.get("data");
-      
+
       if (!jsonData || typeof jsonData !== "string") {
         return NextResponse.json(
           { message: "Invalid form data" },
@@ -116,9 +129,20 @@ export async function POST(request: NextRequest) {
       content = parsedData.content;
       status = parsedData.status || DraftStatus.DRAFT;
 
+      if (type === DraftType.COURSE && content) {
+        // Set default duration unit if not provided
+        if (content.duration && !content.durationUnit) {
+          content.durationUnit = "DAYS";
+        }
+        // Keep Myanmar duration unit if provided
+        if (content.durationMm && !content.durationUnitMm) {
+          content.durationUnitMm = content.durationUnit || "DAYS";
+        }
+      }
+
       // Process uploaded images and logos
       const { saveFile } = await import("@/lib/upload");
-      
+
       // Handle course images
       for (const [key, value] of formData.entries()) {
         if (key.startsWith("image_") && value instanceof File) {
@@ -129,7 +153,11 @@ export async function POST(request: NextRequest) {
 
       // Handle organization logo
       const logoFile = formData.get("logoImage");
-      if (logoFile && logoFile instanceof File && type === DraftType.ORGANIZATION) {
+      if (
+        logoFile &&
+        logoFile instanceof File &&
+        type === DraftType.ORGANIZATION
+      ) {
         const logoUrl = await saveFile(logoFile, undefined, "logo");
         content.logoImageUrl = logoUrl;
       }

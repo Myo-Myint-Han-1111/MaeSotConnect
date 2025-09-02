@@ -29,7 +29,8 @@ const courseSchema = z
       .nullable()
       .transform((val) => (val ? new Date(val) : null)),
     duration: z.number().int().positive(),
-    durationMm: z.number().int().positive().optional().nullable(),
+    durationUnit: z.enum(["DAYS", "WEEKS", "MONTHS", "YEARS"]),
+
     schedule: z.string().min(2, "Schedule must be at least 2 characters"),
     scheduleMm: z.string().optional(),
     feeAmount: z.number().min(-1), // Allow -1 for hidden fee, 0 for free, positive for paid
@@ -156,7 +157,9 @@ export async function GET() {
       endDate: course.endDate.toISOString(),
       endDateMm: course.endDateMm ? course.endDateMm.toISOString() : null,
       duration: course.duration,
+      durationUnit: course.durationUnit,
       durationMm: course.durationMm,
+      durationUnitMm: course.durationUnitMm,
       schedule: course.schedule,
       scheduleMm: course.scheduleMm,
       feeAmount: course.feeAmount,
@@ -363,7 +366,7 @@ export async function POST(request: NextRequest) {
           endDate: validatedData.endDate,
           endDateMm: validatedData.endDateMm || null,
           duration: validatedData.duration,
-          durationMm: validatedData.durationMm || null,
+          durationUnit: validatedData.durationUnit,
           schedule: validatedData.schedule,
           scheduleMm: validatedData.scheduleMm || null,
           feeAmount: validatedData.feeAmount,

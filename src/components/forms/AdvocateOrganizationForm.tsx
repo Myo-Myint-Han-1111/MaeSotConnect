@@ -3,7 +3,13 @@
 import React, { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,11 +44,11 @@ export default function AdvocateOrganizationForm({
   initialData,
   mode = "create",
   editDraftId,
-  backUrl = "/advocate"
+  backUrl = "/advocate",
 }: AdvocateOrganizationFormProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [formData, setFormData] = useState<OrganizationFormData>({
     name: initialData?.name || "",
     description: initialData?.description || "",
@@ -54,7 +60,7 @@ export default function AdvocateOrganizationForm({
     district: initialData?.district || "",
     latitude: initialData?.latitude || 0,
     longitude: initialData?.longitude || 0,
-    logoImage: undefined
+    logoImage: undefined,
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,25 +70,32 @@ export default function AdvocateOrganizationForm({
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [uploadError, setUploadError] = useState<string>("");
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleLocationChange = (locationData: { province: string; district: string }) => {
-    setFormData(prev => ({
+  const handleLocationChange = (locationData: {
+    province: string;
+    district: string;
+  }) => {
+    setFormData((prev) => ({
       ...prev,
       province: locationData.province,
-      district: locationData.district
+      district: locationData.district,
     }));
   };
 
-  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     setUploadError("");
-    
+
     const validationError = validateImageFile(file);
     if (validationError) {
       setUploadError(validationError);
@@ -90,13 +103,13 @@ export default function AdvocateOrganizationForm({
     }
 
     setIsUploadingLogo(true);
-    
+
     try {
       const compressionResult = await compressImage(file, {
         maxWidth: 300,
         maxHeight: 300,
         quality: 0.8,
-        maxSizeKB: 200
+        maxSizeKB: 200,
       });
 
       const reader = new FileReader();
@@ -106,7 +119,7 @@ export default function AdvocateOrganizationForm({
       };
       reader.readAsDataURL(compressionResult.file);
 
-      setFormData(prev => ({ ...prev, logoImage: compressionResult.file }));
+      setFormData((prev) => ({ ...prev, logoImage: compressionResult.file }));
     } catch (error) {
       setUploadError("Failed to process logo. Please try again.");
       console.error("Logo upload error:", error);
@@ -117,7 +130,7 @@ export default function AdvocateOrganizationForm({
 
   const handleRemoveLogo = () => {
     setLogoPreview("");
-    setFormData(prev => ({ ...prev, logoImage: undefined }));
+    setFormData((prev) => ({ ...prev, logoImage: undefined }));
     setUploadError("");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -125,7 +138,10 @@ export default function AdvocateOrganizationForm({
   };
 
   const getWordCount = (text: string) => {
-    return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+    return text
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 0).length;
   };
 
   const MAX_DESCRIPTION_WORDS = 200;
@@ -133,12 +149,12 @@ export default function AdvocateOrganizationForm({
   const validateForm = () => {
     if (!formData.name.trim()) return "Organization name is required";
     if (!formData.description.trim()) return "Description is required";
-    
+
     const wordCount = getWordCount(formData.description);
     if (wordCount > MAX_DESCRIPTION_WORDS) {
       return `Description must be ${MAX_DESCRIPTION_WORDS} words or less (currently ${wordCount} words)`;
     }
-    
+
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       return "Please enter a valid email address";
     }
@@ -169,7 +185,7 @@ export default function AdvocateOrganizationForm({
         title: formData.name,
         type: "ORGANIZATION",
         content: formData,
-        status: asDraft ? "DRAFT" : "PENDING"
+        status: asDraft ? "DRAFT" : "PENDING",
       };
 
       const formDataToSend = new FormData();
@@ -204,7 +220,9 @@ export default function AdvocateOrganizationForm({
       }
 
       if (asDraft) {
-        alert("Draft saved successfully! You can continue editing or submit it later for review.");
+        alert(
+          "Draft saved successfully! You can continue editing or submit it later for review."
+        );
       } else {
         const successParam = editDraftId ? "updated=true" : "submitted=true";
         router.push(`${backUrl}?${successParam}`);
@@ -228,18 +246,23 @@ export default function AdvocateOrganizationForm({
       <div>
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
           <Building className="h-8 w-8" />
-          {mode === "edit" ? "Edit Organization Draft" : "Submit New Organization"}
+          {mode === "edit"
+            ? "Edit Organization Draft"
+            : "Submit New Organization"}
         </h1>
         <p className="text-muted-foreground mt-2">
-          Submit a new organization for review by platform administrators. Once approved, it will be available for course creation.
+          Submit a new organization for review by platform administrators. Once
+          approved, it will be available for course creation.
         </p>
       </div>
 
       <Alert className="bg-white">
         <Info className="h-4 w-4" />
         <AlertDescription>
-          <strong>Review Process:</strong> All organization submissions are reviewed by platform administrators before being approved. 
-          You can save as draft to continue editing later, or submit for immediate review.
+          <strong>Review Process:</strong> All organization submissions are
+          reviewed by platform administrators before being approved. You can
+          save as draft to continue editing later, or submit for immediate
+          review.
         </AlertDescription>
       </Alert>
 
@@ -247,7 +270,7 @@ export default function AdvocateOrganizationForm({
         <CardHeader className="bg-white rounded-t-lg">
           <CardTitle>Organization Information</CardTitle>
         </CardHeader>
-        
+
         <CardContent className="space-y-6 bg-white">
           {error && (
             <Alert variant="destructive">
@@ -265,7 +288,11 @@ export default function AdvocateOrganizationForm({
               value={formData.name}
               onChange={handleInputChange}
               placeholder="Enter organization name"
-              className={!formData.name.trim() ? "border-red-200 focus:border-red-500" : ""}
+              className={
+                !formData.name.trim()
+                  ? "border-red-200 focus:border-red-500"
+                  : ""
+              }
             />
           </div>
 
@@ -280,26 +307,38 @@ export default function AdvocateOrganizationForm({
               onChange={handleInputChange}
               placeholder="Describe what the organization does, its mission, and the types of programs it offers..."
               rows={4}
-              className={!formData.description.trim() || getWordCount(formData.description) > MAX_DESCRIPTION_WORDS ? "border-red-200 focus:border-red-500" : ""}
+              className={
+                !formData.description.trim() ||
+                getWordCount(formData.description) > MAX_DESCRIPTION_WORDS
+                  ? "border-red-200 focus:border-red-500"
+                  : ""
+              }
             />
             <div className="flex justify-between items-center">
               <p className="text-sm text-muted-foreground">
-                Provide a clear description that helps youth understand what your organization offers.
+                Provide a clear description that helps youth understand what
+                your organization offers.
               </p>
-              <p className={`text-xs ${
-                getWordCount(formData.description) > MAX_DESCRIPTION_WORDS 
-                  ? "text-red-600" 
-                  : getWordCount(formData.description) > MAX_DESCRIPTION_WORDS * 0.8 
-                    ? "text-yellow-600" 
+              <p
+                className={`text-xs ${
+                  getWordCount(formData.description) > MAX_DESCRIPTION_WORDS
+                    ? "text-red-600"
+                    : getWordCount(formData.description) >
+                      MAX_DESCRIPTION_WORDS * 0.8
+                    ? "text-yellow-600"
                     : "text-muted-foreground"
-              }`}>
-                {getWordCount(formData.description)}/{MAX_DESCRIPTION_WORDS} words
+                }`}
+              >
+                {getWordCount(formData.description)}/{MAX_DESCRIPTION_WORDS}{" "}
+                words
               </p>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="facebookPage" className="text-sm font-medium">Facebook Page</Label>
+            <Label htmlFor="facebookPage" className="text-sm font-medium">
+              Facebook Page
+            </Label>
             <Input
               id="facebookPage"
               name="facebookPage"
@@ -312,7 +351,9 @@ export default function AdvocateOrganizationForm({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
+              <Label htmlFor="phone" className="text-sm font-medium">
+                Phone Number
+              </Label>
               <Input
                 id="phone"
                 name="phone"
@@ -324,7 +365,9 @@ export default function AdvocateOrganizationForm({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
+              <Label htmlFor="email" className="text-sm font-medium">
+                Email Address
+              </Label>
               <Input
                 id="email"
                 name="email"
@@ -337,7 +380,9 @@ export default function AdvocateOrganizationForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address" className="text-sm font-medium">Physical Address</Label>
+            <Label htmlFor="address" className="text-sm font-medium">
+              Physical Address
+            </Label>
             <Textarea
               id="address"
               name="address"
@@ -347,14 +392,15 @@ export default function AdvocateOrganizationForm({
               rows={2}
             />
             <p className="text-sm text-muted-foreground">
-              Include street address, city, and any landmark information that helps people find the location.
+              Include street address, city, and any landmark information that
+              helps people find the location.
             </p>
           </div>
 
           <LocationSelector
             value={{
               province: formData.province,
-              district: formData.district
+              district: formData.district,
             }}
             onChange={handleLocationChange}
             disabled={isSubmitting || isSavingDraft}
@@ -364,13 +410,13 @@ export default function AdvocateOrganizationForm({
 
           <div className="space-y-2">
             <Label className="text-sm font-medium">Organization Logo</Label>
-            
+
             <div className="w-48 h-32 border rounded-lg bg-gray-50 flex items-center justify-center p-2 relative">
               {logoPreview ? (
                 <>
-                  <Image 
-                    src={logoPreview} 
-                    alt="Logo preview" 
+                  <Image
+                    src={logoPreview}
+                    alt="Logo preview"
                     fill
                     className="object-contain"
                     sizes="192px"
@@ -387,9 +433,7 @@ export default function AdvocateOrganizationForm({
               ) : (
                 <div className="flex flex-col items-center justify-center text-center">
                   <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">
-                    Upload logo
-                  </p>
+                  <p className="text-sm text-muted-foreground">Upload logo</p>
                 </div>
               )}
             </div>
@@ -401,7 +445,7 @@ export default function AdvocateOrganizationForm({
               onChange={handleLogoUpload}
               className="hidden"
             />
-            
+
             <div className="flex gap-2">
               <Button
                 type="button"
@@ -411,12 +455,17 @@ export default function AdvocateOrganizationForm({
                 size="sm"
                 className="hover:bg-gray-50"
               >
-                {isUploadingLogo ? "Processing..." : logoPreview ? "Change Logo" : "Upload Logo"}
+                {isUploadingLogo
+                  ? "Processing..."
+                  : logoPreview
+                  ? "Change Logo"
+                  : "Upload Logo"}
               </Button>
             </div>
 
             <p className="text-xs text-muted-foreground">
-              Supported formats: JPEG, PNG, WebP. Max size: 50MB (will be compressed automatically)
+              Supported formats: JPEG, PNG, WebP. Max size: 50MB (will be
+              compressed automatically)
             </p>
 
             {uploadError && (
@@ -435,7 +484,7 @@ export default function AdvocateOrganizationForm({
           >
             Cancel
           </Button>
-          
+
           <div className="flex gap-2">
             <Button
               type="button"
@@ -446,7 +495,7 @@ export default function AdvocateOrganizationForm({
             >
               {isSavingDraft ? "Saving..." : "Save Draft"}
             </Button>
-            
+
             <Button
               type="button"
               onClick={() => handleSubmit(false)}

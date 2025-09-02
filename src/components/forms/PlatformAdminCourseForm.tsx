@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { DurationUnit, DURATION_UNIT_OPTIONS } from "@/types";
 
 import {
   Card,
@@ -63,9 +64,12 @@ interface CourseFormData {
   startDate: string;
   endDate: string;
   duration: number | null;
+  durationUnit: DurationUnit;
+  durationMm?: number | null;
+  durationUnitMm?: DurationUnit;
   schedule: string;
   scheduleMm: string;
-  feeAmount: number;
+  feeAmount: number | null;
   ageMin?: number | null;
   ageMax?: number | null;
   document: string;
@@ -145,6 +149,17 @@ const badgeOptions: BadgeOption[] = [
   { text: "Chess", color: "#fff", backgroundColor: "#8b4513" },
 ];
 
+// Helper function to check if estimated date is already encoded
+const isAlreadyEncoded = (dateString: string): boolean => {
+  if (!dateString) return false;
+  const parts = dateString.split("|");
+  return (
+    parts.length === 3 &&
+    (parts[1] === "0" || parts[1] === "1") &&
+    (parts[2] === "0" || parts[2] === "1")
+  );
+};
+
 const parseExistingEstimatedDate = (
   estimatedDateString: string | null | undefined
 ) => {
@@ -156,12 +171,28 @@ const parseExistingEstimatedDate = (
     };
   }
 
+  // Handle corrupted data with too many pipe symbols
   const parts = estimatedDateString.split("|");
+
+  // If we have exactly 3 parts, it's properly encoded
   if (parts.length === 3) {
     return {
       estimatedDate: parts[0],
       showEstimatedForStartDate: parts[1] === "1",
       showEstimatedForApplyByDate: parts[2] === "1",
+    };
+  }
+
+  // If we have more than 3 parts, it's corrupted - take only the first part as the actual date
+  if (parts.length > 3) {
+    console.warn(
+      "Corrupted estimated date detected, cleaning:",
+      estimatedDateString
+    );
+    return {
+      estimatedDate: parts[0], // Only use the actual date text
+      showEstimatedForStartDate: true, // Default to showing
+      showEstimatedForApplyByDate: true, // Default to showing
     };
   }
 
@@ -215,6 +246,14 @@ export default function PlatformAdminCourseForm({
         showEstimatedForApplyByDate: false,
       };
 
+  const parsedEstimatedDataMm = initialData?.estimatedDateMm
+    ? parseExistingEstimatedDate(initialData.estimatedDateMm)
+    : {
+        estimatedDate: "",
+        showEstimatedForStartDate: false,
+        showEstimatedForApplyByDate: false,
+      };
+
   // Initialize form data with initial data or default values
   const [formData, setFormData] = useState<CourseFormData>({
     title: initialData?.title || "",
@@ -231,9 +270,12 @@ export default function PlatformAdminCourseForm({
     startDate: initialData?.startDate || "",
     endDate: initialData?.endDate || "",
     duration: initialData?.duration || null,
+    durationUnit: initialData?.durationUnit || DurationUnit.DAYS,
+    durationMm: initialData?.durationMm || null,
+    durationUnitMm: initialData?.durationUnitMm || undefined,
     schedule: initialData?.schedule || "",
     scheduleMm: initialData?.scheduleMm || "",
-    feeAmount: initialData?.feeAmount ?? 0,
+    feeAmount: initialData?.feeAmount ?? null,
     ageMin: initialData?.ageMin || null,
     ageMax: initialData?.ageMax || null,
     document: initialData?.document || "",
@@ -261,7 +303,7 @@ export default function PlatformAdminCourseForm({
     applyButtonTextMm: initialData?.applyButtonTextMm || "",
     applyLink: initialData?.applyLink || "",
     estimatedDate: parsedEstimatedData.estimatedDate,
-    estimatedDateMm: initialData?.estimatedDateMm || "",
+    estimatedDateMm: parsedEstimatedDataMm.estimatedDate,
     showEstimatedForStartDate: parsedEstimatedData.showEstimatedForStartDate,
     showEstimatedForApplyByDate:
       parsedEstimatedData.showEstimatedForApplyByDate,
@@ -318,6 +360,14 @@ export default function PlatformAdminCourseForm({
   const handleTextChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -667,6 +717,7 @@ export default function PlatformAdminCourseForm({
       howToApply: formData.howToApply.filter((step) => step.trim() !== ""),
       howToApplyMm: formData.howToApplyMm.filter((step) => step.trim() !== ""),
       organizationId: formData.organizationId,
+      feeAmount: formData.feeAmount === null ? -1 : formData.feeAmount, // -1 for hidden
       startByDate: formData.startByDate || "",
       startByDateMm: formData.startByDateMm || "",
       ageMin:
@@ -678,14 +729,18 @@ export default function PlatformAdminCourseForm({
           ? null
           : Number(formData.ageMax),
       estimatedDate: formData.estimatedDate
-        ? `${formData.estimatedDate}|${
-            formData.showEstimatedForStartDate ? "1" : "0"
-          }|${formData.showEstimatedForApplyByDate ? "1" : "0"}`
+        ? isAlreadyEncoded(formData.estimatedDate)
+          ? formData.estimatedDate // Already encoded, don't re-encode
+          : `${formData.estimatedDate}|${
+              formData.showEstimatedForStartDate ? "1" : "0"
+            }|${formData.showEstimatedForApplyByDate ? "1" : "0"}`
         : "",
       estimatedDateMm: formData.estimatedDateMm
-        ? `${formData.estimatedDateMm}|${
-            formData.showEstimatedForStartDate ? "1" : "0"
-          }|${formData.showEstimatedForApplyByDate ? "1" : "0"}`
+        ? isAlreadyEncoded(formData.estimatedDateMm)
+          ? formData.estimatedDateMm // Already encoded, don't re-encode
+          : `${formData.estimatedDateMm}|${
+              formData.showEstimatedForStartDate ? "1" : "0"
+            }|${formData.showEstimatedForApplyByDate ? "1" : "0"}`
         : "",
     };
 
@@ -865,7 +920,14 @@ export default function PlatformAdminCourseForm({
                       onValueChange={handleOrganizationChange}
                       required
                     >
-                      <SelectTrigger className={(!formData.organizationId || formData.organizationId === "") ? "border-red-200 focus:border-red-500" : ""}>
+                      <SelectTrigger
+                        className={
+                          !formData.organizationId ||
+                          formData.organizationId === ""
+                            ? "border-red-200 focus:border-red-500"
+                            : ""
+                        }
+                      >
                         <SelectValue placeholder="Select an organization" />
                       </SelectTrigger>
                       <SelectContent>
@@ -891,7 +953,11 @@ export default function PlatformAdminCourseForm({
                           value={formData.title ?? ""}
                           onChange={handleTextChange}
                           required
-                          className={!formData.title ? "bg-white border-red-200 focus:border-red-500" : "bg-white"}
+                          className={
+                            !formData.title
+                              ? "bg-white border-red-200 focus:border-red-500"
+                              : "bg-white"
+                          }
                           aria-invalid={!formData.title}
                           aria-describedby={
                             !formData.title ? "title-error" : undefined
@@ -927,7 +993,11 @@ export default function PlatformAdminCourseForm({
                           value={formData.subtitle ?? ""}
                           onChange={handleTextChange}
                           required
-                          className={!formData.subtitle ? "bg-white border-red-200 focus:border-red-500" : "bg-white"}
+                          className={
+                            !formData.subtitle
+                              ? "bg-white border-red-200 focus:border-red-500"
+                              : "bg-white"
+                          }
                           aria-invalid={!formData.subtitle}
                           aria-describedby={
                             !formData.subtitle ? "subtitle-error" : undefined
@@ -1073,7 +1143,11 @@ export default function PlatformAdminCourseForm({
                         value={formData.startDate ?? ""}
                         onChange={handleTextChange}
                         required
-                        className={!formData.startDate ? "border-red-200 focus:border-red-500" : ""}
+                        className={
+                          !formData.startDate
+                            ? "border-red-200 focus:border-red-500"
+                            : ""
+                        }
                         aria-invalid={!formData.startDate}
                         aria-describedby={
                           !formData.startDate ? "startDate-error" : undefined
@@ -1124,7 +1198,11 @@ export default function PlatformAdminCourseForm({
                         value={formData.endDate ?? ""}
                         onChange={handleTextChange}
                         required
-                        className={!formData.endDate ? "border-red-200 focus:border-red-500" : ""}
+                        className={
+                          !formData.endDate
+                            ? "border-red-200 focus:border-red-500"
+                            : ""
+                        }
                         aria-invalid={!formData.endDate}
                         aria-describedby={
                           !formData.endDate ? "endDate-error" : undefined
@@ -1170,9 +1248,9 @@ export default function PlatformAdminCourseForm({
                             </TooltipTrigger>
                             <TooltipContent className="max-w-sm">
                               <p>
-                                Check this if the application deadline may change.
-                                This will show an &quot;estimated&quot; badge next
-                                to the deadline.
+                                Check this if the application deadline may
+                                change. This will show an &quot;estimated&quot;
+                                badge next to the deadline.
                               </p>
                             </TooltipContent>
                           </Tooltip>
@@ -1215,33 +1293,104 @@ export default function PlatformAdminCourseForm({
                     </div>
                   </div>
 
+                  {/* Estimated Date Text Fields - Show if either checkbox is checked */}
+                  {(formData.showEstimatedForStartDate || formData.showEstimatedForApplyByDate) && (
+                    <div className="space-y-2 mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                      <Label>Estimated Date Text</Label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <div className="text-xs text-muted-foreground mb-1">
+                            English
+                          </div>
+                          <Input
+                            id="estimatedDate"
+                            name="estimatedDate"
+                            value={formData.estimatedDate ?? ""}
+                            onChange={handleTextChange}
+                            placeholder="e.g. Late January, Early March, Mid-2025"
+                          />
+                        </div>
+                        <div>
+                          <div className="text-xs text-muted-foreground mb-1">
+                            Myanmar
+                          </div>
+                          <Input
+                            id="estimatedDateMm"
+                            name="estimatedDateMm"
+                            value={formData.estimatedDateMm ?? ""}
+                            onChange={handleTextChange}
+                            placeholder="Myanmar translation..."
+                            dir="auto"
+                          />
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Enter text that describes when the date might change (e.g., Late January, Early Spring, Mid-2025)
+                      </p>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Duration with Unit Selection */}
                     <div className="space-y-2">
-                      <Label htmlFor="duration">
-                        <Clock className="h-4 w-4 inline mr-1" />
-                        Duration (days)*
-                      </Label>
-                      <Input
-                        id="duration"
-                        name="duration"
-                        type="number"
-                        min="1"
-                        value={
-                          formData.duration === null ? "" : formData.duration
-                        }
-                        onChange={(e) => handleNumberChange(e, "duration")}
-                        required
-                        placeholder="Number of days"
-                        className={(!formData.duration || formData.duration <= 0) ? "border-red-200 focus:border-red-500" : ""}
-                        aria-invalid={
-                          !formData.duration || formData.duration <= 0
-                        }
-                        aria-describedby={
-                          !formData.duration || formData.duration <= 0
-                            ? "duration-error"
-                            : undefined
-                        }
-                      />
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="duration">
+                          <Clock className="h-4 w-4 inline mr-1" />
+                          Duration*
+                        </Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="h-4 w-4 text-muted-foreground" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-sm">
+                            <p>
+                              Enter the total duration of the program and select
+                              the appropriate unit.
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+
+                      {/* Duration */}
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">
+                          English
+                        </div>
+                        <div className="flex gap-2">
+                          <Input
+                            id="duration"
+                            name="duration"
+                            type="number"
+                            min="1"
+                            value={
+                              formData.duration === null
+                                ? ""
+                                : formData.duration
+                            }
+                            onChange={(e) => handleNumberChange(e, "duration")}
+                            required
+                            placeholder="Number"
+                            className={
+                              !formData.duration || formData.duration <= 0
+                                ? "border-red-200 focus:border-red-500"
+                                : ""
+                            }
+                          />
+                          <select
+                            name="durationUnit"
+                            value={formData.durationUnit}
+                            onChange={handleSelectChange}
+                            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            required
+                          >
+                            {DURATION_UNIT_OPTIONS.en.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
                     </div>
 
                     <div className="space-y-2">
@@ -1254,14 +1403,17 @@ export default function PlatformAdminCourseForm({
                         name="feeAmount"
                         type="number"
                         min="0"
-                        step="100"
+                        step="1"
                         value={
-                          formData.feeAmount === 0 ? "" : formData.feeAmount
+                          formData.feeAmount === null ? "" : formData.feeAmount
                         }
                         onChange={(e) => {
                           const value = e.target.value;
                           if (value === "") {
-                            setFormData((prev) => ({ ...prev, feeAmount: 0 }));
+                            setFormData((prev) => ({
+                              ...prev,
+                              feeAmount: null,
+                            }));
                           } else {
                             const numValue = parseFloat(value);
                             if (!isNaN(numValue) && numValue >= 0) {
@@ -1272,11 +1424,11 @@ export default function PlatformAdminCourseForm({
                             }
                           }
                         }}
-                        placeholder="Leave blank for free, or enter amount"
+                        placeholder="Enter 0 for free, or amount for paid courses"
                       />
                       <p className="text-xs text-muted-foreground mt-1">
-                        Leave blank for free courses, or enter amount for paid
-                        courses
+                        Leave blank to hide fee, enter 0 for free courses, or
+                        enter amount for paid courses
                       </p>
                     </div>
                   </div>
@@ -1298,7 +1450,11 @@ export default function PlatformAdminCourseForm({
                           onChange={handleTextChange}
                           required
                           placeholder="e.g. Mon, Wed, Fri: 2-4 PM"
-                          className={!formData.schedule ? "border-red-200 focus:border-red-500" : ""}
+                          className={
+                            !formData.schedule
+                              ? "border-red-200 focus:border-red-500"
+                              : ""
+                          }
                           aria-invalid={!formData.schedule}
                           aria-describedby={
                             !formData.schedule ? "schedule-error" : undefined

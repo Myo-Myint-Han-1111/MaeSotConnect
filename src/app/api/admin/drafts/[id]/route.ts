@@ -4,6 +4,20 @@ import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/db";
 import { DraftStatus } from "@/lib/auth/roles";
 import { generateOrganizationSlug } from "@/lib/slugs";
+import { DurationUnit } from "@/types";
+
+// Helper function to safely parse dates
+function parseDate(dateValue: unknown): Date | null {
+  if (!dateValue) return null;
+  if (typeof dateValue === "string") {
+    const parsed = new Date(dateValue);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
+  if (dateValue instanceof Date) {
+    return isNaN(dateValue.getTime()) ? null : dateValue;
+  }
+  return null;
+}
 
 export async function GET(
   request: NextRequest,
@@ -181,12 +195,8 @@ export async function PATCH(
               },
             });
 
-            // Delete the draft since organization has been created
-            await tx.contentDraft.delete({
-              where: { id },
-            });
-
-            return { organization };
+            // Return organization info, deletion handled outside transaction
+            return { organization, shouldDelete: true };
           } else {
             // Handle COURSE type drafts
             const courseData = draftContent as Record<string, unknown>;
@@ -232,9 +242,15 @@ export async function PATCH(
                   startByDateMm: courseData.startByDateMm
                     ? new Date(courseData.startByDateMm as string)
                     : null,
-                  startDate: new Date(courseData.startDate as string),
-                  endDate: new Date(courseData.endDate as string),
+                  startDate: parseDate(courseData.startDate) || new Date(),
+                  endDate: parseDate(courseData.endDate) || new Date(),
                   duration: (courseData.duration as number) || 0,
+                  durationUnit:
+                    (courseData.durationUnit as DurationUnit) ||
+                    DurationUnit.DAYS,
+                  durationMm: (courseData.durationMm as number) || null,
+                  durationUnitMm:
+                    (courseData.durationUnitMm as DurationUnit) || null,
                   schedule: (courseData.schedule as string) || "",
                   scheduleMm: (courseData.scheduleMm as string) || null,
                   feeAmount:
@@ -384,9 +400,12 @@ export async function PATCH(
                   startByDateMm: courseData.startByDateMm
                     ? new Date(courseData.startByDateMm as string)
                     : null,
-                  startDate: new Date(courseData.startDate as string),
-                  endDate: new Date(courseData.endDate as string),
+                  startDate: parseDate(courseData.startDate) || new Date(),
+                  endDate: parseDate(courseData.endDate) || new Date(),
                   duration: (courseData.duration as number) || 0,
+                  durationUnit:
+                    (courseData.durationUnit as DurationUnit) ||
+                    DurationUnit.DAYS,
                   schedule: (courseData.schedule as string) || "",
                   scheduleMm: (courseData.scheduleMm as string) || null,
                   feeAmount:
@@ -477,6 +496,12 @@ export async function PATCH(
                   });
                 }
               }
+              // DEBUG: Check what image fields exist in the draft
+              console.log("=== IMAGE DEBUG ===");
+              console.log("courseData.imageUrls:", courseData.imageUrls);
+              console.log("courseData.images:", courseData.images);
+              console.log("All courseData keys:", Object.keys(courseData));
+              console.log("=== END IMAGE DEBUG ===");
 
               // Create images if they exist in the draft
               if (courseData.imageUrls && Array.isArray(courseData.imageUrls)) {
@@ -492,12 +517,8 @@ export async function PATCH(
                 }
               }
 
-              // Delete the draft since course has been created
-              await tx.contentDraft.delete({
-                where: { id },
-              });
-
-              return { course };
+              // Return course info, deletion handled outside transaction
+              return { course, shouldDelete: true };
             }
           }
         },
@@ -506,10 +527,17 @@ export async function PATCH(
         }
       );
 
-      // 🎯 DELETE the draft after approval (both new courses and edits)
-      await prisma.contentDraft.delete({
-        where: { id },
-      });
+      // 🎯 DELETE the draft after approval (only if needed)
+      if (result.shouldDelete || result.organization) {
+        try {
+          await prisma.contentDraft.delete({
+            where: { id },
+          });
+        } catch (error) {
+          // Draft may have already been deleted, log but don't fail
+          console.log("Draft already deleted or not found:", error);
+        }
+      }
 
       const message = result.organization
         ? "Draft approved and organization created successfully"

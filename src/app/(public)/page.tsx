@@ -34,7 +34,9 @@ interface Course {
   estimatedDateMm?: string | null;
   // Updated: numeric types for duration
   duration: number;
+  durationUnit: string;
   durationMm: number | null;
+  durationUnitMm?: string;
   // Updated: fee is now numeric
   feeAmount?: number;
   feeAmountMm?: number | null;
@@ -309,43 +311,6 @@ export default function Home() {
     });
     return Array.from(badgeSet);
   }, [coursesAvailableForFiltering]);
-
-  // Format duration for display (convert from number to string)
-  const formatDuration = useCallback(
-    (duration: number): string => {
-      if (duration < 7) {
-        return `${duration} ${
-          duration === 1
-            ? language === "mm"
-              ? "ရက်"
-              : "day"
-            : language === "mm"
-            ? "ရက်"
-            : "days"
-        }`;
-      } else if (duration < 30) {
-        const weeks = duration / 7;
-        const formattedWeeks =
-          weeks % 1 === 0 ? weeks.toString() : weeks.toFixed(1);
-
-        return `${formattedWeeks} ${language === "mm" ? "ပတ်" : "week"}`;
-      } else if (duration >= 365) {
-        const years = duration / 365;
-        const formattedYears =
-          years % 1 === 0 ? years.toString() : years.toFixed(1);
-        return `${formattedYears} ${language === "mm" ? "နှစ်" : "year"}`;
-      } else {
-        const months = duration / 30.44;
-        const formattedMonths =
-          months % 1 < 0.1 || months % 1 > 0.9
-            ? Math.round(months).toString()
-            : months.toFixed(1);
-
-        return `${formattedMonths} ${language === "mm" ? "လ" : "month"}`;
-      }
-    },
-    [language]
-  );
 
   // Format date for display (convert from ISO string to localized format)
   const formatDate = (dateStr: string): string => {
@@ -797,12 +762,10 @@ export default function Home() {
                         ? formatDate(course.startByDateMm) // Format it first
                         : undefined
                     }
-                    duration={formatDuration(course.duration)}
-                    durationMm={
-                      course.durationMm
-                        ? formatDuration(course.durationMm)
-                        : null
-                    }
+                    duration={course.duration}
+                    durationUnit={course.durationUnit}
+                    durationMm={course.durationMm}
+                    durationUnitMm={course.durationUnitMm}
                     applyByDate={
                       course.applyByDate
                         ? formatDate(course.applyByDate)

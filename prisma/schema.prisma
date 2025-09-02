@@ -59,7 +59,9 @@ model Course {
   endDate             DateTime
   endDateMm           DateTime?
   duration            Int
+  durationUnit        DurationUnit      @default(DAYS)  // Add this new field
   durationMm          Int?
+  durationUnitMm      DurationUnit?     // Add this for Myanmar language
   schedule            String
   scheduleMm          String?
   feeAmount           Int           @default(0)
@@ -270,4 +272,11 @@ enum UserStatus {
   ACTIVE
   INACTIVE
   SUSPENDED
+}
+
+enum DurationUnit {
+  DAYS
+  WEEKS  
+  MONTHS
+  YEARS
 }

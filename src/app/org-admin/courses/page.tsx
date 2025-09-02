@@ -25,7 +25,10 @@ interface Course {
   subtitleMm?: string;
   startDate: string;
   endDate: string;
-  duration: string;
+  duration: number;
+  durationUnit?: string;
+  durationMm?: number;
+  durationUnitMm?: string;
   schedule: string;
   feeAmount: string;
   province?: string;
@@ -56,6 +59,20 @@ export default function OrgAdminCoursesPage() {
   useEffect(() => {
     fetchCourses();
   }, []);
+
+  const formatDuration = (duration: number, unit: string = "DAYS"): string => {
+    if (!duration) return "";
+
+    const unitLabels: { [key: string]: { single: string; plural: string } } = {
+      DAYS: { single: "day", plural: "days" },
+      WEEKS: { single: "week", plural: "weeks" },
+      MONTHS: { single: "month", plural: "months" },
+      YEARS: { single: "year", plural: "years" },
+    };
+
+    const label = unitLabels[unit] || unitLabels.DAYS;
+    return `${duration} ${duration === 1 ? label.single : label.plural}`;
+  };
 
   const fetchCourses = async () => {
     try {
@@ -164,7 +181,8 @@ export default function OrgAdminCoursesPage() {
                 <div className="flex items-center text-sm text-gray-600">
                   <Clock className="h-4 w-4 mr-2" />
                   <span>
-                    {course.duration} days • {course.schedule}
+                    {formatDuration(course.duration, course.durationUnit)} •{" "}
+                    {course.schedule}
                   </span>
                 </div>
 

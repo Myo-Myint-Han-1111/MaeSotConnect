@@ -56,6 +56,9 @@ export async function GET(_request: NextRequest) {
       startDate: course.startDate.toISOString(),
       endDate: course.endDate.toISOString(),
       duration: course.duration.toString(),
+      durationUnit: course.durationUnit,
+      durationMm: course.durationMm?.toString(),
+      durationUnitMm: course.durationUnitMm,
       schedule: course.schedule,
       feeAmount: course.feeAmount.toString(),
       province: course.province,
@@ -73,7 +76,7 @@ export async function GET(_request: NextRequest) {
   } catch (error) {
     console.error("Error fetching organization courses:", error);
     return NextResponse.json(
-      { error: "Failed to fetch courses" },
+      { error: "Faiwhatled to fetch courses" },
       { status: 500 }
     );
   }

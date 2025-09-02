@@ -34,7 +34,7 @@ export default function DraftEditPage() {
   const fetchDraft = useCallback(async () => {
     try {
       const response = await fetch(`/api/drafts/${params.id}`, {
-        cache: 'no-store'
+        cache: "no-store",
       });
       if (response.ok) {
         const data = await response.json();
@@ -57,14 +57,46 @@ export default function DraftEditPage() {
   }, [params.id, fetchDraft]);
 
   // Transform draft content to proper form data format - same pattern as working edit page
-  const draftFormData = draft ? {
-    ...draft.content,
-    images: [],
-    startDate: formatDateForInput(draft.content.startDate),
-    endDate: formatDateForInput(draft.content.endDate),
-    applyByDate: formatDateForInput(draft.content.applyByDate || null),
-    startByDate: formatDateForInput(draft.content.startByDate || null),
-  } : null;
+  // Transform draft content to proper form data format - same pattern as working edit page
+  const draftFormData = draft
+    ? {
+        ...draft.content,
+        images: [],
+        startDate: formatDateForInput(draft.content.startDate),
+        endDate: formatDateForInput(draft.content.endDate),
+        applyByDate: formatDateForInput(draft.content.applyByDate || null),
+        startByDate: formatDateForInput(draft.content.startByDate || null),
+        // ENSURE MISSING FIELDS HAVE DEFAULTS
+        availableDays: draft.content.availableDays || [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+        ],
+        badges: draft.content.badges || [],
+        imageUrls: draft.content.imageUrls || [],
+        faq: draft.content.faq || [
+          { question: "", questionMm: "", answer: "", answerMm: "" },
+        ],
+        outcomes: draft.content.outcomes || [""],
+        outcomesMm: draft.content.outcomesMm || [""],
+        selectionCriteria: draft.content.selectionCriteria || [""],
+        selectionCriteriaMm: draft.content.selectionCriteriaMm || [""],
+        howToApply: draft.content.howToApply || [""],
+        howToApplyMm: draft.content.howToApplyMm || [""],
+        document: draft.content.document || "",
+        documentMm: draft.content.documentMm || "",
+        estimatedDate: draft.content.estimatedDate || "",
+        estimatedDateMm: draft.content.estimatedDateMm || "",
+        scheduleDetails: draft.content.scheduleDetails || "",
+        scheduleDetailsMm: draft.content.scheduleDetailsMm || "",
+        description: draft.content.description || "",
+        descriptionMm: draft.content.descriptionMm || "",
+      }
+    : null;
 
   if (loading) {
     return (
@@ -78,7 +110,9 @@ export default function DraftEditPage() {
     return (
       <div className="text-center py-12">
         <h2 className="text-xl font-semibold mb-2">Draft not found</h2>
-        <p className="text-muted-foreground mb-4">The course draft you're looking for doesn't exist.</p>
+        <p className="text-muted-foreground mb-4">
+          The course draft you are looking for does not exist.
+        </p>
       </div>
     );
   }

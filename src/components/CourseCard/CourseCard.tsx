@@ -30,8 +30,10 @@ export interface CourseCardProps {
   startByDateMm?: string | null;
   estimatedDate?: string | null;
   estimatedDateMm?: string | null;
-  duration: string;
-  durationMm: string | null;
+  duration: number;
+  durationUnit: string;
+  durationMm: number | null;
+  durationUnitMm?: string;
   fee?: string | null;
   feeMm?: string | null;
   badges: {
@@ -75,7 +77,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   estimatedDate,
   estimatedDateMm,
   duration,
+  durationUnit,
   durationMm,
+  durationUnitMm,
   fee,
   feeMm,
   organizationInfo,
@@ -102,13 +106,52 @@ export const CourseCard: React.FC<CourseCardProps> = ({
     return enContent;
   };
 
+  const formatDuration = (
+    duration: number,
+    unit: string,
+    durationMm?: number | null,
+    unitMm?: string
+  ): string => {
+    // Use Myanmar values if available and language is Myanmar
+    const actualDuration =
+      language === "mm" && durationMm ? durationMm : duration;
+    const actualUnit = language === "mm" && unitMm ? unitMm : unit;
+
+    if (!actualDuration || !actualUnit) return "";
+
+    const unitTranslations = {
+      DAYS: {
+        en: actualDuration === 1 ? "day" : "days",
+        mm: "ရက်",
+      },
+      WEEKS: {
+        en: actualDuration === 1 ? "week" : "weeks",
+        mm: "ပတ်",
+      },
+      MONTHS: {
+        en: actualDuration === 1 ? "month" : "months",
+        mm: "လ",
+      },
+      YEARS: {
+        en: actualDuration === 1 ? "year" : "years",
+        mm: "နှစ်",
+      },
+    };
+
+    const unitText =
+      unitTranslations[actualUnit as keyof typeof unitTranslations]?.[
+        language as "en" | "mm"
+      ] || actualUnit.toLowerCase();
+
+    return `${actualDuration} ${unitText}`;
+  };
+
   const imageUrls = useMemo(() => images.map((img) => img.url), [images]);
 
   const creatorInfo = useMemo(
     () => getCreatorInfo(createdByUser, t("course.anonymousYouthAdvocate")),
     [createdByUser, t]
   );
-
 
   return (
     <Card className="course-card" onClick={handleNavigation}>
@@ -147,7 +190,12 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           }
           estimatedDate={estimatedDate}
           estimatedDateMm={estimatedDateMm}
-          duration={getLocalizedContent(duration, durationMm)}
+          duration={formatDuration(
+            duration,
+            durationUnit,
+            durationMm,
+            durationUnitMm
+          )}
           fee={fee ? getLocalizedContent(fee, feeMm || null) : undefined}
           compact={true}
           showDescriptions={true}

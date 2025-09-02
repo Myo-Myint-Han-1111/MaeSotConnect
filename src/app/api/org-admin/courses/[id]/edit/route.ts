@@ -97,6 +97,12 @@ export async function POST(
       organizationId: user.organizationId,
       lastModifiedBy: user.id,
       // Convert dates to ISO strings for JSON storage
+      duration: formContent.duration || existingCourse.duration,
+      durationUnit:
+        formContent.durationUnit || existingCourse.durationUnit || "DAYS",
+      durationMm: formContent.durationMm || existingCourse.durationMm,
+      durationUnitMm:
+        formContent.durationUnitMm || existingCourse.durationUnitMm,
       startDate:
         formContent.startDate || existingCourse.startDate.toISOString(),
       endDate: formContent.endDate || existingCourse.endDate.toISOString(),
@@ -117,6 +123,10 @@ export async function POST(
       createdAt: existingCourse.createdAt.toISOString(),
       updatedAt: new Date().toISOString(),
       publishedAt: existingCourse.publishedAt?.toISOString(),
+      estimatedDate:
+        formContent.estimatedDate || existingCourse.estimatedDate || null,
+      estimatedDateMm:
+        formContent.estimatedDateMm || existingCourse.estimatedDateMm || null,
       // Include related data
       images: existingCourse.images,
       badges: existingCourse.badges,

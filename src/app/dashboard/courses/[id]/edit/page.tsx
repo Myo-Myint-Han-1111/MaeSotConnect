@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useParams, redirect } from "next/navigation";
 import PlatformAdminCourseForm from "@/components/forms/PlatformAdminCourseForm";
+import { DurationUnit } from "@/types";
 
 // Type assertion for session user with organizationId
 interface SessionUser {
@@ -56,6 +57,7 @@ interface CourseResponse {
   address?: string | null;
   applyByDate?: string | null;
   applyByDateMm?: string | null;
+  startByDate?: string | null;
   estimatedDate?: string | null;
   estimatedDateMm?: string | null;
 
@@ -67,6 +69,8 @@ interface CourseResponse {
   // API returns numbers for duration
   duration: number;
   durationMm?: number | null;
+  durationUnit?: string;
+  durationUnitMm?: string;
   schedule: string;
   scheduleMm?: string | null;
   // API returns numbers for fee amounts
@@ -117,6 +121,7 @@ interface CourseFormData {
   address: string;
   applyByDate: string;
   applyByDateMm: string;
+  startByDate: string;
   estimatedDate: string;
   estimatedDateMm: string;
 
@@ -126,8 +131,10 @@ interface CourseFormData {
   startDateMm: string;
   endDate: string;
   endDateMm: string;
-  duration: number | null; // Number for new schema
-  durationMm: number; // Number for new schema
+  duration: number | null;
+  durationUnit?: DurationUnit;
+  durationMm?: number;
+  durationUnitMm?: DurationUnit;
   schedule: string;
   scheduleMm: string;
   feeAmount: number;
@@ -196,7 +203,7 @@ export default function EditCoursePage() {
     async function fetchCourse() {
       try {
         const response = await fetch(`/api/courses/${id}`, {
-          cache: 'no-store'
+          cache: "no-store",
         });
         if (!response.ok) {
           throw new Error("Failed to fetch course");
@@ -212,8 +219,20 @@ export default function EditCoursePage() {
         console.log("EstimatedDate (raw from API):", data.estimatedDate);
         console.log("EstimatedDateMm (raw from API):", data.estimatedDateMm);
 
-        // Store existing images separately
-        setExistingImages(data.images || []);
+        // Store existing images separately - handle both string[] and object[] formats
+        const imageUrls: string[] = [];
+        if (data.images && data.images.length > 0) {
+          if (typeof data.images[0] === "string") {
+            imageUrls.push(...(data.images as string[]));
+          } else {
+            imageUrls.push(
+              ...(data.images as unknown as Array<{ url: string }>).map(
+                (img) => img.url
+              )
+            );
+          }
+        }
+        setExistingImages(imageUrls);
 
         // Process the data to match CourseFormData structure
         const processedData: Partial<CourseFormData> = {
@@ -233,6 +252,7 @@ export default function EditCoursePage() {
           applyByDateMm: data.applyByDateMm
             ? formatDateForInput(data.applyByDateMm)
             : "",
+
           // Pass the encoded estimated date directly to CourseForm
           // CourseForm will handle the decoding
           estimatedDate: data.estimatedDate ?? "",
@@ -241,9 +261,14 @@ export default function EditCoursePage() {
           // Format dates for HTML date inputs (YYYY-MM-DD format)
           startDate: formatDateForInput(data.startDate),
           endDate: formatDateForInput(data.endDate),
+          startByDate: data.startByDate
+            ? formatDateForInput(data.startByDate)
+            : "",
 
           // Duration as numbers
           duration: data.duration || 0,
+          durationUnit:
+            (data.durationUnit as DurationUnit) || DurationUnit.DAYS,
 
           schedule: data.schedule || "",
           scheduleMm: data.scheduleMm ?? "",
@@ -282,7 +307,11 @@ export default function EditCoursePage() {
           applyButtonTextMm: data.applyButtonTextMm || "",
           applyLink: data.applyLink || "",
           organizationId: data.organizationId,
-          badges: data.badges || [],
+          badges: (data.badges || []).map((badge) => ({
+            text: badge.text,
+            color: badge.color,
+            backgroundColor: badge.backgroundColor,
+          })),
           images: [], // New images will be added here, existing ones are stored separately
 
           // Process FAQ fields to ensure all required fields exist

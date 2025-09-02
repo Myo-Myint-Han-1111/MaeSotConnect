@@ -34,6 +34,7 @@ import ImageCarousel from "@/components/common/ImageCarousel";
 import DayIndicator from "@/components/common/DayIndicator";
 import BadgeDisplay from "@/components/common/BadgeDisplay";
 import Link from "next/link";
+import { DurationUnit } from "@/types";
 
 interface CourseDetail {
   id: string;
@@ -50,7 +51,9 @@ interface CourseDetail {
   endDate: string;
   endDateMm?: string;
   duration: number;
+  durationUnit: DurationUnit;
   durationMm?: number;
+  durationUnitMm?: DurationUnit;
   schedule: string;
   scheduleMm?: string;
   feeAmount?: number;
@@ -190,86 +193,44 @@ export default function CourseDetailComponent({
   };
 
   // Format duration string with appropriate units
-  const formatDuration = (durationInDays?: number): string => {
-    if (durationInDays === undefined || durationInDays === null) return "";
+  // Format duration with unit - no more decimal calculations
+  const formatDuration = (
+    duration?: number,
+    unit?: DurationUnit,
+    durationMm?: number,
+    unitMm?: DurationUnit
+  ): string => {
+    // Use Myanmar values if available and language is Myanmar
+    const actualDuration =
+      language === "mm" && durationMm ? durationMm : duration;
+    const actualUnit = language === "mm" && unitMm ? unitMm : unit;
 
-    if (durationInDays < 7) {
-      // Less than a week, show as days
-      return `${durationInDays} ${
-        durationInDays === 1
-          ? language === "mm"
-            ? "ရက်"
-            : "day"
-          : language === "mm"
-          ? "ရက်"
-          : "days"
-      }`;
-    } else if (durationInDays < 30) {
-      // Less than a month, show as weeks with decimal if needed
-      const weeks = durationInDays / 7;
-      const formattedWeeks =
-        weeks % 1 === 0 ? weeks.toString() : weeks.toFixed(1);
-      const weeksValue = parseFloat(formattedWeeks);
+    if (!actualDuration || !actualUnit) return "";
 
-      return `${formattedWeeks} ${
-        weeksValue === 1
-          ? language === "mm"
-            ? "ပတ်"
-            : "week"
-          : language === "mm"
-          ? "ပတ်"
-          : "week" // ← REMOVED PLURAL
-      }`;
-    } else if (durationInDays >= 365) {
-      // Show as years and months with more precision - CHECK YEARS FIRST
-      const totalMonths = durationInDays / 30.44;
-      const years = Math.floor(totalMonths / 12);
-      const remainingMonths = totalMonths % 12;
+    const unitTranslations = {
+      DAYS: {
+        en: actualDuration === 1 ? "day" : "days",
+        mm: "ရက်",
+      },
+      WEEKS: {
+        en: actualDuration === 1 ? "week" : "weeks",
+        mm: "ပတ်",
+      },
+      MONTHS: {
+        en: actualDuration === 1 ? "month" : "months",
+        mm: "လ",
+      },
+      YEARS: {
+        en: actualDuration === 1 ? "year" : "years",
+        mm: "နှစ်",
+      },
+    };
 
-      const formattedRemainingMonths =
-        remainingMonths < 0.1
-          ? 0
-          : remainingMonths % 1 < 0.1 || remainingMonths % 1 > 0.9
-          ? Math.round(remainingMonths)
-          : parseFloat(remainingMonths.toFixed(1));
+    const unitText =
+      unitTranslations[actualUnit]?.[language as "en" | "mm"] ||
+      actualUnit.toLowerCase();
 
-      if (formattedRemainingMonths === 0) {
-        return `${years} ${
-          years === 1
-            ? language === "mm"
-              ? "နှစ်"
-              : "year"
-            : language === "mm"
-            ? "နှစ်"
-            : "year" // ← REMOVED PLURAL
-        }`;
-      } else {
-        return `${years} ${
-          years === 1
-            ? language === "mm"
-              ? "နှစ်"
-              : "year"
-            : language === "mm"
-            ? "နှစ်"
-            : "year" // ← REMOVED PLURAL
-        } ${formattedRemainingMonths} ${
-          language === "mm" ? "လ" : "month" // ← REMOVED PLURAL
-        }`;
-      }
-    } else {
-      // Less than a year, show as months with decimal precision (30-364 days)
-      const months = durationInDays / 30.44;
-
-      // Show decimal only if it's significant
-      const formattedMonths =
-        months % 1 < 0.1 || months % 1 > 0.9
-          ? Math.round(months).toString()
-          : months.toFixed(1);
-
-      return `${formattedMonths} ${
-        language === "mm" ? "လ" : "month" // ← REMOVED PLURAL, always "month"
-      }`;
-    }
+    return `${actualDuration} ${unitText}`;
   };
 
   // Update the formatAgeRange function to be more strict
@@ -457,9 +418,12 @@ export default function CourseDetailComponent({
                         {t("course.duration")}
                       </p>
                       <p className="text-sm text-muted-foreground" dir="auto">
-                        {language === "mm"
-                          ? formatDuration(course.durationMm ?? course.duration)
-                          : formatDuration(course.duration)}
+                        {formatDuration(
+                          course.duration,
+                          course.durationUnit,
+                          course.durationMm,
+                          course.durationUnitMm
+                        )}
                       </p>
                     </div>
                   </div>

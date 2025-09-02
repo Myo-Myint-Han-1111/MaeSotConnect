@@ -72,6 +72,13 @@ export enum DraftType {
   ORGANIZATION = "ORGANIZATION",
 }
 
+export enum DurationUnit {
+  DAYS = "DAYS",
+  WEEKS = "WEEKS",
+  MONTHS = "MONTHS",
+  YEARS = "YEARS",
+}
+
 // ADD USER INTERFACE
 export interface User {
   id: string;
@@ -121,7 +128,9 @@ export interface Course {
   endDate: Date;
   endDateMm?: Date | null;
   duration: number;
+  durationUnit: DurationUnit;
   durationMm?: number | null;
+  durationUnitMm?: DurationUnit | null;
   schedule: string;
   scheduleMm?: string | null;
   feeAmount: number;
@@ -235,7 +244,9 @@ export interface CourseFormData {
   endDate: string;
   endDateMm?: string;
   duration: number;
+  durationUnit: DurationUnit;
   durationMm?: number;
+  durationUnitMm?: DurationUnit;
   schedule: string;
   scheduleMm?: string;
   feeAmount: number;
@@ -279,3 +290,32 @@ export interface OrganizationFormData {
   province?: string;
   logoImageUrl?: string;
 }
+
+export interface DurationDisplay {
+  value: number;
+  unit: DurationUnit;
+  language?: "en" | "mm";
+}
+
+export interface DurationFormFields {
+  duration: number;
+  durationUnit: DurationUnit;
+  durationMm?: number;
+  durationUnitMm?: DurationUnit;
+}
+
+// Duration unit options for forms
+export const DURATION_UNIT_OPTIONS = {
+  en: [
+    { value: "DAYS" as DurationUnit, label: "Days" },
+    { value: "WEEKS" as DurationUnit, label: "Weeks" },
+    { value: "MONTHS" as DurationUnit, label: "Months" },
+    { value: "YEARS" as DurationUnit, label: "Years" },
+  ],
+  mm: [
+    { value: "DAYS" as DurationUnit, label: "ရက်" },
+    { value: "WEEKS" as DurationUnit, label: "ပတ်" },
+    { value: "MONTHS" as DurationUnit, label: "လ" },
+    { value: "YEARS" as DurationUnit, label: "နှစ်" },
+  ],
+} as const;
