@@ -4,11 +4,52 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import OrganizationAdminCourseForm from "@/components/forms/OrganizationAdminCourseForm";
 
+interface DraftContent {
+  title?: string;
+  description?: string;
+  duration?: number;
+  durationUnit?: string;
+  schedule?: string;
+  feeAmount?: number;
+  ageMin?: number;
+  ageMax?: number;
+  outcomes?: string[];
+  selectionCriteria?: string[];
+  howToApply?: string[];
+  startDate?: string;
+  endDate?: string;
+  applyByDate?: string;
+  startByDate?: string;
+  availableDays?: boolean[];
+  badges?: Array<{
+    text: string;
+    color: string;
+    backgroundColor: string;
+  }>;
+  imageUrls?: string[];
+  faq?: Array<{
+    question: string;
+    questionMm?: string;
+    answer: string;
+    answerMm?: string;
+  }>;
+  outcomesMm?: string[];
+  selectionCriteriaMm?: string[];
+  howToApplyMm?: string[];
+  document?: string;
+  documentMm?: string;
+  estimatedDate?: string;
+  estimatedDateMm?: string;
+  scheduleDetails?: string;
+  scheduleDetailsMm?: string;
+  descriptionMm?: string;
+}
+
 interface Draft {
   id: string;
   title: string;
   type: string;
-  content: any;
+  content: DraftContent;
   status: string;
 }
 
@@ -62,8 +103,8 @@ export default function DraftEditPage() {
     ? {
         ...draft.content,
         images: [],
-        startDate: formatDateForInput(draft.content.startDate),
-        endDate: formatDateForInput(draft.content.endDate),
+        startDate: formatDateForInput(draft.content.startDate || null),
+        endDate: formatDateForInput(draft.content.endDate || null),
         applyByDate: formatDateForInput(draft.content.applyByDate || null),
         startByDate: formatDateForInput(draft.content.startByDate || null),
         // ENSURE MISSING FIELDS HAVE DEFAULTS
@@ -78,9 +119,12 @@ export default function DraftEditPage() {
         ],
         badges: draft.content.badges || [],
         imageUrls: draft.content.imageUrls || [],
-        faq: draft.content.faq || [
-          { question: "", questionMm: "", answer: "", answerMm: "" },
-        ],
+        faq: draft.content.faq?.map((item) => ({
+          question: item.question,
+          questionMm: item.questionMm || "",
+          answer: item.answer,
+          answerMm: item.answerMm || "",
+        })) || [{ question: "", questionMm: "", answer: "", answerMm: "" }],
         outcomes: draft.content.outcomes || [""],
         outcomesMm: draft.content.outcomesMm || [""],
         selectionCriteria: draft.content.selectionCriteria || [""],

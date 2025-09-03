@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, notFound } from "next/navigation";
-
+import { DurationUnit } from "@/types";
 import CourseDetailComponent from "@/components/CourseDetail/CourseDetailComponent";
 
 interface CourseDetail {
@@ -20,7 +20,9 @@ interface CourseDetail {
   endDate: string;
   endDateMm?: string;
   duration: number;
+  durationUnit: DurationUnit;
   durationMm?: number;
+  durationUnitMm?: DurationUnit;
   schedule: string;
   scheduleMm?: string;
   feeAmount?: number;
@@ -85,7 +87,7 @@ interface CourseDetail {
 }
 
 // Cache management constants
-const COURSE_DETAILS_CACHE_KEY = 'courseDetailsCache';
+const COURSE_DETAILS_CACHE_KEY = "courseDetailsCache";
 const COURSE_DETAILS_CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 
 interface CachedCourseDetails {
@@ -103,48 +105,69 @@ export default function CourseSlugPage() {
   const [cacheRestored, setCacheRestored] = useState(false);
 
   // Get the current slug
-  const currentSlug = Array.isArray(params.slug) ? params.slug.join("/") : params.slug;
+  const currentSlug = Array.isArray(params.slug)
+    ? params.slug.join("/")
+    : params.slug;
 
   // Cache management functions
-  const saveCourseToCache = useCallback((slug: string, courseData: CourseDetail) => {
-    if (typeof window === "undefined") return;
-    
-    try {
-      const cached = JSON.parse(sessionStorage.getItem(COURSE_DETAILS_CACHE_KEY) || '{}') as CachedCourseDetails;
-      cached[slug] = {
-        course: courseData,
-        timestamp: Date.now()
-      };
-      sessionStorage.setItem(COURSE_DETAILS_CACHE_KEY, JSON.stringify(cached));
-    } catch (error) {
-      console.error('Error saving course to cache:', error);
-    }
-  }, []);
+  const saveCourseToCache = useCallback(
+    (slug: string, courseData: CourseDetail) => {
+      if (typeof window === "undefined") return;
 
-  const restoreCourseFromCache = useCallback((slug: string): CourseDetail | null => {
-    if (typeof window === "undefined") return null;
-    
-    try {
-      const cached = JSON.parse(sessionStorage.getItem(COURSE_DETAILS_CACHE_KEY) || '{}') as CachedCourseDetails;
-      const courseCache = cached[slug];
-      
-      if (!courseCache) {
+      try {
+        const cached = JSON.parse(
+          sessionStorage.getItem(COURSE_DETAILS_CACHE_KEY) || "{}"
+        ) as CachedCourseDetails;
+        cached[slug] = {
+          course: courseData,
+          timestamp: Date.now(),
+        };
+        sessionStorage.setItem(
+          COURSE_DETAILS_CACHE_KEY,
+          JSON.stringify(cached)
+        );
+      } catch (error) {
+        console.error("Error saving course to cache:", error);
+      }
+    },
+    []
+  );
+
+  const restoreCourseFromCache = useCallback(
+    (slug: string): CourseDetail | null => {
+      if (typeof window === "undefined") return null;
+
+      try {
+        const cached = JSON.parse(
+          sessionStorage.getItem(COURSE_DETAILS_CACHE_KEY) || "{}"
+        ) as CachedCourseDetails;
+        const courseCache = cached[slug];
+
+        if (!courseCache) {
+          return null;
+        }
+
+        // Check if cache is still valid
+        if (
+          Date.now() - courseCache.timestamp >
+          COURSE_DETAILS_CACHE_DURATION
+        ) {
+          delete cached[slug];
+          sessionStorage.setItem(
+            COURSE_DETAILS_CACHE_KEY,
+            JSON.stringify(cached)
+          );
+          return null;
+        }
+
+        return courseCache.course;
+      } catch (error) {
+        console.error("Error restoring course from cache:", error);
         return null;
       }
-      
-      // Check if cache is still valid
-      if (Date.now() - courseCache.timestamp > COURSE_DETAILS_CACHE_DURATION) {
-        delete cached[slug];
-        sessionStorage.setItem(COURSE_DETAILS_CACHE_KEY, JSON.stringify(cached));
-        return null;
-      }
-      
-      return courseCache.course;
-    } catch (error) {
-      console.error('Error restoring course from cache:', error);
-      return null;
-    }
-  }, []);
+    },
+    []
+  );
 
   // Cache restoration on mount
   useEffect(() => {
@@ -173,7 +196,9 @@ export default function CourseSlugPage() {
       try {
         // If cache was restored, do background refresh
         if (cacheRestored) {
-          const response = await fetch(`/api/courses/${encodeURIComponent(currentSlug)}`);
+          const response = await fetch(
+            `/api/courses/${encodeURIComponent(currentSlug)}`
+          );
           if (response.ok) {
             const data = await response.json();
             // Only update if data is different (simple check)
@@ -186,8 +211,10 @@ export default function CourseSlugPage() {
         }
 
         // Normal fetch for first-time load or cache miss
-        const response = await fetch(`/api/courses/${encodeURIComponent(currentSlug)}`);
-        
+        const response = await fetch(
+          `/api/courses/${encodeURIComponent(currentSlug)}`
+        );
+
         if (!response.ok) {
           if (response.status === 404) {
             notFound();
