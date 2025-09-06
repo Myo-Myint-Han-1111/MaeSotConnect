@@ -3,6 +3,7 @@
 import React, { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { getImageProps } from "../../lib/image-utils";
 import { Card, CardContent, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
 import { useLanguage } from "../../context/LanguageContext";
@@ -230,6 +231,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
                   width={32}
                   height={32}
                   className="creator-avatar"
+                  {...getImageProps()}
                 />
               )}
               <div className="creator-details">

@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
+import { getImageProps } from "../../lib/image-utils";
 
 interface ImageCarouselProps {
   images: string[];
@@ -290,8 +291,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
               transition: "transform 0.3s ease",
               userSelect: "none",
             }}
-            sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 384px"
-            quality={80}
+            {...getImageProps()}
             priority
           />
         </div>
@@ -318,8 +318,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
             transition: "transform 0.3s ease",
             userSelect: "none",
           }}
-          sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 384px"
-          quality={80}
+          {...getImageProps()}
           priority={currentImageIndex === 0}
           draggable={false}
         />

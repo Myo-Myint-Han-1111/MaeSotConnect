@@ -14,7 +14,8 @@
     "seed-admin": "ts-node --project tsconfig.scripts.json scripts/seed-admin.ts",
     "migrate-to-supabase": "ts-node --project tsconfig.scripts.json scripts/migrate-to-supabase.ts",
     "backup": "node backup-scripts/daily-backup.js",
-    "backup-complete": "node backup-scripts/mark-db-complete.js"
+    "backup-complete": "node backup-scripts/mark-db-complete.js",
+    "compress-images": "node scripts/compress-existing-images.js"
   },
   "dependencies": {
     "@auth/core": "^0.39.1",
@@ -30,6 +31,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@supabase/supabase-js": "^2.49.4",
     "@types/google-one-tap": "^1.2.6",
+    "canvas": "^3.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^16.6.1",

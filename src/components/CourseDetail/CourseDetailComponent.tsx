@@ -239,14 +239,12 @@ export default function CourseDetailComponent({
 
   // Update the formatAgeRange function to be more strict
   const formatAgeRange = (min?: number | null, max?: number | null): string => {
-    console.log("formatAgeRange called with min:", min, "max:", max);
 
     // Don't show anything if both are null/undefined or 0 or negative
     if (
       (min === null || min === undefined || min <= 0) &&
       (max === null || max === undefined || max <= 0)
     ) {
-      console.log("Both values are invalid, returning empty string");
       return "";
     }
 
@@ -259,23 +257,19 @@ export default function CourseDetailComponent({
       max !== undefined &&
       max > 0
     ) {
-      console.log("Both values present:", min, max);
       return `${min}-${max} ${language === "mm" ? "နှစ်" : "years"}`;
     }
     // If we only have minimum age (> 0)
     else if (min !== null && min !== undefined && min > 0) {
-      console.log("Only min value present:", min);
       return `${min}+ ${language === "mm" ? "နှစ်" : "years"}`;
     }
     // If we only have maximum age (> 0)
     else if (max !== null && max !== undefined && max > 0) {
-      console.log("Only max value present:", max);
       return `${language === "mm" ? "အများဆုံး" : "Up to"} ${max} ${
         language === "mm" ? "နှစ်" : "years"
       }`;
     }
 
-    console.log("No valid age values, returning empty string");
     return "";
   };
 

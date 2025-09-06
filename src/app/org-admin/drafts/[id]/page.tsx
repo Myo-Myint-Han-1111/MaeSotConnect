@@ -26,47 +26,6 @@ import {
 import Link from "next/link";
 import { DraftStatus } from "@/lib/auth/roles";
 
-interface DraftContent {
-  title?: string;
-  description?: string;
-  duration?: number;
-  durationUnit?: string;
-  schedule?: string;
-  feeAmount?: number;
-  ageMin?: number;
-  ageMax?: number;
-  outcomes?: string[];
-  selectionCriteria?: string[];
-  howToApply?: string[];
-  startDate?: string;
-  endDate?: string;
-  applyByDate?: string;
-  startByDate?: string;
-  availableDays?: boolean[];
-  badges?: Array<{
-    text: string;
-    color: string;
-    backgroundColor: string;
-  }>;
-  imageUrls?: string[];
-  faq?: Array<{
-    question: string;
-    questionMm?: string;
-    answer: string;
-    answerMm?: string;
-  }>;
-  outcomesMm?: string[];
-  selectionCriteriaMm?: string[];
-  howToApplyMm?: string[];
-  document?: string;
-  documentMm?: string;
-  estimatedDate?: string;
-  estimatedDateMm?: string;
-  scheduleDetails?: string;
-  scheduleDetailsMm?: string;
-  descriptionMm?: string;
-}
-
 type Draft = {
   id: string;
   title: string;
@@ -93,6 +52,13 @@ export default function OrgAdminDraftDetailsPage() {
   const router = useRouter();
   const [draft, setDraft] = useState<Draft | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  const { data: session, status } = useSession({
+    required: true,
+    onUnauthenticated() {
+      redirect("/auth/signin");
+    },
+  });
 
   const fetchDraft = useCallback(async () => {
     try {

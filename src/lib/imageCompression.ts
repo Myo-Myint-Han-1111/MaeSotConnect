@@ -1,26 +1,45 @@
+/**
+ * Client-side image compression utilities for upload optimization
+ * 
+ * Handles image resizing and compression in the browser using Canvas API
+ * before uploading to Supabase storage. This prevents large files from
+ * being uploaded and reduces storage/bandwidth costs.
+ */
+
 export interface CompressionOptions {
-  maxWidth?: number;
-  maxHeight?: number;
-  quality?: number; // 0.1 to 1.0
-  maxSizeKB?: number;
+  maxWidth?: number;        // Maximum width in pixels
+  maxHeight?: number;       // Maximum height in pixels  
+  quality?: number;         // JPEG quality (0.1 to 1.0)
+  maxSizeKB?: number;       // Target maximum file size in KB
 }
 
 export interface CompressionResult {
-  originalSize: number;
-  compressedSize: number;
-  compressionRatio: number;
-  file: File;
+  originalSize: number;     // Original file size in bytes
+  compressedSize: number;   // Compressed file size in bytes
+  compressionRatio: number; // originalSize / compressedSize
+  file: File;              // Compressed File object
 }
 
+/**
+ * Compresses an image file using Canvas API
+ * 
+ * Resizes the image to fit within maxWidth/maxHeight while maintaining
+ * aspect ratio, then compresses to JPEG format. If the result exceeds
+ * maxSizeKB, iteratively reduces quality until target is met.
+ * 
+ * @param file - Image file to compress
+ * @param options - Compression parameters
+ * @returns Promise resolving to compression result with optimized file
+ */
 export async function compressImage(
   file: File, 
   options: CompressionOptions = {}
 ): Promise<CompressionResult> {
   const {
-    maxWidth = 1200,
-    maxHeight = 800,
-    quality = 0.8,
-    maxSizeKB = 500
+    maxWidth = 800,   // Optimized for course card display (~400px)
+    maxHeight = 600,  // Maintain 4:3 aspect ratio  
+    quality = 0.8,    // High quality baseline
+    maxSizeKB = 150   // Target file size for fast loading
   } = options;
 
   const originalSize = file.size;
@@ -231,22 +250,54 @@ export async function compressAvatarImage(
   });
 }
 
+/**
+ * Compresses course images with optimized settings
+ * 
+ * Convenience function that applies course-specific compression settings:
+ * - Sized for course card display (800x600 max)
+ * - Aggressive compression for fast loading (≤100KB target)
+ * - High quality for professional appearance
+ * 
+ * @param file - Course image file to compress
+ * @returns Promise resolving to compression result
+ */
+export async function compressCourseImage(
+  file: File
+): Promise<CompressionResult> {
+  return compressImage(file, {
+    maxWidth: 800,     // Optimal for course card display
+    maxHeight: 600,    // Maintain aspect ratio
+    quality: 0.8,      // High quality baseline
+    maxSizeKB: 100     // Aggressive compression for performance
+  });
+}
+
+/**
+ * Determines if a file should skip compression optimization
+ * 
+ * Skips compression for:
+ * - Very small files (already optimized)
+ * - SVG files (vector graphics, lossy compression inappropriate)
+ * - GIF files (may contain animations)
+ * 
+ * @param file - File to evaluate
+ * @returns true if compression should be skipped
+ */
 export function shouldSkipOptimization(file: File): boolean {
-  // Skip optimization for small files (under 10KB) as recommended by Vercel
-  const smallFileThreshold = 10 * 1024; // 10KB
+  const SMALL_FILE_THRESHOLD = 10 * 1024; // 10KB
   
-  // Skip optimization for SVG files (vector images)
+  // Skip vector graphics - compression would degrade quality
   if (file.type === 'image/svg+xml') {
     return true;
   }
   
-  // Skip optimization for GIF files (animated images)
+  // Skip animated images - may break animations
   if (file.type === 'image/gif') {
     return true;
   }
   
-  // Skip optimization for very small files
-  if (file.size < smallFileThreshold) {
+  // Skip already optimized small files
+  if (file.size < SMALL_FILE_THRESHOLD) {
     return true;
   }
   

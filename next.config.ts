@@ -110,7 +110,7 @@ const nextConfig: NextConfig = {
     // Optimized sizes for actual course card display (378px)
     deviceSizes: [384, 640, 768, 1024], // Added 384px to match actual course card display
     imageSizes: [128, 256, 384], // Removed unnecessary small sizes, focused on card previews
-    formats: ["image/webp", "image/avif"], // Added AVIF for better compression
+    formats: ["image/webp", "image/avif"], // Keep format optimization for non-Supabase images
     minimumCacheTTL: 2678400, // 31 days cache (Vercel recommendation for static content)
     dangerouslyAllowSVG: true, // Allow SVG images for logos
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;"

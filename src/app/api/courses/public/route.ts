@@ -93,18 +93,7 @@ export async function GET(request: Request) {
         },
         organizationInfo: {
           select: {
-            id: true,
-            name: true,
-            description: true,
-            phone: true,
-            email: true,
-            address: true,
-            facebookPage: true,
-            latitude: true,
-            longitude: true,
-            district: true,
-            province: true,
-            logoImage: true,
+            name: true, // Only organization name is used in CourseCard
           },
         },
         images: {
@@ -124,7 +113,6 @@ export async function GET(request: Request) {
           },
         },
       },
-      orderBy: { createdAt: "desc" },
     });
 
     // Format the response to ensure dates are serialized properly
@@ -172,7 +160,13 @@ export async function GET(request: Request) {
       },
     };
 
-    return NextResponse.json(response);
+    const nextResponse = NextResponse.json(response);
+    
+    // Add caching headers to reduce Fast Origin Transfer usage
+    nextResponse.headers.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=60'); // 5 min cache, 1 min stale
+    nextResponse.headers.set('CDN-Cache-Control', 'public, max-age=300');
+    
+    return nextResponse;
   } catch (error) {
     console.error("Error fetching public courses:", error);
     return NextResponse.json(

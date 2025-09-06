@@ -3,13 +3,13 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { CourseCard } from "@/components/CourseCard/CourseCard";
-import { VirtualizedCourseGrid } from "@/components/VirtualizedCourseGrid";
 import { useBadgeTranslation, getBadgeStyle } from "@/lib/badges";
 import { convertToMyanmarNumber } from "@/lib/utils";
 import { getFontSizeClasses } from "@/lib/font-sizes";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import Link from "next/link";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -73,18 +73,9 @@ interface Course {
   createdAt?: string;
 }
 
-// Cache management constants
-const COURSE_CACHE_KEY = "courseListCache";
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-interface CachedState {
-  courses: Course[];
-  searchTerm: string;
-  activeFilters: string[];
-  sortBy: string;
-  scrollPosition: number;
-  timestamp: number;
-}
+// Cache key for storing course data
+const COURSE_CACHE_KEY = "courseCache";
+const SCROLL_CACHE_KEY = "homeScrollPosition";
 
 export default function Home() {
   const { t, language } = useLanguage();
@@ -94,67 +85,113 @@ export default function Home() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<string>("startDate-asc");
-  const [cacheRestored, setCacheRestored] = useState(false);
-  const [allBadges, setAllBadges] = useState<string[]>([]);
-  
-  // Feature flag for virtualized grid (set to true to enable)
-  const useVirtualizedGrid = true;
 
   // Cache management functions
   const savePageState = useCallback(() => {
-    if (typeof window === "undefined") return;
-
-    try {
-      const state: CachedState = {
-        courses,
-        searchTerm,
-        activeFilters,
-        sortBy,
-        scrollPosition: window.scrollY,
-        timestamp: Date.now(),
-      };
-      sessionStorage.setItem(COURSE_CACHE_KEY, JSON.stringify(state));
-    } catch (error) {
-      console.error("Error saving page state:", error);
+    if (typeof window !== "undefined") {
+      try {
+        const cacheData = {
+          courses,
+          timestamp: Date.now(),
+        };
+        sessionStorage.setItem(COURSE_CACHE_KEY, JSON.stringify(cacheData));
+        sessionStorage.setItem(SCROLL_CACHE_KEY, window.scrollY.toString());
+      } catch (error) {
+        console.error("Error saving page state:", error);
+      }
     }
-  }, [courses, searchTerm, activeFilters, sortBy]);
+  }, [courses]);
 
   const restorePageState = useCallback(() => {
-    if (typeof window === "undefined") return false;
-
-    try {
-      const cached = sessionStorage.getItem(COURSE_CACHE_KEY);
-      if (!cached) return false;
-
-      const state: CachedState = JSON.parse(cached);
-
-      // Check if cache is still valid
-      if (Date.now() - state.timestamp > CACHE_DURATION) {
-        sessionStorage.removeItem(COURSE_CACHE_KEY);
-        return false;
+    if (typeof window !== "undefined") {
+      try {
+        const cached = sessionStorage.getItem(COURSE_CACHE_KEY);
+        if (cached) {
+          const cacheData = JSON.parse(cached);
+          // Cache valid for 5 minutes
+          if (Date.now() - cacheData.timestamp < 5 * 60 * 1000) {
+            setCourses(cacheData.courses);
+            setLoading(false);
+            return true;
+          } else {
+            // Clear expired cache
+            sessionStorage.removeItem(COURSE_CACHE_KEY);
+            sessionStorage.removeItem(SCROLL_CACHE_KEY);
+          }
+        }
+      } catch (error) {
+        console.error("Error restoring page state:", error);
       }
-
-      // Restore all state immediately
-      setCourses(state.courses);
-      setSearchTerm(state.searchTerm);
-      setActiveFilters(state.activeFilters);
-      setSortBy(state.sortBy);
-      setLoading(false); // Important: skip loading state
-
-      // Restore scroll position with double RAF to ensure DOM is ready
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          window.scrollTo(0, state.scrollPosition);
-        });
-      });
-
-      return true;
-    } catch (error) {
-      console.error("Error restoring page state:", error);
-      sessionStorage.removeItem(COURSE_CACHE_KEY);
-      return false;
     }
+    return false;
   }, []);
+
+  // Cache-first course fetching
+  useEffect(() => {
+    // Try to restore from cache first
+    const wasRestored = restorePageState();
+    
+    if (!wasRestored) {
+      // If cache miss, fetch fresh data
+      const fetchCourses = async () => {
+        try {
+          const response = await fetch("/api/courses/public?legacy=true");
+          if (!response.ok) {
+            throw new Error("Failed to fetch courses");
+          }
+          const data = await response.json();
+          const coursesData = Array.isArray(data) ? data : data.courses || [];
+          setCourses(coursesData);
+        } catch (error) {
+          console.error("Error fetching courses:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchCourses();
+    }
+  }, [restorePageState]); // Only run once on mount
+
+  // Scroll position restoration
+  useEffect(() => {
+    if (!loading && courses.length > 0) {
+      // Restore scroll position after content loads
+      setTimeout(() => {
+        const savedScrollPos = sessionStorage.getItem(SCROLL_CACHE_KEY);
+        if (savedScrollPos) {
+          window.scrollTo(0, parseInt(savedScrollPos, 10));
+          sessionStorage.removeItem(SCROLL_CACHE_KEY); // Clean up after use
+        }
+      }, 100); // Small delay to ensure content is rendered
+    }
+  }, [loading, courses.length]);
+
+  // Save state before navigation
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (!loading && courses.length > 0) {
+        savePageState();
+      }
+    };
+
+    // Save state when navigating to course details
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const courseCard = target.closest('[data-course-slug]');
+      if (courseCard) {
+        savePageState();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('click', handleClick);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('click', handleClick);
+    };
+  }, [loading, courses.length, savePageState]);
 
   // ADD THESE SORT OPTIONS:
   const sortOptions = [
@@ -165,31 +202,10 @@ export default function Home() {
     { value: "applyByDate-desc", label: t("sort.applyByDate.latest") },
   ];
 
-  // Fetch available badges for filtering (virtualized version only)
-  useEffect(() => {
-    if (useVirtualizedGrid) {
-      const fetchBadges = async () => {
-        try {
-          const response = await fetch('/api/courses/badges');
-          if (response.ok) {
-            const badges = await response.json();
-            setAllBadges(badges);
-          }
-        } catch (error) {
-          console.error('Error fetching badges:', error);
-        }
-      };
-      fetchBadges();
-    }
-  }, [useVirtualizedGrid]);
 
-  // Initial cache restoration on mount
+  // Load saved filter state on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const restored = useVirtualizedGrid ? false : restorePageState();
-      setCacheRestored(restored);
-
-      // Load saved filter state for both implementations
       try {
         const savedState = sessionStorage.getItem("courseFilters");
         if (savedState) {
@@ -203,7 +219,7 @@ export default function Home() {
         console.error("Error loading saved filters:", error);
       }
     }
-  }, [restorePageState, useVirtualizedGrid]);
+  }, []);
 
   // Save state to sessionStorage whenever searchTerm or activeFilters change
   useEffect(() => {
@@ -222,50 +238,6 @@ export default function Home() {
     }
   }, [searchTerm, activeFilters]);
 
-  // Cache-first data fetching (only for legacy version)
-  useEffect(() => {
-    if (useVirtualizedGrid) {
-      setLoading(false);
-      return;
-    }
-
-    async function fetchCourses() {
-      // If cache was restored, skip initial fetch but do background refresh
-      if (cacheRestored) {
-        try {
-          const response = await fetch("/api/courses/public?legacy=true");
-          if (response.ok) {
-            const data = await response.json();
-            const coursesData = Array.isArray(data) ? data : data.courses || [];
-            // Only update if data is different (simple check)
-            if (JSON.stringify(coursesData) !== JSON.stringify(courses)) {
-              setCourses(coursesData);
-            }
-          }
-        } catch (error) {
-          console.error("Background refresh failed:", error);
-        }
-        return;
-      }
-
-      // Normal fetch for first-time load or cache miss
-      try {
-        const response = await fetch("/api/courses/public?legacy=true");
-        if (!response.ok) {
-          throw new Error("Failed to fetch courses");
-        }
-        const data = await response.json();
-        const coursesData = Array.isArray(data) ? data : data.courses || [];
-        setCourses(coursesData);
-      } catch (error) {
-        console.error("Error fetching courses:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchCourses();
-  }, [cacheRestored, courses, useVirtualizedGrid]);
 
   // NEW: Get course status function
   const getCourseStatus = useCallback((course: Course) => {
@@ -329,12 +301,8 @@ export default function Home() {
     });
   }, [courses, searchTerm, getCourseStatus]);
 
-  // Get all unique badge texts - different sources based on implementation
+  // Get all unique badge texts
   const availableBadges = useMemo(() => {
-    if (useVirtualizedGrid) {
-      return allBadges;
-    }
-    
     const badgeSet = new Set<string>();
     coursesAvailableForFiltering.forEach((course) => {
       course.badges.forEach((badge) => {
@@ -342,7 +310,7 @@ export default function Home() {
       });
     });
     return Array.from(badgeSet);
-  }, [useVirtualizedGrid, allBadges, coursesAvailableForFiltering]);
+  }, [coursesAvailableForFiltering]);
 
   // Format date for display (convert from ISO string to localized format)
   const formatDate = (dateStr: string): string => {
@@ -464,80 +432,10 @@ export default function Home() {
     return sortCourses(filtered, sortBy);
   }, [coursesAvailableForFiltering, activeFilters, sortBy, sortCourses]);
 
-  // Save state before navigation and on state changes
-  useEffect(() => {
-    if (!loading && courses.length > 0) {
-      savePageState();
-    }
-  }, [courses, searchTerm, activeFilters, sortBy, loading, savePageState]);
+  // REMOVED: Save state before navigation - not needed for load more button approach
 
-  // Save state when user scrolls (throttled to reduce reflows)
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  // REMOVED: Scroll state saving - not needed for load more button approach
 
-    let scrollTimeout: NodeJS.Timeout;
-    let isScrolling = false;
-
-    const handleScroll = () => {
-      if (isScrolling) return; // Skip if already processing
-
-      isScrolling = true;
-      clearTimeout(scrollTimeout);
-
-      // Use RAF to batch DOM reads with rendering
-      requestAnimationFrame(() => {
-        scrollTimeout = setTimeout(() => {
-          if (!loading && courses.length > 0) {
-            savePageState();
-          }
-          isScrolling = false;
-        }, 200); // Increased debounce for better performance
-      });
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      clearTimeout(scrollTimeout);
-    };
-  }, [loading, courses.length, savePageState]);
-
-  // Legacy card-based scroll restoration (fallback)
-  useEffect(() => {
-    const restoreToTargetCard = async () => {
-      // Only use this if cache restoration failed
-      if (cacheRestored) return;
-
-      const targetSlug = sessionStorage.getItem("targetCourseSlug");
-
-      if (!targetSlug || loading || filteredCourses.length === 0) {
-        return;
-      }
-
-      // Wait a bit for the cards to render
-      await new Promise((resolve) => setTimeout(resolve, 200));
-
-      // Find the target card element
-      const targetCard = document.querySelector(
-        `[data-course-slug="${targetSlug}"]`
-      );
-
-      if (targetCard) {
-        // Use RAF to avoid forced reflow during scroll restoration
-        requestAnimationFrame(() => {
-          targetCard.scrollIntoView({
-            behavior: "instant",
-            block: "start", // Less aggressive than "center"
-          });
-        });
-
-        // Clean up
-        sessionStorage.removeItem("targetCourseSlug");
-      }
-    };
-
-    restoreToTargetCard();
-  }, [loading, filteredCourses.length, cacheRestored]);
 
   // Toggle a filter badge
   const toggleFilter = (badge: string) => {
@@ -555,52 +453,12 @@ export default function Home() {
 
     if (typeof window !== "undefined") {
       sessionStorage.removeItem("courseFilters");
-      sessionStorage.removeItem("targetCourseSlug");
+      // Also clear cache when filters change significantly
       sessionStorage.removeItem(COURSE_CACHE_KEY);
-      sessionStorage.removeItem("courseDetailsCache"); // Also clear course details cache
+      sessionStorage.removeItem(SCROLL_CACHE_KEY);
     }
   };
 
-  // Show loading state
-  if (loading) {
-    return (
-      <>
-        <div
-          className="absolute top-0 left-0 w-full hero-gradient pt-40 pb-24 -mt-16"
-          data-language={language}
-        >
-          <div className="max-w-6xl mx-auto px-1 sm:px-6 lg:px-8">
-            <div className="w-full">
-              <div
-                className={`${getFontSizeClasses(
-                  "heading1",
-                  language
-                )} text-white text-left pt-8 w-full`}
-                data-language={language}
-              >
-                {t("home.welcome")}
-              </div>
-              <p
-                className={`${getFontSizeClasses(
-                  "bodyLarge",
-                  language
-                )} text-white max-w-2xl mt-4 text-left w-full`}
-                data-language={language}
-              >
-                {t("home.subtitle")}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="content -mt-6">
-          <div className="flex items-center justify-center py-20">
-            <div className="h-16 w-16 border-t-4 border-primary border-solid rounded-full animate-spin"></div>
-          </div>
-        </div>
-      </>
-    );
-  }
 
   return (
     <>
@@ -704,31 +562,31 @@ export default function Home() {
 
               <div className="flex flex-wrap gap-3 justify-start">
                 {availableBadges.map((badge) => {
-                  const badgeStyle = getBadgeStyle(badge);
-                  const isActive = activeFilters.includes(badge);
+                    const badgeStyle = getBadgeStyle(badge);
+                    const isActive = activeFilters.includes(badge);
 
-                  return (
-                    <button
-                      key={badge}
-                      onClick={() => toggleFilter(badge)}
-                      className={`px-3 pt-1 pb-1.5 rounded-full text-xs font-medium transition-all hover:opacity-70 ${
-                        isActive
-                          ? "ring-2 ring-offset-2 ring-gray-900"
-                          : "bg-gray-200 text-gray-600"
-                      }`}
-                      style={
-                        isActive
-                          ? {
-                              backgroundColor: badgeStyle.backgroundColor,
-                              color: badgeStyle.color,
-                            }
-                          : undefined
-                      }
-                    >
-                      {translateBadge(badge)}
-                    </button>
-                  );
-                })}
+                    return (
+                      <button
+                        key={badge}
+                        onClick={() => toggleFilter(badge)}
+                        className={`px-3 pt-1 pb-1.5 rounded-full text-xs font-medium transition-all hover:opacity-70 ${
+                          isActive
+                            ? "ring-2 ring-offset-2 ring-gray-900"
+                            : "bg-gray-200 text-gray-600"
+                        }`}
+                        style={
+                          isActive
+                            ? {
+                                backgroundColor: badgeStyle.backgroundColor,
+                                color: badgeStyle.color,
+                              }
+                            : undefined
+                        }
+                      >
+                        {translateBadge(badge)}
+                      </button>
+                    );
+                  })}
               </div>
 
               {/* Clear All Filters button */}
@@ -745,15 +603,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Course Grid - Virtualized or Legacy */}
-          {useVirtualizedGrid ? (
-            <VirtualizedCourseGrid
-              searchTerm={searchTerm}
-              activeFilters={activeFilters}
-              sortBy={sortBy}
-            />
-          ) : (
-            <>
+          {/* Course Grid */}
+            <div className="space-y-6">
               {/* Results count */}
               {filteredCourses.length > 0 && (
                 <p className="text-left text-sm text-muted-foreground mb-6 ml-1">
@@ -775,9 +626,42 @@ export default function Home() {
                 </p>
               )}
 
-              {/* Legacy Course cards grid */}
-              {filteredCourses.length > 0 ? (
-                <div className="course-grid-flex mt-4">
+              {/* Course grid */}
+              {loading ? (
+                // Show skeleton for initial loading
+                <div className="course-grid-flex">
+                  {Array.from({ length: 6 }, (_, i) => (
+                    <div key={`skeleton-${i}`} className="course-card-flex">
+                      <div className="w-full border border-gray-200 rounded-lg p-4 space-y-4 bg-white">
+                        {/* Image skeleton */}
+                        <Skeleton className="w-full h-48 rounded-md" />
+                        
+                        {/* Content skeleton */}
+                        <div className="space-y-3">
+                          {/* Title */}
+                          <Skeleton className="h-5 w-3/4" />
+                          
+                          {/* Date info */}
+                          <div className="space-y-2">
+                            <Skeleton className="h-4 w-1/2" />
+                            <Skeleton className="h-4 w-2/3" />
+                          </div>
+                          
+                          {/* Badges */}
+                          <div className="flex gap-2 flex-wrap">
+                            <Skeleton className="h-6 w-16 rounded-full" />
+                            <Skeleton className="h-6 w-20 rounded-full" />
+                          </div>
+                          
+                          {/* Organization */}
+                          <Skeleton className="h-4 w-1/3" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : filteredCourses.length > 0 ? (
+                <div className="course-grid-flex">
                   {filteredCourses.map((course, index) => (
                     <div
                       key={course.id}
@@ -788,8 +672,8 @@ export default function Home() {
                         slug={course.slug}
                         images={course.images}
                         title={course.title}
-                        titleMm={course.titleMm || null}
-                        startDate={formatDate(course.startDate)}
+                        titleMm={course.titleMm}
+                        startDate={course.startDate ? formatDate(course.startDate) : ""}
                         startDateMm={
                           course.startDateMm ? formatDate(course.startDateMm) : null
                         }
@@ -817,16 +701,10 @@ export default function Home() {
                             ? formatDate(course.applyByDateMm)
                             : undefined
                         }
-                        estimatedDate={course.estimatedDate || null}
-                        estimatedDateMm={course.estimatedDateMm || null}
-                        fee={
-                          course.feeAmount !== -1
-                            ? formatFee(course.feeAmount)
-                            : undefined
-                        }
-                        feeMm={
-                          course.feeAmountMm ? formatFee(course.feeAmountMm) : null
-                        }
+                        estimatedDate={course.estimatedDate}
+                        estimatedDateMm={course.estimatedDateMm}
+                        fee={course.feeAmount !== -1 ? formatFee(course.feeAmount) : undefined}
+                        feeMm={course.feeAmountMm ? formatFee(course.feeAmountMm) : null}
                         badges={course.badges}
                         organizationInfo={
                           course.organizationInfo
@@ -842,7 +720,9 @@ export default function Home() {
                   ))}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center py-16">
+                <>
+                  {/* No results display */}
+                  <div className="flex flex-col items-center justify-center py-16">
                   <div className="no-results-icon">🔎</div>
                   <h3
                     className={`${getFontSizeClasses(
@@ -866,12 +746,15 @@ export default function Home() {
                   >
                     {t("home.clear.search")}
                   </button>
-                </div>
+                  </div>
+                </>
               )}
-            </>
-          )}
+            </div>
         </div>
       </div>
+
+      {/* Spacing between course content and footer */}
+      <div className="pb-16"></div>
 
       {/* Footer with navigation links */}
       <footer className="bg-gray-100 py-8 mt-12">

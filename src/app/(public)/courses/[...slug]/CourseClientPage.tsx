@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, notFound } from "next/navigation";
 import { DurationUnit } from "@/types";
 import CourseDetailComponent from "@/components/CourseDetail/CourseDetailComponent";
@@ -102,7 +102,7 @@ export default function CourseSlugPage() {
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [cacheRestored, setCacheRestored] = useState(false);
+  const hasRequestedRef = useRef(false);
 
   // Get the current slug
   const currentSlug = Array.isArray(params.slug)
@@ -169,48 +169,40 @@ export default function CourseSlugPage() {
     []
   );
 
-  // Cache restoration on mount
+  // Combined cache restoration and data fetching effect
   useEffect(() => {
     if (!currentSlug) {
       notFound();
       return;
     }
 
+    // Reset for new slug
+    hasRequestedRef.current = false;
+    setError(null);
+
     // Try to restore from cache first
     const cachedCourse = restoreCourseFromCache(currentSlug);
+    
     if (cachedCourse) {
+      // Cache hit - use cached data
       setCourse(cachedCourse);
       setLoading(false);
-      setCacheRestored(true);
+      return;
     }
-  }, [currentSlug, restoreCourseFromCache]);
 
-  // Data fetching effect
-  useEffect(() => {
+    // Cache miss - fetch fresh data
+
+    if (hasRequestedRef.current) {
+      return;
+    }
+
+    hasRequestedRef.current = true;
+
     async function fetchCourse() {
-      if (!currentSlug) {
-        notFound();
-        return;
-      }
-
+      if (!currentSlug) return;
+      
       try {
-        // If cache was restored, do background refresh
-        if (cacheRestored) {
-          const response = await fetch(
-            `/api/courses/${encodeURIComponent(currentSlug)}`
-          );
-          if (response.ok) {
-            const data = await response.json();
-            // Only update if data is different (simple check)
-            if (JSON.stringify(data) !== JSON.stringify(course)) {
-              setCourse(data);
-              saveCourseToCache(currentSlug, data);
-            }
-          }
-          return;
-        }
-
-        // Normal fetch for first-time load or cache miss
+        setLoading(true);
         const response = await fetch(
           `/api/courses/${encodeURIComponent(currentSlug)}`
         );
@@ -229,15 +221,14 @@ export default function CourseSlugPage() {
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load course");
         console.error("Error fetching course:", err);
+        hasRequestedRef.current = false; // Reset on error to allow retry
       } finally {
-        if (!cacheRestored) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     }
 
     fetchCourse();
-  }, [currentSlug, cacheRestored, course, saveCourseToCache]);
+  }, [currentSlug, restoreCourseFromCache, saveCourseToCache]);
 
   if (loading) {
     return (

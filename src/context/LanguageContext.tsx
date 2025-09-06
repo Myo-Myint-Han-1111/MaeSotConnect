@@ -54,6 +54,8 @@ export const translations = {
     "home.clear.search": "Clear All Filters",
     "home.courses.found": "courses found",
     "home.course.found": "course found", // For singular case
+    "home.loading": "Loading...",
+    "home.load.more": "Load More",
 
     // Course card
     "course.view.details": "View Details",
@@ -199,6 +201,8 @@ export const translations = {
     "home.clear.search": "ရှာဖွေမှုများအားလုံး ရှင်းလင်းရန်",
     "home.courses.found": "သင်တန်းများ {count} ခုတွေ့ရှိသည်",
     "home.course.found": "သင်တန်း {count} ခုတွေ့ရှိသည်",
+    "home.loading": "ဖွင့်နေသည်...",
+    "home.load.more": "နောက်ထပ် ပြရန်",
 
     // Course card
     "course.view.details": "အသေးစိတ်ကြည့်ရန်",

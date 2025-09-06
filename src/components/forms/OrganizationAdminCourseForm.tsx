@@ -42,7 +42,7 @@ import {
   Loader2,
 } from "lucide-react";
 import {
-  compressImage,
+  compressCourseImage,
   validateImageFile,
   formatFileSize,
 } from "@/lib/imageCompression";
@@ -615,12 +615,7 @@ export default function OrganizationAdminCourseForm({
 
         try {
           // Compress image
-          const result = await compressImage(file, {
-            maxWidth: 1200,
-            maxHeight: 800,
-            quality: 0.8,
-            maxSizeKB: 500,
-          });
+          const result = await compressCourseImage(file);
 
           compressedImages.push(result.file);
         } catch (_compressionError) {
