@@ -29,7 +29,6 @@ export const Navbar: React.FC<NavbarProps> = ({ brand }) => {
   // Check if we're on the home page
   const isHomePage = pathname === "/";
 
-
   return (
     <header
       className={`relative w-full z-50 transition-colors duration-300 ${
@@ -46,7 +45,7 @@ export const Navbar: React.FC<NavbarProps> = ({ brand }) => {
               width={32}
               height={32}
               className="h-10 w-auto"
-              style={{ filter: 'drop-shadow(none)' }}
+              style={{ filter: "drop-shadow(none)" }}
               unoptimized={true}
               priority={true}
             />
@@ -55,14 +54,14 @@ export const Navbar: React.FC<NavbarProps> = ({ brand }) => {
           {/* Right side controls */}
           <div className="flex items-center space-x-4">
             {/* Theme Toggle - only on home page */}
-            {isHomePage && <ThemeToggle />}
+            <ThemeToggle />
 
             {/* Language Switcher */}
             <div className="relative">
               <button
                 onClick={() => setLanguage(language === "en" ? "mm" : "en")}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 border ${
-                  isHomePage 
+                  isHomePage
                     ? "border-white/30 text-white/70 hover:bg-white/20 hover:text-white"
                     : "border-white/30 text-white/70 hover:bg-white/20 hover:text-white"
                 }`}

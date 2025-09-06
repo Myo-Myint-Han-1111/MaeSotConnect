@@ -41,8 +41,12 @@ const courseSchema = z.object({
     .nullable(),
   schedule: z.string().min(1, "Schedule is required"),
   scheduleMm: z.string().optional(),
-  feeAmount: z.number().min(0),
-  feeAmountMm: z.number().min(0).optional(),
+  feeAmount: z
+    .number()
+    .min(-1)
+    .nullable()
+    .transform((val) => val ?? -1),
+  feeAmountMm: z.number().min(-1).optional().nullable(),
   province: z.string().optional(),
   district: z.string().optional(),
   address: z.string().optional(),
@@ -124,6 +128,7 @@ export async function POST(request: NextRequest) {
 
     // Handle both JSON and FormData submissions
     let body;
+    let draftStatus;
     const imageUrls: string[] = [];
 
     const contentType = request.headers.get("content-type");
@@ -140,6 +145,7 @@ export async function POST(request: NextRequest) {
 
       try {
         const parsedData = JSON.parse(dataString);
+        draftStatus = parsedData.status;
         body = parsedData.content || parsedData;
 
         // PROCESS UPLOADED IMAGES
@@ -173,6 +179,7 @@ export async function POST(request: NextRequest) {
       }
     } else {
       body = await request.json();
+      draftStatus = body.status;
     }
 
     const validatedData = courseSchema.parse(body);
@@ -200,7 +207,7 @@ export async function POST(request: NextRequest) {
         title: validatedData.title,
         type: DraftType.COURSE,
         content: courseContent,
-        status: DraftStatus.PENDING,
+        status: draftStatus || DraftStatus.PENDING,
         createdBy: user.id,
         organizationId: user.organizationId,
         submittedAt: new Date(),

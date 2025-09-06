@@ -4,14 +4,47 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { UserPlus, Mail, Trash2, MoreVertical, AlertTriangle, Shield, Users } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  UserPlus,
+  Mail,
+  Trash2,
+  MoreVertical,
+  AlertTriangle,
+  Shield,
+  Users,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/context/ToastContext";
 import { Role, UserStatus, InvitationStatus } from "@/lib/auth/roles";
 
@@ -59,8 +92,11 @@ export default function UserManagementPage() {
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
-  const [isDeleteInviteDialogOpen, setIsDeleteInviteDialogOpen] = useState(false);
-  const [inviteToDelete, setInviteToDelete] = useState<UserInvitation | null>(null);
+  const [isDeleteInviteDialogOpen, setIsDeleteInviteDialogOpen] =
+    useState(false);
+  const [inviteToDelete, setInviteToDelete] = useState<UserInvitation | null>(
+    null
+  );
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeletingInvite, setIsDeletingInvite] = useState(false);
   const [isSendingInvite, setIsSendingInvite] = useState(false);
@@ -83,8 +119,8 @@ export default function UserManagementPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/admin/users', {
-        cache: 'no-store'
+      const response = await fetch("/api/admin/users", {
+        cache: "no-store",
       });
       if (response.ok) {
         const data = await response.json();
@@ -97,8 +133,8 @@ export default function UserManagementPage() {
 
   const fetchInvitations = async () => {
     try {
-      const response = await fetch('/api/admin/invitations', {
-        cache: 'no-store'
+      const response = await fetch("/api/admin/invitations", {
+        cache: "no-store",
       });
       if (response.ok) {
         const data = await response.json();
@@ -111,8 +147,8 @@ export default function UserManagementPage() {
 
   const fetchOrganizations = async () => {
     try {
-      const response = await fetch('/api/admin/organizations', {
-        cache: 'no-store'
+      const response = await fetch("/api/admin/organizations", {
+        cache: "no-store",
       });
       if (response.ok) {
         const data = await response.json();
@@ -126,14 +162,17 @@ export default function UserManagementPage() {
   const handleSendInvitation = async () => {
     if (isSendingInvite) return;
     setIsSendingInvite(true);
-    
+
     try {
       // Convert "none" to null for organizationId
       const formData = {
         ...inviteForm,
-        organizationId: inviteForm.organizationId === "none" ? null : inviteForm.organizationId,
+        organizationId:
+          inviteForm.organizationId === "none"
+            ? null
+            : inviteForm.organizationId,
       };
-      
+
       const response = await fetch("/api/admin/invitations", {
         method: "POST",
         headers: {
@@ -154,7 +193,11 @@ export default function UserManagementPage() {
         fetchInvitations();
       } else {
         const error = await response.json();
-        showToast("Failed to send invitation", error.message || "Please try again", "error");
+        showToast(
+          "Failed to send invitation",
+          error.message || "Please try again",
+          "error"
+        );
       }
     } catch (_error) {
       showToast("Failed to send invitation", "Please try again", "error");
@@ -166,7 +209,7 @@ export default function UserManagementPage() {
   const handleUpdateUserStatus = async (userId: string, status: UserStatus) => {
     if (isUpdatingStatus === userId) return;
     setIsUpdatingStatus(userId);
-    
+
     try {
       const response = await fetch(`/api/admin/users/${userId}`, {
         method: "PATCH",
@@ -192,11 +235,14 @@ export default function UserManagementPage() {
   const handleDeleteInvitation = async () => {
     if (!inviteToDelete || isDeletingInvite) return;
     setIsDeletingInvite(true);
-    
+
     try {
-      const response = await fetch(`/api/admin/invitations/${inviteToDelete.id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `/api/admin/invitations/${inviteToDelete.id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (response.ok) {
         showToast("Invitation deleted successfully!", "", "success");
@@ -205,7 +251,11 @@ export default function UserManagementPage() {
         setInviteToDelete(null);
       } else {
         const error = await response.json();
-        showToast("Failed to delete invitation", error.message || "Please try again", "error");
+        showToast(
+          "Failed to delete invitation",
+          error.message || "Please try again",
+          "error"
+        );
       }
     } catch (_error) {
       showToast("Failed to delete invitation", "Please try again", "error");
@@ -222,7 +272,7 @@ export default function UserManagementPage() {
   const handleDeleteUser = async () => {
     if (!userToDelete || isDeleting) return;
     setIsDeleting(true);
-    
+
     try {
       const response = await fetch(`/api/admin/users/${userToDelete.id}`, {
         method: "DELETE",
@@ -319,7 +369,9 @@ export default function UserManagementPage() {
                   id="email"
                   type="email"
                   value={inviteForm.email}
-                  onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+                  onChange={(e) =>
+                    setInviteForm({ ...inviteForm, email: e.target.value })
+                  }
                   placeholder="user@example.com"
                 />
               </div>
@@ -327,14 +379,26 @@ export default function UserManagementPage() {
                 <Label htmlFor="role">Role</Label>
                 <Select
                   value={inviteForm.role}
-                  onValueChange={(value) => setInviteForm({ ...inviteForm, role: value as Role })}
+                  onValueChange={(value) =>
+                    setInviteForm({ ...inviteForm, role: value as Role })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem className="hover:bg-gray-100" value={Role.YOUTH_ADVOCATE}>Youth Advocate</SelectItem>
-                    <SelectItem className="hover:bg-gray-100" value={Role.ORGANIZATION_ADMIN}>Organization Admin</SelectItem>
+                    <SelectItem
+                      className="hover:bg-gray-100"
+                      value={Role.YOUTH_ADVOCATE}
+                    >
+                      Youth Advocate
+                    </SelectItem>
+                    <SelectItem
+                      className="hover:bg-gray-100"
+                      value={Role.ORGANIZATION_ADMIN}
+                    >
+                      Organization Admin
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -342,15 +406,23 @@ export default function UserManagementPage() {
                 <Label htmlFor="organization">Organization (Optional)</Label>
                 <Select
                   value={inviteForm.organizationId}
-                  onValueChange={(value) => setInviteForm({ ...inviteForm, organizationId: value })}
+                  onValueChange={(value) =>
+                    setInviteForm({ ...inviteForm, organizationId: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select organization" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem className="hover:bg-gray-50" value="none">No organization</SelectItem>
+                  <SelectContent className="bg-white max-h-[200px] overflow-y-auto">
+                    <SelectItem className="hover:bg-gray-50" value="none">
+                      No organization
+                    </SelectItem>
                     {organizations.map((org) => (
-                      <SelectItem className="hover:bg-gray-50" key={org.id} value={org.id}>
+                      <SelectItem
+                        className="hover:bg-gray-50"
+                        key={org.id}
+                        value={org.id}
+                      >
                         {org.name}
                       </SelectItem>
                     ))}
@@ -362,22 +434,24 @@ export default function UserManagementPage() {
                 <Textarea
                   id="notes"
                   value={inviteForm.notes}
-                  onChange={(e) => setInviteForm({ ...inviteForm, notes: e.target.value })}
+                  onChange={(e) =>
+                    setInviteForm({ ...inviteForm, notes: e.target.value })
+                  }
                   placeholder="Additional notes about this invitation..."
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button 
-                className="hover:bg-gray-100" 
-                variant="outline" 
+              <Button
+                className="hover:bg-gray-100"
+                variant="outline"
                 onClick={() => setIsInviteDialogOpen(false)}
                 disabled={isSendingInvite}
               >
                 Cancel
               </Button>
-              <Button 
-                className="hover:text-gray-500" 
+              <Button
+                className="hover:text-gray-500"
                 onClick={handleSendInvitation}
                 disabled={isSendingInvite}
               >
@@ -386,19 +460,21 @@ export default function UserManagementPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-        
+
         {/* Delete User Confirmation Dialog */}
         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <DialogContent className="bg-white">
             <DialogHeader>
               <DialogTitle>Delete User</DialogTitle>
               <DialogDescription>
-                Are you sure you want to delete {userToDelete?.name}? This action cannot be undone and will permanently remove all user data.
+                Are you sure you want to delete {userToDelete?.name}? This
+                action cannot be undone and will permanently remove all user
+                data.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   setIsDeleteDialogOpen(false);
                   setUserToDelete(null);
@@ -417,19 +493,23 @@ export default function UserManagementPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-        
+
         {/* Delete Invitation Confirmation Dialog */}
-        <Dialog open={isDeleteInviteDialogOpen} onOpenChange={setIsDeleteInviteDialogOpen}>
+        <Dialog
+          open={isDeleteInviteDialogOpen}
+          onOpenChange={setIsDeleteInviteDialogOpen}
+        >
           <DialogContent className="bg-white">
             <DialogHeader>
               <DialogTitle>Delete Invitation</DialogTitle>
               <DialogDescription>
-                Are you sure you want to delete the invitation for {inviteToDelete?.email}? This action cannot be undone.
+                Are you sure you want to delete the invitation for{" "}
+                {inviteToDelete?.email}? This action cannot be undone.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   setIsDeleteInviteDialogOpen(false);
                   setInviteToDelete(null);
@@ -463,7 +543,9 @@ export default function UserManagementPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Youth Advocates</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Youth Advocates
+            </CardTitle>
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -474,12 +556,18 @@ export default function UserManagementPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Invitations</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Pending Invitations
+            </CardTitle>
             <Mail className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {invitations.filter((inv) => inv.status === InvitationStatus.PENDING).length}
+              {
+                invitations.filter(
+                  (inv) => inv.status === InvitationStatus.PENDING
+                ).length
+              }
             </div>
           </CardContent>
         </Card>
@@ -496,7 +584,9 @@ export default function UserManagementPage() {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {users.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8 col-span-full">No users found</p>
+              <p className="text-center text-muted-foreground py-8 col-span-full">
+                No users found
+              </p>
             ) : (
               users.map((user) => (
                 <div
@@ -507,11 +597,17 @@ export default function UserManagementPage() {
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <h3 className="font-medium truncate">{user.name}</h3>
-                        <span className="text-sm font-semibold text-gray-700">{user.role}</span>
+                        <span className="text-sm font-semibold text-gray-700">
+                          {user.role}
+                        </span>
                       </div>
-                      <Badge className={getStatusBadgeColor(user.status)}>{user.status}</Badge>
+                      <Badge className={getStatusBadgeColor(user.status)}>
+                        {user.status}
+                      </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {user.email}
+                    </p>
                     {user.organization && (
                       <p className="text-sm text-muted-foreground truncate">
                         Org: {user.organization.name}
@@ -519,7 +615,8 @@ export default function UserManagementPage() {
                     )}
                     {user.lastLoginAt && (
                       <p className="text-xs text-muted-foreground">
-                        Last login: {new Date(user.lastLoginAt).toLocaleDateString()}
+                        Last login:{" "}
+                        {new Date(user.lastLoginAt).toLocaleDateString()}
                       </p>
                     )}
                   </div>
@@ -530,36 +627,47 @@ export default function UserManagementPage() {
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {user.status === UserStatus.ACTIVE && (
+                      <DropdownMenuContent align="end">
+                        {user.status === UserStatus.ACTIVE && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleUpdateUserStatus(
+                                user.id,
+                                UserStatus.SUSPENDED
+                              )
+                            }
+                            className="text-orange-600 bg-white hover:bg-gray-50"
+                            disabled={isUpdatingStatus === user.id}
+                          >
+                            <AlertTriangle className="mr-2 h-4 w-4" />
+                            {isUpdatingStatus === user.id
+                              ? "Suspending..."
+                              : "Suspend User"}
+                          </DropdownMenuItem>
+                        )}
+                        {user.status === UserStatus.SUSPENDED && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleUpdateUserStatus(user.id, UserStatus.ACTIVE)
+                            }
+                            className="text-green-600 bg-white hover:bg-gray-50"
+                            disabled={isUpdatingStatus === user.id}
+                          >
+                            <Shield className="mr-2 h-4 w-4" />
+                            {isUpdatingStatus === user.id
+                              ? "Activating..."
+                              : "Activate User"}
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem
-                          onClick={() => handleUpdateUserStatus(user.id, UserStatus.SUSPENDED)}
-                          className="text-orange-600 bg-white hover:bg-gray-50"
-                          disabled={isUpdatingStatus === user.id}
+                          onClick={() => openDeleteDialog(user)}
+                          className="text-red-600 bg-white hover:bg-gray-50"
+                          disabled={isUpdatingStatus === user.id || isDeleting}
                         >
-                          <AlertTriangle className="mr-2 h-4 w-4" />
-                          {isUpdatingStatus === user.id ? "Suspending..." : "Suspend User"}
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete User
                         </DropdownMenuItem>
-                      )}
-                      {user.status === UserStatus.SUSPENDED && (
-                        <DropdownMenuItem
-                          onClick={() => handleUpdateUserStatus(user.id, UserStatus.ACTIVE)}
-                          className="text-green-600 bg-white hover:bg-gray-50"
-                          disabled={isUpdatingStatus === user.id}
-                        >
-                          <Shield className="mr-2 h-4 w-4" />
-                          {isUpdatingStatus === user.id ? "Activating..." : "Activate User"}
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem
-                        onClick={() => openDeleteDialog(user)}
-                        className="text-red-600 bg-white hover:bg-gray-50"
-                        disabled={isUpdatingStatus === user.id || isDeleting}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete User
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
+                      </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
                 </div>
@@ -574,13 +682,16 @@ export default function UserManagementPage() {
         <CardHeader>
           <CardTitle>Invitations</CardTitle>
           <CardDescription>
-            Manage pending and expired invitations. Accepted invitations automatically move to the Users section.
+            Manage pending and expired invitations. Accepted invitations
+            automatically move to the Users section.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {invitations.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8 col-span-full">No pending or expired invitations</p>
+              <p className="text-center text-muted-foreground py-8 col-span-full">
+                No pending or expired invitations
+              </p>
             ) : (
               invitations.map((invitation) => (
                 <div
@@ -590,8 +701,12 @@ export default function UserManagementPage() {
                   <div className="flex-1">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h3 className="font-medium truncate">{invitation.email}</h3>
-                        <span className="text-sm font-semibold text-gray-700">{invitation.role}</span>
+                        <h3 className="font-medium truncate">
+                          {invitation.email}
+                        </h3>
+                        <span className="text-sm font-semibold text-gray-700">
+                          {invitation.role}
+                        </span>
                       </div>
                       <Badge className={getStatusBadgeColor(invitation.status)}>
                         {invitation.status}
@@ -603,16 +718,21 @@ export default function UserManagementPage() {
                       </p>
                     )}
                     <p className="text-xs text-muted-foreground">
-                      Invited: {new Date(invitation.invitedAt).toLocaleDateString()}
+                      Invited:{" "}
+                      {new Date(invitation.invitedAt).toLocaleDateString()}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Expires: {new Date(invitation.expiresAt).toLocaleDateString()}
+                      Expires:{" "}
+                      {new Date(invitation.expiresAt).toLocaleDateString()}
                     </p>
                     {invitation.notes && (
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{invitation.notes}</p>
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                        {invitation.notes}
+                      </p>
                     )}
                   </div>
-                  {(invitation.status === InvitationStatus.PENDING || invitation.status === InvitationStatus.EXPIRED) && (
+                  {(invitation.status === InvitationStatus.PENDING ||
+                    invitation.status === InvitationStatus.EXPIRED) && (
                     <div className="flex justify-end">
                       <Button
                         variant="ghost"

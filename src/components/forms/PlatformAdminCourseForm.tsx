@@ -930,7 +930,7 @@ export default function PlatformAdminCourseForm({
                       >
                         <SelectValue placeholder="Select an organization" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-white max-h-[200px] overflow-y-auto">
                         {organizations.map((org) => (
                           <SelectItem key={org.id} value={org.id}>
                             {org.name}

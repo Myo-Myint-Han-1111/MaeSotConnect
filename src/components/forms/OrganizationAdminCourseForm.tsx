@@ -824,10 +824,19 @@ export default function OrganizationAdminCourseForm({
           formDataToSend.append(`image_${index}`, file);
         });
 
-        const url = editDraftId
-          ? `/api/org-admin/courses/edit/${editDraftId}`
-          : "/api/org-admin/courses/create";
-        const method = editDraftId ? "PATCH" : "POST";
+        let url: string;
+        let method: string;
+
+        // ✅ CORRECTED - All use main drafts API
+        if (editDraftId) {
+          // Editing an existing draft
+          url = `/api/drafts/${editDraftId}`;
+          method = "PATCH";
+        } else {
+          // Creating a new draft (both new drafts and from existing courses)
+          url = "/api/drafts";
+          method = "POST";
+        }
 
         const response = await fetch(url, {
           method: method,
@@ -981,10 +990,18 @@ export default function OrganizationAdminCourseForm({
         }
       }
 
-      const url = editDraftId
-        ? `/api/org-admin/courses/edit/${editDraftId}`
-        : "/api/org-admin/courses/create";
-      const method = editDraftId ? "PATCH" : "POST";
+      let url: string;
+      let method: string;
+
+      if (editDraftId) {
+        // ✅ Editing an existing draft - use the drafts API
+        url = `/api/drafts/${editDraftId}`;
+        method = "PATCH";
+      } else {
+        // ✅ Creating a new draft - use the drafts API
+        url = "/api/drafts";
+        method = "POST";
+      }
 
       const response = await fetch(url, {
         method: method,

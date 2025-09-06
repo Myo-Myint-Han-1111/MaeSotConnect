@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { redirect } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -92,6 +94,13 @@ export default function OrgAdminDraftDetailsPage() {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const { data: session, status } = useSession({
+    required: true,
+    onUnauthenticated() {
+      redirect("/auth/signin");
+    },
+  });
+
   const fetchDraft = useCallback(async () => {
     try {
       const response = await fetch(`/api/drafts/${params.id}`, {
@@ -144,10 +153,22 @@ export default function OrgAdminDraftDetailsPage() {
     }
   };
 
-  if (loading) {
+  // Authentication and loading checks
+  if (status === "loading" || loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="h-16 w-16 border-t-4 border-primary border-solid rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (session?.user?.role !== "ORGANIZATION_ADMIN") {
+    return (
+      <div className="text-center py-12">
+        <h2 className="text-2xl font-semibold mb-2">Access Denied</h2>
+        <p className="text-muted-foreground">
+          You must be an organization admin to access this page.
+        </p>
       </div>
     );
   }

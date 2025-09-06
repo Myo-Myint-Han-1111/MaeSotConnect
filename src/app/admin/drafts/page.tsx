@@ -5,7 +5,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { FileText, Clock, CheckCircle, XCircle, Eye } from "lucide-react";
 import Link from "next/link";
 import { DraftStatus } from "@/lib/auth/roles";
@@ -38,12 +44,26 @@ export default function AdminDraftsPage() {
 
   useEffect(() => {
     fetchDrafts();
+
+    // Check for success messages in URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("approved")) {
+      alert(
+        "Draft approved successfully! The course/organization has been created."
+      );
+      // Clean up the URL
+      window.history.replaceState({}, "", "/admin/drafts");
+    }
+    if (urlParams.get("rejected")) {
+      alert("Draft rejected successfully.");
+      window.history.replaceState({}, "", "/admin/drafts");
+    }
   }, []);
 
   const fetchDrafts = async () => {
     try {
       const response = await fetch("/api/admin/drafts", {
-        cache: 'no-store'
+        cache: "no-store",
       });
       if (response.ok) {
         const data = await response.json();
@@ -60,10 +80,11 @@ export default function AdminDraftsPage() {
   };
 
   const filteredDrafts = drafts.filter((draft) => {
-    const matchesSearch = 
+    const matchesSearch =
       draft.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       draft.author.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || draft.status === statusFilter;
+    const matchesStatus =
+      statusFilter === "all" || draft.status === statusFilter;
     const matchesType = typeFilter === "all" || draft.type === typeFilter;
     return matchesSearch && matchesStatus && matchesType;
   });
@@ -97,7 +118,8 @@ export default function AdminDraftsPage() {
   };
 
   const getPendingCount = () => {
-    return drafts.filter(draft => draft.status === DraftStatus.PENDING).length;
+    return drafts.filter((draft) => draft.status === DraftStatus.PENDING)
+      .length;
   };
 
   const handleApprove = async (draftId: string) => {
@@ -119,7 +141,7 @@ export default function AdminDraftsPage() {
         fetchDrafts();
       } else {
         const error = await response.json();
-        alert(`Error approving draft: ${error.message || 'Unknown error'}`);
+        alert(`Error approving draft: ${error.message || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Error approving draft:", error);
@@ -153,7 +175,7 @@ export default function AdminDraftsPage() {
         fetchDrafts();
       } else {
         const error = await response.json();
-        alert(`Error rejecting draft: ${error.message || 'Unknown error'}`);
+        alert(`Error rejecting draft: ${error.message || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Error rejecting draft:", error);
@@ -187,9 +209,12 @@ export default function AdminDraftsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Content Draft Reviews</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Content Draft Reviews
+          </h1>
           <p className="text-muted-foreground">
-            Review and manage course and organization drafts submitted by Youth Advocates and Organization Admins.
+            Review and manage course and organization drafts submitted by Youth
+            Advocates and Organization Admins.
           </p>
         </div>
         {getPendingCount() > 0 && (
@@ -207,7 +232,12 @@ export default function AdminDraftsPage() {
               <Clock className="h-4 w-4 text-yellow-500" />
               <div className="ml-2">
                 <p className="text-sm font-medium">Pending</p>
-                <p className="text-2xl font-bold">{drafts.filter(d => d.status === DraftStatus.PENDING).length}</p>
+                <p className="text-2xl font-bold">
+                  {
+                    drafts.filter((d) => d.status === DraftStatus.PENDING)
+                      .length
+                  }
+                </p>
               </div>
             </div>
           </CardContent>
@@ -218,7 +248,12 @@ export default function AdminDraftsPage() {
               <CheckCircle className="h-4 w-4 text-green-500" />
               <div className="ml-2">
                 <p className="text-sm font-medium">Approved</p>
-                <p className="text-2xl font-bold">{drafts.filter(d => d.status === DraftStatus.APPROVED).length}</p>
+                <p className="text-2xl font-bold">
+                  {
+                    drafts.filter((d) => d.status === DraftStatus.APPROVED)
+                      .length
+                  }
+                </p>
               </div>
             </div>
           </CardContent>
@@ -229,7 +264,12 @@ export default function AdminDraftsPage() {
               <XCircle className="h-4 w-4 text-red-500" />
               <div className="ml-2">
                 <p className="text-sm font-medium">Rejected</p>
-                <p className="text-2xl font-bold">{drafts.filter(d => d.status === DraftStatus.REJECTED).length}</p>
+                <p className="text-2xl font-bold">
+                  {
+                    drafts.filter((d) => d.status === DraftStatus.REJECTED)
+                      .length
+                  }
+                </p>
               </div>
             </div>
           </CardContent>
@@ -274,7 +314,9 @@ export default function AdminDraftsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value={DraftStatus.PENDING}>Pending Review</SelectItem>
+                <SelectItem value={DraftStatus.PENDING}>
+                  Pending Review
+                </SelectItem>
                 <SelectItem value={DraftStatus.APPROVED}>Approved</SelectItem>
                 <SelectItem value={DraftStatus.REJECTED}>Rejected</SelectItem>
               </SelectContent>
@@ -291,9 +333,13 @@ export default function AdminDraftsPage() {
               <div className="text-center py-8">
                 <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                 {drafts.length === 0 ? (
-                  <p className="text-muted-foreground">No content drafts have been submitted yet.</p>
+                  <p className="text-muted-foreground">
+                    No content drafts have been submitted yet.
+                  </p>
                 ) : (
-                  <p className="text-muted-foreground">No drafts match your current filters.</p>
+                  <p className="text-muted-foreground">
+                    No drafts match your current filters.
+                  </p>
                 )}
               </div>
             </CardContent>
@@ -308,7 +354,9 @@ export default function AdminDraftsPage() {
                       {getStatusIcon(draft.status)}
                       <h3 className="text-lg font-medium">{draft.title}</h3>
                       <Badge className={getStatusBadgeColor(draft.status)}>
-                        {draft.status === DraftStatus.REJECTED ? "Needs Revision" : draft.status}
+                        {draft.status === DraftStatus.REJECTED
+                          ? "Needs Revision"
+                          : draft.status}
                       </Badge>
                       {draft.status === DraftStatus.PENDING && (
                         <span className="text-gray-500 text-sm italic">
@@ -316,39 +364,61 @@ export default function AdminDraftsPage() {
                         </span>
                       )}
                     </div>
-                    
+
                     <div className="space-y-1 text-sm text-muted-foreground">
-                      <p><span className="font-medium">Submitted by:</span> {draft.author.name} ({draft.author.email})</p>
-                      <p><span className="font-medium">Type:</span> {draft.type.replace("_", " ")}</p>
-                      <p><span className="font-medium">Submitted:</span> {new Date(draft.submittedAt).toLocaleDateString()}</p>
+                      <p>
+                        <span className="font-medium">Submitted by:</span>{" "}
+                        {draft.author.name} ({draft.author.email})
+                      </p>
+                      <p>
+                        <span className="font-medium">Type:</span>{" "}
+                        {draft.type.replace("_", " ")}
+                      </p>
+                      <p>
+                        <span className="font-medium">Submitted:</span>{" "}
+                        {new Date(draft.submittedAt).toLocaleDateString()}
+                      </p>
                       {draft.reviewedAt && (
-                        <p><span className="font-medium">Reviewed:</span> {new Date(draft.reviewedAt).toLocaleDateString()}</p>
+                        <p>
+                          <span className="font-medium">Reviewed:</span>{" "}
+                          {new Date(draft.reviewedAt).toLocaleDateString()}
+                        </p>
                       )}
                       {draft.organization && (
-                        <p><span className="font-medium">Organization:</span> {draft.organization.name}</p>
+                        <p>
+                          <span className="font-medium">Organization:</span>{" "}
+                          {draft.organization.name}
+                        </p>
                       )}
                     </div>
 
                     {draft.reviewNotes && (
                       <div className="mt-3 p-3 bg-muted rounded-md">
-                        <p className="text-sm font-medium mb-1">Review Notes:</p>
+                        <p className="text-sm font-medium mb-1">
+                          Review Notes:
+                        </p>
                         <p className="text-sm">{draft.reviewNotes}</p>
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" asChild className="bg-blue-700 text-white hover:bg-blue-600 border-blue-700">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      asChild
+                      className="bg-blue-700 text-white hover:bg-blue-600 border-blue-700"
+                    >
                       <Link href={`/admin/drafts/${draft.id}`}>
                         <Eye className="h-4 w-4 mr-2" />
                         Review
                       </Link>
                     </Button>
-                    
+
                     {draft.status === DraftStatus.PENDING && (
                       <>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => handleApprove(draft.id)}
                           disabled={processing === draft.id}
@@ -357,9 +427,9 @@ export default function AdminDraftsPage() {
                           <CheckCircle className="h-4 w-4 mr-2" />
                           {processing === draft.id ? "..." : "Approve"}
                         </Button>
-                        
-                        <Button 
-                          variant="outline" 
+
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => handleReject(draft.id)}
                           disabled={processing === draft.id}

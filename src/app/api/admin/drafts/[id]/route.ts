@@ -338,23 +338,43 @@ export async function PATCH(
                 }
               }
 
+              // Collect all image URLs from different possible fields
+              let allImageUrls: string[] = [];
+
+              // Check courseData.imageUrls (new uploads + existing)
               if (courseData.imageUrls && Array.isArray(courseData.imageUrls)) {
-                const imageUrls = courseData.imageUrls as string[];
-                if (imageUrls.length > 0) {
-                  await tx.image.createMany({
-                    data: imageUrls.map((url) => ({
-                      id: crypto.randomUUID(),
-                      url,
-                      courseId: existingDraft.originalCourseId!,
-                    })),
-                  });
-                }
+                allImageUrls = [...allImageUrls, ...courseData.imageUrls];
+              }
+
+              // Check courseData.images (existing course images)
+              if (courseData.images && Array.isArray(courseData.images)) {
+                const imageStrings = courseData.images
+                  .map((img: string | { url: string }) =>
+                    typeof img === "string" ? img : img.url
+                  )
+                  .filter(Boolean);
+                allImageUrls = [...allImageUrls, ...imageStrings];
+              }
+
+              // Remove duplicates
+              allImageUrls = [...new Set(allImageUrls)];
+
+              // Create images if they exist
+              if (allImageUrls.length > 0) {
+                await tx.image.createMany({
+                  data: allImageUrls.map((url) => ({
+                    id: crypto.randomUUID(),
+                    url,
+                    courseId: existingDraft.originalCourseId!,
+                  })),
+                });
               }
 
               // Don't delete the draft here - we'll update it below
               return {
                 updatedCourse: true,
                 courseId: existingDraft.originalCourseId,
+                shouldDelete: true,
               };
             } else {
               // 🎯 THIS IS A NEW COURSE - CREATE IT (your existing logic)
@@ -496,25 +516,36 @@ export async function PATCH(
                   });
                 }
               }
-              // DEBUG: Check what image fields exist in the draft
-              console.log("=== IMAGE DEBUG ===");
-              console.log("courseData.imageUrls:", courseData.imageUrls);
-              console.log("courseData.images:", courseData.images);
-              console.log("All courseData keys:", Object.keys(courseData));
-              console.log("=== END IMAGE DEBUG ===");
+              // Collect all image URLs from different possible fields
+              let allImageUrls: string[] = [];
 
-              // Create images if they exist in the draft
+              // Check courseData.imageUrls (new uploads + existing)
               if (courseData.imageUrls && Array.isArray(courseData.imageUrls)) {
-                const imageUrls = courseData.imageUrls as string[];
-                if (imageUrls.length > 0) {
-                  await tx.image.createMany({
-                    data: imageUrls.map((url) => ({
-                      id: crypto.randomUUID(),
-                      url,
-                      courseId: courseId,
-                    })),
-                  });
-                }
+                allImageUrls = [...allImageUrls, ...courseData.imageUrls];
+              }
+
+              // Check courseData.images (existing course images)
+              if (courseData.images && Array.isArray(courseData.images)) {
+                const imageStrings = courseData.images
+                  .map((img: string | { url: string }) =>
+                    typeof img === "string" ? img : img.url
+                  )
+                  .filter(Boolean);
+                allImageUrls = [...allImageUrls, ...imageStrings];
+              }
+
+              // Remove duplicates
+              allImageUrls = [...new Set(allImageUrls)];
+
+              // Create images if they exist
+              if (allImageUrls.length > 0) {
+                await tx.image.createMany({
+                  data: allImageUrls.map((url) => ({
+                    id: crypto.randomUUID(),
+                    url,
+                    courseId: courseId,
+                  })),
+                });
               }
 
               // Return course info, deletion handled outside transaction

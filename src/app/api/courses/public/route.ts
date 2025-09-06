@@ -84,6 +84,7 @@ export async function GET() {
           },
         },
       },
+      orderBy: { createdAt: "desc" },
     });
 
     // Format the response to ensure dates are serialized properly

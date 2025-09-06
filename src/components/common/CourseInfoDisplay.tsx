@@ -61,7 +61,7 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
   fee,
   compact = false,
   showDescriptions = true,
-  applyByDate,
+  // applyByDate,
   startByDate,
   courseAddress,
   estimatedDate,
@@ -156,43 +156,6 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
         </div>
       )}
 
-      {/* Apply By Date - Show estimated date badge based on preferences */}
-      {applyByDate && (
-        <div className={itemClass} style={{ color: grayColor }}>
-          <CalendarCheck className={iconClass} style={{ color: grayColor }} />
-          <div className="flex-1 min-w-0">
-            {!compact && (
-              <p className="text-sm font-medium text-foreground">Apply By</p>
-            )}
-            <div className="flex items-center gap-2 flex-wrap">
-              {compact && showDescriptions && (
-                <span
-                  className="text-xs w-20 flex-shrink-0"
-                  style={{ color: grayColor }}
-                >
-                  {t("course.info.applyBy")}:
-                </span>
-              )}
-              <p
-                className={compact ? "truncate" : "text-sm"}
-                style={{ color: grayColor }}
-              >
-                {applyByDate}
-              </p>
-              {/* Show estimated date badge only if preferences allow it for apply by date */}
-              {estimatedPrefs.showForApplyByDate &&
-                estimatedPrefs.displayText && (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded text-xs whitespace-nowrap">
-                    <span className="text-xs">
-                      {estimatedPrefs.displayText}
-                    </span>
-                  </span>
-                )}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Start By Date (Application Open Date) */}
       {startByDate && (
         <div className={itemClass} style={{ color: grayColor }}>
@@ -232,6 +195,43 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
           </div>
         </div>
       )}
+
+      {/* Apply By Date - Show estimated date badge based on preferences */}
+      {/* {applyByDate && (
+        <div className={itemClass} style={{ color: grayColor }}>
+          <CalendarCheck className={iconClass} style={{ color: grayColor }} />
+          <div className="flex-1 min-w-0">
+            {!compact && (
+              <p className="text-sm font-medium text-foreground">Apply By</p>
+            )}
+            <div className="flex items-center gap-2 flex-wrap">
+              {compact && showDescriptions && (
+                <span
+                  className="text-xs w-20 flex-shrink-0"
+                  style={{ color: grayColor }}
+                >
+                  {t("course.info.applyBy")}:
+                </span>
+              )}
+              <p
+                className={compact ? "truncate" : "text-sm"}
+                style={{ color: grayColor }}
+              >
+                {applyByDate}
+              </p> */}
+      {/* Show estimated date badge only if preferences allow it for apply by date */}
+      {/* {estimatedPrefs.showForApplyByDate &&
+                estimatedPrefs.displayText && (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded text-xs whitespace-nowrap">
+                    <span className="text-xs">
+                      {estimatedPrefs.displayText}
+                    </span>
+                  </span>
+                )}
+            </div>
+          </div>
+        </div>
+      )} */}
 
       {/* Duration - With description */}
       <div className={itemClass} style={{ color: grayColor }}>

@@ -48,6 +48,10 @@ interface CourseDetail {
   district?: string;
   startDate: string;
   startDateMm?: string;
+  startByDate?: string;
+  startByDateMm?: string;
+  applyByDate?: string;
+  applyByDateMm?: string;
   endDate: string;
   endDateMm?: string;
   duration: number;
@@ -409,6 +413,31 @@ export default function CourseDetailComponent({
                       </p>
                     </div>
                   </div>
+
+                  {/* Application Period */}
+                  {(course.startByDate || course.applyByDate) && (
+                    <div className="flex items-start">
+                      <CalendarDays className="h-5 w-5 mr-2 mt-0.5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          {t("course.application.period")}
+                        </p>
+                        <p className="text-sm text-muted-foreground" dir="auto">
+                          {course.startByDate &&
+                            getLocalizedDateContent(
+                              course.startByDate,
+                              course.startByDateMm
+                            )}
+                          {course.startByDate && course.applyByDate && " - "}
+                          {course.applyByDate &&
+                            getLocalizedDateContent(
+                              course.applyByDate,
+                              course.applyByDateMm
+                            )}
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Duration */}
                   <div className="flex items-start">

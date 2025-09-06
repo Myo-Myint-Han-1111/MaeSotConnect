@@ -103,7 +103,8 @@ export const translations = {
     "about.organization": "About Organization",
     "course.ageRange": "Age Range",
     "course.requiredDocuments": "Required Documents",
-    "course.dates": "Dates",
+    "course.dates": "Course Period",
+    "course.application.period": "Application Period",
     "course.estimatedDate": "Estimated Date",
     "course.info.estimated": "Estimated",
 
@@ -249,7 +250,8 @@ export const translations = {
     "about.organization": "အဖွဲ့အကြောင်း",
     "course.ageRange": "အသက်အရွယ်",
     "course.requiredDocuments": "လိုအပ်သော စာရွက်စာတမ်းများ",
-    "course.dates": "ရက်စွဲများ",
+    "course.dates": "သင်တန်းကာလ",
+    "course.application.period": "လျှောက်လွှာကာလ",
     "course.estimatedDate": "ခန့်မှန်းရက်စွဲ",
     "course.info.estimated": "ခန့်မှန်း",
 
