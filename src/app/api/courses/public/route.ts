@@ -1,18 +1,58 @@
 // src/app/api/courses/public/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    // Fetch courses with only fields needed for CourseCard component
-    // Check if status field exists in Course table
-    const hasStatusField = await checkFieldExists("Course", "status");
+    // Parse query parameters for pagination and filtering
+    const { searchParams } = new URL(request.url);
+    const isLegacy = searchParams.get('legacy') === 'true';
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '24'); // 24 items per page for good mobile UX
+    const search = searchParams.get('search') || '';
+    const badges = searchParams.get('badges')?.split(',').filter(Boolean) || [];
+    const sortBy = searchParams.get('sortBy') || 'startDate-asc';
+
+    // Calculate pagination (skip for legacy mode)
+    const skip = isLegacy ? 0 : (page - 1) * limit;
+    
+    // Build the where clause for filtering
+    const whereClause: Prisma.CourseWhereInput = {
+      // Only show courses that haven't started yet (future courses)
+      startDate: {
+        gte: new Date(), // Greater than or equal to today
+      },
+    };
+
+    // Add search filtering
+    if (search) {
+      whereClause.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { titleMm: { contains: search, mode: 'insensitive' } },
+        { district: { contains: search, mode: 'insensitive' } },
+        { province: { contains: search, mode: 'insensitive' } },
+        { organizationInfo: { name: { contains: search, mode: 'insensitive' } } },
+        { badges: { some: { text: { contains: search, mode: 'insensitive' } } } },
+      ];
+    }
+
+    // Add badge filtering
+    if (badges.length > 0) {
+      whereClause.badges = {
+        some: {
+          text: { in: badges }
+        }
+      };
+    }
+
+    // Get total count for pagination metadata (only for non-legacy)
+    const totalCount = isLegacy ? 0 : await prisma.course.count({ where: whereClause });
 
     const courses = await prisma.course.findMany({
-      where: {
-        // 🎯 ONLY SHOW PUBLISHED COURSES if status field exists
-        ...(hasStatusField && { status: "PUBLISHED" }),
-      },
+      where: whereClause,
+      ...(isLegacy ? {} : { skip, take: limit }),
+      orderBy: getSortOrder(sortBy),
       select: {
         id: true,
         slug: true,
@@ -114,7 +154,25 @@ export async function GET() {
       feeMm: course.feeAmountMm ? course.feeAmountMm.toString() : null,
     }));
 
-    return NextResponse.json(formattedCourses);
+    // Return response based on mode
+    if (isLegacy) {
+      return NextResponse.json(formattedCourses);
+    }
+
+    // Return paginated response with metadata
+    const hasMore = skip + courses.length < totalCount;
+    const response = {
+      courses: formattedCourses,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        hasMore,
+        totalPages: Math.ceil(totalCount / limit),
+      },
+    };
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Error fetching public courses:", error);
     return NextResponse.json(
@@ -124,15 +182,19 @@ export async function GET() {
   }
 }
 
-// Helper function to check if a field exists in a table
-async function checkFieldExists(
-  tableName: string,
-  fieldName: string
-): Promise<boolean> {
-  try {
-    await prisma.$queryRaw`SELECT ${fieldName} FROM ${tableName} LIMIT 1`;
-    return true;
-  } catch (_error) {
-    return false;
+// Helper function to get sort order for Prisma query
+function getSortOrder(sortBy: string) {
+  switch (sortBy) {
+    case 'startDate-desc':
+      return { startDate: 'desc' as const };
+    case 'applyByDate-asc':
+      return { applyByDate: 'asc' as const };
+    case 'applyByDate-desc':
+      return { applyByDate: 'desc' as const };
+    case 'default':
+      return { createdAt: 'desc' as const };
+    case 'startDate-asc':
+    default:
+      return { startDate: 'asc' as const };
   }
 }

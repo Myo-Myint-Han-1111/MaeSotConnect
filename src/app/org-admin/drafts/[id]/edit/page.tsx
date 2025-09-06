@@ -51,7 +51,7 @@ interface Draft {
   id: string;
   title: string;
   type: string;
-  content: DraftContent;
+  content: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   status: string;
 }
 
@@ -174,9 +174,7 @@ export default function DraftEditPage() {
     return (
       <div className="text-center py-12">
         <h2 className="text-xl font-semibold mb-2">Draft not found</h2>
-        <p className="text-muted-foreground mb-4">
-          The course draft you are looking for does not exist.
-        </p>
+        <p className="text-muted-foreground mb-4">The course draft you&apos;re looking for doesn&apos;t exist.</p>
       </div>
     );
   }

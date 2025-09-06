@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { CourseCard } from "@/components/CourseCard/CourseCard";
+import { VirtualizedCourseGrid } from "@/components/VirtualizedCourseGrid";
 import { useBadgeTranslation, getBadgeStyle } from "@/lib/badges";
 import { convertToMyanmarNumber } from "@/lib/utils";
 import { getFontSizeClasses } from "@/lib/font-sizes";
@@ -94,6 +95,10 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<string>("startDate-asc");
   const [cacheRestored, setCacheRestored] = useState(false);
+  const [allBadges, setAllBadges] = useState<string[]>([]);
+  
+  // Feature flag for virtualized grid (set to true to enable)
+  const useVirtualizedGrid = true;
 
   // Cache management functions
   const savePageState = useCallback(() => {
@@ -160,29 +165,45 @@ export default function Home() {
     { value: "applyByDate-desc", label: t("sort.applyByDate.latest") },
   ];
 
+  // Fetch available badges for filtering (virtualized version only)
+  useEffect(() => {
+    if (useVirtualizedGrid) {
+      const fetchBadges = async () => {
+        try {
+          const response = await fetch('/api/courses/badges');
+          if (response.ok) {
+            const badges = await response.json();
+            setAllBadges(badges);
+          }
+        } catch (error) {
+          console.error('Error fetching badges:', error);
+        }
+      };
+      fetchBadges();
+    }
+  }, [useVirtualizedGrid]);
+
   // Initial cache restoration on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const restored = restorePageState();
+      const restored = useVirtualizedGrid ? false : restorePageState();
       setCacheRestored(restored);
 
-      // If cache was restored, no need to load old filter state
-      if (!restored) {
-        try {
-          const savedState = sessionStorage.getItem("courseFilters");
-          if (savedState) {
-            const { searchTerm: savedSearch, activeFilters: savedFilters } =
-              JSON.parse(savedState);
-            if (savedSearch) setSearchTerm(savedSearch);
-            if (savedFilters && Array.isArray(savedFilters))
-              setActiveFilters(savedFilters);
-          }
-        } catch (error) {
-          console.error("Error loading saved filters:", error);
+      // Load saved filter state for both implementations
+      try {
+        const savedState = sessionStorage.getItem("courseFilters");
+        if (savedState) {
+          const { searchTerm: savedSearch, activeFilters: savedFilters } =
+            JSON.parse(savedState);
+          if (savedSearch) setSearchTerm(savedSearch);
+          if (savedFilters && Array.isArray(savedFilters))
+            setActiveFilters(savedFilters);
         }
+      } catch (error) {
+        console.error("Error loading saved filters:", error);
       }
     }
-  }, [restorePageState]);
+  }, [restorePageState, useVirtualizedGrid]);
 
   // Save state to sessionStorage whenever searchTerm or activeFilters change
   useEffect(() => {
@@ -201,18 +222,24 @@ export default function Home() {
     }
   }, [searchTerm, activeFilters]);
 
-  // Cache-first data fetching
+  // Cache-first data fetching (only for legacy version)
   useEffect(() => {
+    if (useVirtualizedGrid) {
+      setLoading(false);
+      return;
+    }
+
     async function fetchCourses() {
       // If cache was restored, skip initial fetch but do background refresh
       if (cacheRestored) {
         try {
-          const response = await fetch("/api/courses/public");
+          const response = await fetch("/api/courses/public?legacy=true");
           if (response.ok) {
             const data = await response.json();
+            const coursesData = Array.isArray(data) ? data : data.courses || [];
             // Only update if data is different (simple check)
-            if (JSON.stringify(data) !== JSON.stringify(courses)) {
-              setCourses(data);
+            if (JSON.stringify(coursesData) !== JSON.stringify(courses)) {
+              setCourses(coursesData);
             }
           }
         } catch (error) {
@@ -223,12 +250,13 @@ export default function Home() {
 
       // Normal fetch for first-time load or cache miss
       try {
-        const response = await fetch("/api/courses/public");
+        const response = await fetch("/api/courses/public?legacy=true");
         if (!response.ok) {
           throw new Error("Failed to fetch courses");
         }
         const data = await response.json();
-        setCourses(data);
+        const coursesData = Array.isArray(data) ? data : data.courses || [];
+        setCourses(coursesData);
       } catch (error) {
         console.error("Error fetching courses:", error);
       } finally {
@@ -237,7 +265,7 @@ export default function Home() {
     }
 
     fetchCourses();
-  }, [cacheRestored, courses]);
+  }, [cacheRestored, courses, useVirtualizedGrid]);
 
   // NEW: Get course status function
   const getCourseStatus = useCallback((course: Course) => {
@@ -301,8 +329,12 @@ export default function Home() {
     });
   }, [courses, searchTerm, getCourseStatus]);
 
-  // STEP 2: FIXED - Get all unique badge texts from courses available for filtering
-  const allBadges = useMemo(() => {
+  // Get all unique badge texts - different sources based on implementation
+  const availableBadges = useMemo(() => {
+    if (useVirtualizedGrid) {
+      return allBadges;
+    }
+    
     const badgeSet = new Set<string>();
     coursesAvailableForFiltering.forEach((course) => {
       course.badges.forEach((badge) => {
@@ -310,7 +342,7 @@ export default function Home() {
       });
     });
     return Array.from(badgeSet);
-  }, [coursesAvailableForFiltering]);
+  }, [useVirtualizedGrid, allBadges, coursesAvailableForFiltering]);
 
   // Format date for display (convert from ISO string to localized format)
   const formatDate = (dateStr: string): string => {
@@ -671,7 +703,7 @@ export default function Home() {
               </div>
 
               <div className="flex flex-wrap gap-3 justify-start">
-                {allBadges.map((badge) => {
+                {availableBadges.map((badge) => {
                   const badgeStyle = getBadgeStyle(badge);
                   const isActive = activeFilters.includes(badge);
 
@@ -713,120 +745,130 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Results count */}
-          {filteredCourses.length > 0 && (
-            <p className="text-left text-sm text-muted-foreground mb-6 ml-1">
-              {language === "mm"
-                ? filteredCourses.length === 1
-                  ? t("home.course.found").replace(
-                      "{count}",
-                      convertToMyanmarNumber(filteredCourses.length)
-                    )
-                  : t("home.courses.found").replace(
-                      "{count}",
-                      convertToMyanmarNumber(filteredCourses.length)
-                    )
-                : `${filteredCourses.length} ${
-                    filteredCourses.length === 1
-                      ? t("home.course.found")
-                      : t("home.courses.found")
-                  }`}
-            </p>
-          )}
-
-          {/* Course cards grid */}
-          {filteredCourses.length > 0 ? (
-            <div className="course-grid-flex mt-4">
-              {filteredCourses.map((course, index) => (
-                <div
-                  key={course.id}
-                  className="course-card-flex"
-                  data-course-slug={course.slug}
-                >
-                  <CourseCard
-                    slug={course.slug}
-                    images={course.images}
-                    title={course.title}
-                    titleMm={course.titleMm || null}
-                    startDate={formatDate(course.startDate)}
-                    startDateMm={
-                      course.startDateMm ? formatDate(course.startDateMm) : null
-                    }
-                    startByDate={
-                      course.startByDate
-                        ? formatDate(course.startByDate) // Format it first
-                        : undefined
-                    }
-                    startByDateMm={
-                      course.startByDateMm
-                        ? formatDate(course.startByDateMm) // Format it first
-                        : undefined
-                    }
-                    duration={course.duration}
-                    durationUnit={course.durationUnit}
-                    durationMm={course.durationMm}
-                    durationUnitMm={course.durationUnitMm}
-                    applyByDate={
-                      course.applyByDate
-                        ? formatDate(course.applyByDate)
-                        : undefined
-                    }
-                    applyByDateMm={
-                      course.applyByDateMm
-                        ? formatDate(course.applyByDateMm)
-                        : undefined
-                    }
-                    estimatedDate={course.estimatedDate || null}
-                    estimatedDateMm={course.estimatedDateMm || null}
-                    fee={
-                      course.feeAmount !== -1
-                        ? formatFee(course.feeAmount)
-                        : undefined
-                    }
-                    feeMm={
-                      course.feeAmountMm ? formatFee(course.feeAmountMm) : null
-                    }
-                    badges={course.badges}
-                    organizationInfo={
-                      course.organizationInfo
-                        ? { name: course.organizationInfo.name }
-                        : null
-                    }
-                    createdByUser={course.createdByUser}
-                    district={course.district}
-                    province={course.province}
-                    showSwipeHint={index === 0}
-                  />
-                </div>
-              ))}
-            </div>
+          {/* Course Grid - Virtualized or Legacy */}
+          {useVirtualizedGrid ? (
+            <VirtualizedCourseGrid
+              searchTerm={searchTerm}
+              activeFilters={activeFilters}
+              sortBy={sortBy}
+            />
           ) : (
-            // No courses found section remains the same
-            <div className="flex flex-col items-center justify-center py-16">
-              <div className="no-results-icon">🔎</div>
-              <h3
-                className={`${getFontSizeClasses(
-                  "heading3",
-                  language
-                )} font-bold mb-2`}
-              >
-                {t("home.no.results")}
-              </h3>
-              <p
-                className={`${getFontSizeClasses(
-                  "bodyRegular",
-                  language
-                )} text-muted-foreground max-w-md`}
-              >
-                {t("home.no.results.desc")}
-              </p>
-              <button
-                onClick={clearFilters}
-                className="mt-6 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
-              >
-                {t("home.clear.search")}
-              </button>
-            </div>
+            <>
+              {/* Results count */}
+              {filteredCourses.length > 0 && (
+                <p className="text-left text-sm text-muted-foreground mb-6 ml-1">
+                  {language === "mm"
+                    ? filteredCourses.length === 1
+                      ? t("home.course.found").replace(
+                          "{count}",
+                          convertToMyanmarNumber(filteredCourses.length)
+                        )
+                      : t("home.courses.found").replace(
+                          "{count}",
+                          convertToMyanmarNumber(filteredCourses.length)
+                        )
+                    : `${filteredCourses.length} ${
+                        filteredCourses.length === 1
+                          ? t("home.course.found")
+                          : t("home.courses.found")
+                      }`}
+                </p>
+              )}
+
+              {/* Legacy Course cards grid */}
+              {filteredCourses.length > 0 ? (
+                <div className="course-grid-flex mt-4">
+                  {filteredCourses.map((course, index) => (
+                    <div
+                      key={course.id}
+                      className="course-card-flex"
+                      data-course-slug={course.slug}
+                    >
+                      <CourseCard
+                        slug={course.slug}
+                        images={course.images}
+                        title={course.title}
+                        titleMm={course.titleMm || null}
+                        startDate={formatDate(course.startDate)}
+                        startDateMm={
+                          course.startDateMm ? formatDate(course.startDateMm) : null
+                        }
+                        startByDate={
+                          course.startByDate
+                            ? formatDate(course.startByDate)
+                            : undefined
+                        }
+                        startByDateMm={
+                          course.startByDateMm
+                            ? formatDate(course.startByDateMm)
+                            : undefined
+                        }
+                        duration={course.duration}
+                        durationUnit={course.durationUnit}
+                        durationMm={course.durationMm}
+                        durationUnitMm={course.durationUnitMm}
+                        applyByDate={
+                          course.applyByDate
+                            ? formatDate(course.applyByDate)
+                            : undefined
+                        }
+                        applyByDateMm={
+                          course.applyByDateMm
+                            ? formatDate(course.applyByDateMm)
+                            : undefined
+                        }
+                        estimatedDate={course.estimatedDate || null}
+                        estimatedDateMm={course.estimatedDateMm || null}
+                        fee={
+                          course.feeAmount !== -1
+                            ? formatFee(course.feeAmount)
+                            : undefined
+                        }
+                        feeMm={
+                          course.feeAmountMm ? formatFee(course.feeAmountMm) : null
+                        }
+                        badges={course.badges}
+                        organizationInfo={
+                          course.organizationInfo
+                            ? { name: course.organizationInfo.name }
+                            : null
+                        }
+                        createdByUser={course.createdByUser}
+                        district={course.district}
+                        province={course.province}
+                        showSwipeHint={index === 0}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-16">
+                  <div className="no-results-icon">🔎</div>
+                  <h3
+                    className={`${getFontSizeClasses(
+                      "heading3",
+                      language
+                    )} font-bold mb-2`}
+                  >
+                    {t("home.no.results")}
+                  </h3>
+                  <p
+                    className={`${getFontSizeClasses(
+                      "bodyRegular",
+                      language
+                    )} text-muted-foreground max-w-md`}
+                  >
+                    {t("home.no.results.desc")}
+                  </p>
+                  <button
+                    onClick={clearFilters}
+                    className="mt-6 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+                  >
+                    {t("home.clear.search")}
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

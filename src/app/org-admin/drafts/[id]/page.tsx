@@ -72,7 +72,7 @@ type Draft = {
   title: string;
   type: string;
   status: DraftStatus;
-  content: DraftContent;
+  content: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   submittedAt: string;
   reviewedAt?: string;
   reviewedBy?: string;
@@ -93,13 +93,6 @@ export default function OrgAdminDraftDetailsPage() {
   const router = useRouter();
   const [draft, setDraft] = useState<Draft | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const { data: session, status } = useSession({
-    required: true,
-    onUnauthenticated() {
-      redirect("/auth/signin");
-    },
-  });
 
   const fetchDraft = useCallback(async () => {
     try {
@@ -178,9 +171,7 @@ export default function OrgAdminDraftDetailsPage() {
       <div className="text-center py-12">
         <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
         <h2 className="text-xl font-semibold mb-2">Draft not found</h2>
-        <p className="text-muted-foreground mb-4">
-          The course draft you are looking for does not exist.
-        </p>
+        <p className="text-muted-foreground mb-4">The course draft you&apos;re looking for doesn&apos;t exist.</p>
         <Button asChild>
           <Link href="/org-admin/drafts">Back to All Drafts</Link>
         </Button>
@@ -313,9 +304,7 @@ export default function OrgAdminDraftDetailsPage() {
                     {draft.status === DraftStatus.REJECTED && (
                       <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <p className="text-sm text-yellow-800">
-                          <strong>Next Steps:</strong> Please review the
-                          feedback above and revise your submission using the
-                          Revise Submission button.
+                          <strong>Next Steps:</strong> Please review the feedback above and revise your submission using the &quot;Revise Submission&quot; button.
                         </p>
                       </div>
                     )}
