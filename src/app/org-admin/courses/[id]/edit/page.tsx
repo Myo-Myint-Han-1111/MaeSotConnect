@@ -20,7 +20,6 @@ interface Course {
   startByDate?: string | null;
   duration: number;
   durationUnit?: string;
-  durationMm?: number;
   durationUnitMm?: string;
   estimatedDate?: string | null;
   estimatedDateMm?: string | null;

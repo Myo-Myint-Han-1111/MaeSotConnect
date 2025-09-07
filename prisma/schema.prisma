@@ -58,7 +58,6 @@ model Course {
   endDate             DateTime
   duration            Int
   durationUnit        DurationUnit      @default(DAYS)  // Add this new field
-  durationMm          Int?
   durationUnitMm      DurationUnit?     // Add this for Myanmar language
   schedule            String
   scheduleMm          String?

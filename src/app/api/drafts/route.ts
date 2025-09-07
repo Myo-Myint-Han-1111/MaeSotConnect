@@ -134,10 +134,6 @@ export async function POST(request: NextRequest) {
         if (content.duration && !content.durationUnit) {
           content.durationUnit = "DAYS";
         }
-        // Keep Myanmar duration unit if provided
-        if (content.durationMm && !content.durationUnitMm) {
-          content.durationUnitMm = content.durationUnit || "DAYS";
-        }
       }
 
       // Process uploaded images and logos

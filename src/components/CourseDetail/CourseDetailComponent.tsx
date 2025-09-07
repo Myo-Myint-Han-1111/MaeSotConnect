@@ -52,7 +52,6 @@ interface CourseDetail {
   endDate: string;
   duration: number;
   durationUnit: DurationUnit;
-  durationMm?: number;
   durationUnitMm?: DurationUnit;
   schedule: string;
   scheduleMm?: string;
@@ -197,12 +196,10 @@ export default function CourseDetailComponent({
   const formatDuration = (
     duration?: number,
     unit?: DurationUnit,
-    durationMm?: number,
     unitMm?: DurationUnit
   ): string => {
     // Use Myanmar values if available and language is Myanmar
-    const actualDuration =
-      language === "mm" && durationMm ? durationMm : duration;
+    const actualDuration = duration;
     const actualUnit = language === "mm" && unitMm ? unitMm : unit;
 
     if (!actualDuration || !actualUnit) return "";
@@ -436,7 +433,6 @@ export default function CourseDetailComponent({
                         {formatDuration(
                           course.duration,
                           course.durationUnit,
-                          course.durationMm,
                           course.durationUnitMm
                         )}
                       </p>

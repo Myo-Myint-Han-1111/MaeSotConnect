@@ -19,7 +19,6 @@ interface CourseDetail {
   endDate: string;
   duration: number;
   durationUnit: DurationUnit;
-  durationMm?: number;
   durationUnitMm?: DurationUnit;
   schedule: string;
   scheduleMm?: string;
@@ -180,7 +179,7 @@ export default function CourseSlugPage() {
 
     // Try to restore from cache first
     const cachedCourse = restoreCourseFromCache(currentSlug);
-    
+
     if (cachedCourse) {
       // Cache hit - use cached data
       setCourse(cachedCourse);
@@ -198,7 +197,7 @@ export default function CourseSlugPage() {
 
     async function fetchCourse() {
       if (!currentSlug) return;
-      
+
       try {
         setLoading(true);
         const response = await fetch(

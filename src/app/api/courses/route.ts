@@ -130,7 +130,6 @@ export async function GET() {
       endDate: course.endDate.toISOString(),
       duration: course.duration,
       durationUnit: course.durationUnit,
-      durationMm: course.durationMm,
       durationUnitMm: course.durationUnitMm,
       schedule: course.schedule,
       scheduleMm: course.scheduleMm,
@@ -238,9 +237,6 @@ export async function POST(request: NextRequest) {
     // Ensure numeric fields are proper integers
     if (parsedData.duration !== undefined) {
       parsedData.duration = Math.round(Number(parsedData.duration));
-    }
-    if (parsedData.durationMm !== undefined) {
-      parsedData.durationMm = Math.round(Number(parsedData.durationMm));
     }
 
     // Handle age fields properly - convert to null if empty/invalid

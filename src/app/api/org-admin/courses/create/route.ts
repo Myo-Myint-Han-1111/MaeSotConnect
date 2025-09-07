@@ -26,7 +26,6 @@ const courseSchema = z.object({
   endDate: z.string().transform((str) => new Date(str)),
   duration: z.number().positive(),
   durationUnit: z.enum(["DAYS", "WEEKS", "MONTHS", "YEARS"]),
-  durationMm: z.number().positive().optional().nullable(),
   durationUnitMm: z
     .enum(["DAYS", "WEEKS", "MONTHS", "YEARS"])
     .optional()

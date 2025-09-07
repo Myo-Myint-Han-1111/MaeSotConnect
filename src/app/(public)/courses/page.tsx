@@ -464,7 +464,6 @@ interface CourseDetailProps {
     startDate: string;
     endDate?: string; // New field
     duration: string | number;
-    durationMm?: string | number | null;
     schedule: string;
     scheduleMm?: string | null;
     fee?: string;
@@ -590,12 +589,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
     if (!course) return "";
 
     // Use localized duration if available
-    const durationValue =
-      language === "mm" &&
-      course.durationMm !== undefined &&
-      course.durationMm !== null
-        ? course.durationMm
-        : course.duration;
+    const durationValue = course.duration;
 
     // If duration is a number, format it with "months"
     if (typeof durationValue === "number") {

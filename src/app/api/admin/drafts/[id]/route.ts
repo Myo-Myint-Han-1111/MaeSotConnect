@@ -233,14 +233,8 @@ export async function PATCH(
                   applyByDate: courseData.applyByDate
                     ? new Date(courseData.applyByDate as string)
                     : null,
-                  applyByDateMm: courseData.applyByDateMm
-                    ? new Date(courseData.applyByDateMm as string)
-                    : null,
                   startByDate: courseData.startByDate
                     ? new Date(courseData.startByDate as string)
-                    : null,
-                  startByDateMm: courseData.startByDateMm
-                    ? new Date(courseData.startByDateMm as string)
                     : null,
                   startDate: parseDate(courseData.startDate) || new Date(),
                   endDate: parseDate(courseData.endDate) || new Date(),
@@ -248,7 +242,6 @@ export async function PATCH(
                   durationUnit:
                     (courseData.durationUnit as DurationUnit) ||
                     DurationUnit.DAYS,
-                  durationMm: (courseData.durationMm as number) || null,
                   durationUnitMm:
                     (courseData.durationUnitMm as DurationUnit) || null,
                   schedule: (courseData.schedule as string) || "",
@@ -411,14 +404,8 @@ export async function PATCH(
                   applyByDate: courseData.applyByDate
                     ? new Date(courseData.applyByDate as string)
                     : null,
-                  applyByDateMm: courseData.applyByDateMm
-                    ? new Date(courseData.applyByDateMm as string)
-                    : null,
                   startByDate: courseData.startByDate
                     ? new Date(courseData.startByDate as string)
-                    : null,
-                  startByDateMm: courseData.startByDateMm
-                    ? new Date(courseData.startByDateMm as string)
                     : null,
                   startDate: parseDate(courseData.startDate) || new Date(),
                   endDate: parseDate(courseData.endDate) || new Date(),

@@ -141,20 +141,11 @@ export async function GET(
       district: course.district,
       address: course.address,
       applyByDate: course.applyByDate ? course.applyByDate.toISOString() : null,
-      applyByDateMm: course.applyByDateMm
-        ? course.applyByDateMm.toISOString()
-        : null,
       startByDate: course.startByDate ? course.startByDate.toISOString() : null,
-      startByDateMm: course.startByDateMm
-        ? course.startByDateMm.toISOString()
-        : null,
       startDate: course.startDate.toISOString(),
-      startDateMm: null,
       endDate: course.endDate.toISOString(),
-      endDateMm: null,
       duration: course.duration,
       durationUnit: course.durationUnit,
-      durationMm: null,
       durationUnitMm: course.durationUnitMm,
       schedule: course.schedule,
       scheduleMm: course.scheduleMm,
@@ -313,10 +304,6 @@ export async function PUT(
       applyByDate:
         parsedData.applyByDate && parsedData.applyByDate.trim() !== ""
           ? parsedData.applyByDate
-          : null,
-      applyByDateMm:
-        parsedData.applyByDateMm && parsedData.applyByDateMm.trim() !== ""
-          ? parsedData.applyByDateMm
           : null,
       applyButtonText: parsedData.applyButtonText || null,
       applyButtonTextMm: parsedData.applyButtonTextMm || null,
@@ -524,9 +511,6 @@ export async function PUT(
       startDate: result.startDate.toISOString(),
       endDate: result.endDate.toISOString(),
       applyByDate: result.applyByDate ? result.applyByDate.toISOString() : null,
-      applyByDateMm: result.applyByDateMm
-        ? result.applyByDateMm.toISOString()
-        : null,
     };
 
     return NextResponse.json(formattedCourse);

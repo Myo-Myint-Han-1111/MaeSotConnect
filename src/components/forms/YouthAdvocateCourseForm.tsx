@@ -63,7 +63,6 @@ interface CourseFormData {
   endDate: string;
   duration: number | null;
   durationUnit: string;
-  durationMm: number | null;
   durationUnitMm?: string;
   schedule: string;
   scheduleMm: string;
@@ -271,7 +270,6 @@ export default function CourseForm({
       endDate: "",
       duration: null,
       durationUnit: "DAYS",
-      durationMm: null,
       durationUnitMm: "",
       schedule: "",
       scheduleMm: "",
@@ -420,7 +418,6 @@ export default function CourseForm({
         endDate: initialData.endDate ?? "",
         duration: initialData.duration ?? null,
         durationUnit: initialData.durationUnit || "DAYS",
-        durationMm: initialData.durationMm || null,
         durationUnitMm: initialData.durationUnitMm,
         schedule: initialData.schedule ?? "",
         scheduleMm: initialData.scheduleMm ?? "",

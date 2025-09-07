@@ -127,7 +127,6 @@ export interface Course {
   endDate: Date;
   duration: number;
   durationUnit: DurationUnit;
-  durationMm?: number | null;
   durationUnitMm?: DurationUnit | null;
   schedule: string;
   scheduleMm?: string | null;
@@ -239,7 +238,6 @@ export interface CourseFormData {
   endDate: string;
   duration: number;
   durationUnit: DurationUnit;
-  durationMm?: number;
   durationUnitMm?: DurationUnit;
   schedule: string;
   scheduleMm?: string;
@@ -293,7 +291,6 @@ export interface DurationDisplay {
 export interface DurationFormFields {
   duration: number;
   durationUnit: DurationUnit;
-  durationMm?: number;
   durationUnitMm?: DurationUnit;
 }
 

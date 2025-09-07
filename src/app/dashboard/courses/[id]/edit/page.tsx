@@ -65,7 +65,6 @@ interface CourseResponse {
   endDate: string;
   // API returns numbers for duration
   duration: number;
-  durationMm?: number | null;
   durationUnit?: string;
   durationUnitMm?: string;
   schedule: string;
@@ -126,7 +125,6 @@ interface CourseFormData {
   endDate: string;
   duration: number | null;
   durationUnit?: DurationUnit;
-  durationMm?: number;
   durationUnitMm?: DurationUnit;
   schedule: string;
   scheduleMm: string;

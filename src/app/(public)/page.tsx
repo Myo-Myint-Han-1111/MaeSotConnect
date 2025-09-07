@@ -26,17 +26,13 @@ interface Course {
   titleMm: string | null;
   // Updated: DateTime types for dates
   startDate: string; // ISO string format for frontend
-  startDateMm: string | null;
   applyByDate?: string | null;
-  applyByDateMm?: string | null;
   startByDate?: string | null;
-  startByDateMm?: string | null;
   estimatedDate?: string | null;
   estimatedDateMm?: string | null;
   // Updated: numeric types for duration
   duration: number;
   durationUnit: string;
-  durationMm: number | null;
   durationUnitMm?: string;
   // Updated: fee is now numeric
   feeAmount?: number;
@@ -130,7 +126,7 @@ export default function Home() {
   useEffect(() => {
     // Try to restore from cache first
     const wasRestored = restorePageState();
-    
+
     if (!wasRestored) {
       // If cache miss, fetch fresh data
       const fetchCourses = async () => {
@@ -178,18 +174,18 @@ export default function Home() {
     // Save state when navigating to course details
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const courseCard = target.closest('[data-course-slug]');
+      const courseCard = target.closest("[data-course-slug]");
       if (courseCard) {
         savePageState();
       }
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('click', handleClick);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("click", handleClick);
 
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('click', handleClick);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("click", handleClick);
     };
   }, [loading, courses.length, savePageState]);
 
@@ -201,7 +197,6 @@ export default function Home() {
     { value: "applyByDate-asc", label: t("sort.applyByDate.earliest") },
     { value: "applyByDate-desc", label: t("sort.applyByDate.latest") },
   ];
-
 
   // Load saved filter state on mount
   useEffect(() => {
@@ -237,7 +232,6 @@ export default function Home() {
       }
     }
   }, [searchTerm, activeFilters]);
-
 
   // NEW: Get course status function
   const getCourseStatus = useCallback((course: Course) => {
@@ -436,7 +430,6 @@ export default function Home() {
 
   // REMOVED: Scroll state saving - not needed for load more button approach
 
-
   // Toggle a filter badge
   const toggleFilter = (badge: string) => {
     setActiveFilters((prevFilters) =>
@@ -458,7 +451,6 @@ export default function Home() {
       sessionStorage.removeItem(SCROLL_CACHE_KEY);
     }
   };
-
 
   return (
     <>
@@ -562,31 +554,31 @@ export default function Home() {
 
               <div className="flex flex-wrap gap-3 justify-start">
                 {availableBadges.map((badge) => {
-                    const badgeStyle = getBadgeStyle(badge);
-                    const isActive = activeFilters.includes(badge);
+                  const badgeStyle = getBadgeStyle(badge);
+                  const isActive = activeFilters.includes(badge);
 
-                    return (
-                      <button
-                        key={badge}
-                        onClick={() => toggleFilter(badge)}
-                        className={`px-3 pt-1 pb-1.5 rounded-full text-xs font-medium transition-all hover:opacity-70 ${
-                          isActive
-                            ? "ring-2 ring-offset-2 ring-gray-900"
-                            : "bg-gray-200 text-gray-600"
-                        }`}
-                        style={
-                          isActive
-                            ? {
-                                backgroundColor: badgeStyle.backgroundColor,
-                                color: badgeStyle.color,
-                              }
-                            : undefined
-                        }
-                      >
-                        {translateBadge(badge)}
-                      </button>
-                    );
-                  })}
+                  return (
+                    <button
+                      key={badge}
+                      onClick={() => toggleFilter(badge)}
+                      className={`px-3 pt-1 pb-1.5 rounded-full text-xs font-medium transition-all hover:opacity-70 ${
+                        isActive
+                          ? "ring-2 ring-offset-2 ring-gray-900"
+                          : "bg-gray-200 text-gray-600"
+                      }`}
+                      style={
+                        isActive
+                          ? {
+                              backgroundColor: badgeStyle.backgroundColor,
+                              color: badgeStyle.color,
+                            }
+                          : undefined
+                      }
+                    >
+                      {translateBadge(badge)}
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Clear All Filters button */}
@@ -604,125 +596,121 @@ export default function Home() {
           </div>
 
           {/* Course Grid */}
-            <div className="space-y-6">
-              {/* Results count */}
-              {filteredCourses.length > 0 && (
-                <p className="text-left text-sm text-muted-foreground mb-6 ml-1">
-                  {language === "mm"
-                    ? filteredCourses.length === 1
-                      ? t("home.course.found").replace(
-                          "{count}",
-                          convertToMyanmarNumber(filteredCourses.length)
-                        )
-                      : t("home.courses.found").replace(
-                          "{count}",
-                          convertToMyanmarNumber(filteredCourses.length)
-                        )
-                    : `${filteredCourses.length} ${
-                        filteredCourses.length === 1
-                          ? t("home.course.found")
-                          : t("home.courses.found")
-                      }`}
-                </p>
-              )}
+          <div className="space-y-6">
+            {/* Results count */}
+            {filteredCourses.length > 0 && (
+              <p className="text-left text-sm text-muted-foreground mb-6 ml-1">
+                {language === "mm"
+                  ? filteredCourses.length === 1
+                    ? t("home.course.found").replace(
+                        "{count}",
+                        convertToMyanmarNumber(filteredCourses.length)
+                      )
+                    : t("home.courses.found").replace(
+                        "{count}",
+                        convertToMyanmarNumber(filteredCourses.length)
+                      )
+                  : `${filteredCourses.length} ${
+                      filteredCourses.length === 1
+                        ? t("home.course.found")
+                        : t("home.courses.found")
+                    }`}
+              </p>
+            )}
 
-              {/* Course grid */}
-              {loading ? (
-                // Show skeleton for initial loading
-                <div className="course-grid-flex">
-                  {Array.from({ length: 6 }, (_, i) => (
-                    <div key={`skeleton-${i}`} className="course-card-flex">
-                      <div className="w-full border border-gray-200 rounded-lg p-4 space-y-4 bg-white">
-                        {/* Image skeleton */}
-                        <Skeleton className="w-full h-48 rounded-md" />
-                        
-                        {/* Content skeleton */}
-                        <div className="space-y-3">
-                          {/* Title */}
-                          <Skeleton className="h-5 w-3/4" />
-                          
-                          {/* Date info */}
-                          <div className="space-y-2">
-                            <Skeleton className="h-4 w-1/2" />
-                            <Skeleton className="h-4 w-2/3" />
-                          </div>
-                          
-                          {/* Badges */}
-                          <div className="flex gap-2 flex-wrap">
-                            <Skeleton className="h-6 w-16 rounded-full" />
-                            <Skeleton className="h-6 w-20 rounded-full" />
-                          </div>
-                          
-                          {/* Organization */}
-                          <Skeleton className="h-4 w-1/3" />
+            {/* Course grid */}
+            {loading ? (
+              // Show skeleton for initial loading
+              <div className="course-grid-flex">
+                {Array.from({ length: 6 }, (_, i) => (
+                  <div key={`skeleton-${i}`} className="course-card-flex">
+                    <div className="w-full border border-gray-200 rounded-lg p-4 space-y-4 bg-white">
+                      {/* Image skeleton */}
+                      <Skeleton className="w-full h-48 rounded-md" />
+
+                      {/* Content skeleton */}
+                      <div className="space-y-3">
+                        {/* Title */}
+                        <Skeleton className="h-5 w-3/4" />
+
+                        {/* Date info */}
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-1/2" />
+                          <Skeleton className="h-4 w-2/3" />
                         </div>
+
+                        {/* Badges */}
+                        <div className="flex gap-2 flex-wrap">
+                          <Skeleton className="h-6 w-16 rounded-full" />
+                          <Skeleton className="h-6 w-20 rounded-full" />
+                        </div>
+
+                        {/* Organization */}
+                        <Skeleton className="h-4 w-1/3" />
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : filteredCourses.length > 0 ? (
-                <div className="course-grid-flex">
-                  {filteredCourses.map((course, index) => (
-                    <div
-                      key={course.id}
-                      className="course-card-flex"
-                      data-course-slug={course.slug}
-                    >
-                      <CourseCard
-                        slug={course.slug}
-                        images={course.images}
-                        title={course.title}
-                        titleMm={course.titleMm}
-                        startDate={course.startDate ? formatDate(course.startDate) : ""}
-                        startDateMm={
-                          course.startDateMm ? formatDate(course.startDateMm) : null
-                        }
-                        startByDate={
-                          course.startByDate
-                            ? formatDate(course.startByDate)
-                            : undefined
-                        }
-                        startByDateMm={
-                          course.startByDateMm
-                            ? formatDate(course.startByDateMm)
-                            : undefined
-                        }
-                        duration={course.duration}
-                        durationUnit={course.durationUnit}
-                        durationMm={course.durationMm}
-                        durationUnitMm={course.durationUnitMm}
-                        applyByDate={
-                          course.applyByDate
-                            ? formatDate(course.applyByDate)
-                            : undefined
-                        }
-                        applyByDateMm={
-                          course.applyByDateMm
-                            ? formatDate(course.applyByDateMm)
-                            : undefined
-                        }
-                        estimatedDate={course.estimatedDate}
-                        estimatedDateMm={course.estimatedDateMm}
-                        fee={course.feeAmount !== -1 ? formatFee(course.feeAmount) : undefined}
-                        feeMm={course.feeAmountMm ? formatFee(course.feeAmountMm) : null}
-                        badges={course.badges}
-                        organizationInfo={
-                          course.organizationInfo
-                            ? { name: course.organizationInfo.name }
-                            : null
-                        }
-                        createdByUser={course.createdByUser}
-                        district={course.district}
-                        province={course.province}
-                        showSwipeHint={index === 0}
-                      />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <>
-                  {/* No results display */}
-                  <div className="flex flex-col items-center justify-center py-16">
+                  </div>
+                ))}
+              </div>
+            ) : filteredCourses.length > 0 ? (
+              <div className="course-grid-flex">
+                {filteredCourses.map((course, index) => (
+                  <div
+                    key={course.id}
+                    className="course-card-flex"
+                    data-course-slug={course.slug}
+                  >
+                    <CourseCard
+                      slug={course.slug}
+                      images={course.images}
+                      title={course.title}
+                      titleMm={course.titleMm}
+                      startDate={
+                        course.startDate ? formatDate(course.startDate) : ""
+                      }
+                      startByDate={
+                        course.startByDate
+                          ? formatDate(course.startByDate)
+                          : undefined
+                      }
+                      duration={course.duration}
+                      durationUnit={course.durationUnit}
+                      durationUnitMm={course.durationUnitMm}
+                      applyByDate={
+                        course.applyByDate
+                          ? formatDate(course.applyByDate)
+                          : undefined
+                      }
+                      estimatedDate={course.estimatedDate}
+                      estimatedDateMm={course.estimatedDateMm}
+                      fee={
+                        course.feeAmount !== -1
+                          ? formatFee(course.feeAmount)
+                          : undefined
+                      }
+                      feeMm={
+                        course.feeAmountMm
+                          ? formatFee(course.feeAmountMm)
+                          : null
+                      }
+                      badges={course.badges}
+                      organizationInfo={
+                        course.organizationInfo
+                          ? { name: course.organizationInfo.name }
+                          : null
+                      }
+                      createdByUser={course.createdByUser}
+                      district={course.district}
+                      province={course.province}
+                      showSwipeHint={index === 0}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <>
+                {/* No results display */}
+                <div className="flex flex-col items-center justify-center py-16">
                   <div className="no-results-icon">🔎</div>
                   <h3
                     className={`${getFontSizeClasses(
@@ -746,10 +734,10 @@ export default function Home() {
                   >
                     {t("home.clear.search")}
                   </button>
-                  </div>
-                </>
-              )}
-            </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 

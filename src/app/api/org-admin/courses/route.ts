@@ -57,7 +57,6 @@ export async function GET(_request: NextRequest) {
       endDate: course.endDate.toISOString(),
       duration: course.duration.toString(),
       durationUnit: course.durationUnit,
-      durationMm: course.durationMm?.toString(),
       durationUnitMm: course.durationUnitMm,
       schedule: course.schedule,
       feeAmount: course.feeAmount.toString(),

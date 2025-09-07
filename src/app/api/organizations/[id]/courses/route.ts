@@ -46,7 +46,6 @@ export async function GET(
       startByDate: course.startByDate ? course.startByDate.toISOString() : null,
       // Convert duration numbers to strings for backwards compatibility
       duration: course.duration.toString(),
-      durationMm: course.durationMm?.toString(),
       schedule: course.schedule,
       scheduleMm: course.scheduleMm,
       // Format fee information

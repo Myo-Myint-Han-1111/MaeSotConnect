@@ -100,7 +100,6 @@ export async function POST(
       duration: formContent.duration || existingCourse.duration,
       durationUnit:
         formContent.durationUnit || existingCourse.durationUnit || "DAYS",
-      durationMm: formContent.durationMm || existingCourse.durationMm,
       durationUnitMm:
         formContent.durationUnitMm || existingCourse.durationUnitMm,
       startDate:

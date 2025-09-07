@@ -30,7 +30,6 @@ export interface CourseCardProps {
   estimatedDateMm?: string | null;
   duration: number;
   durationUnit: string;
-  durationMm: number | null;
   durationUnitMm?: string;
   fee?: string | null;
   feeMm?: string | null;
@@ -73,7 +72,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   estimatedDateMm,
   duration,
   durationUnit,
-  durationMm,
   durationUnitMm,
   fee,
   feeMm,
@@ -104,12 +102,10 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   const formatDuration = (
     duration: number,
     unit: string,
-    durationMm?: number | null,
     unitMm?: string
   ): string => {
     // Use Myanmar values if available and language is Myanmar
-    const actualDuration =
-      language === "mm" && durationMm ? durationMm : duration;
+    const actualDuration = duration;
     const actualUnit = language === "mm" && unitMm ? unitMm : unit;
 
     if (!actualDuration || !actualUnit) return "";
@@ -177,12 +173,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           startByDate={startByDate || undefined}
           estimatedDate={estimatedDate}
           estimatedDateMm={estimatedDateMm}
-          duration={formatDuration(
-            duration,
-            durationUnit,
-            durationMm,
-            durationUnitMm
-          )}
+          duration={formatDuration(duration, durationUnit, durationUnitMm)}
           fee={fee ? getLocalizedContent(fee, feeMm || null) : undefined}
           compact={true}
           showDescriptions={true}

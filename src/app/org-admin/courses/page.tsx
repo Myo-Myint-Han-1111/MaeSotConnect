@@ -27,7 +27,6 @@ interface Course {
   endDate: string;
   duration: number;
   durationUnit?: string;
-  durationMm?: number;
   durationUnitMm?: string;
   schedule: string;
   feeAmount: string;
