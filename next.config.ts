@@ -141,12 +141,12 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Course pages - short cache with revalidation for fresh data
+        // Course pages - one hour cache with revalidation for fresh data
         source: "/courses/:path*",
         headers: [
           {
             key: "Cache-Control",
-            value: "public, max-age=300, stale-while-revalidate=60", // 5 min cache, revalidate after 1 min
+            value: "public, max-age=3600, stale-while-revalidate=300", // 1 hour cache, revalidate after 5 min
           },
         ],
       },

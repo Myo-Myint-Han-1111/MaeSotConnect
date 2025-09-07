@@ -9,8 +9,9 @@
 export interface CompressionOptions {
   maxWidth?: number;        // Maximum width in pixels
   maxHeight?: number;       // Maximum height in pixels  
-  quality?: number;         // JPEG quality (0.1 to 1.0)
+  quality?: number;         // WebP quality (0.1 to 1.0)
   maxSizeKB?: number;       // Target maximum file size in KB
+  format?: 'webp' | 'jpeg'; // Output format (defaults to WebP)
 }
 
 export interface CompressionResult {
@@ -24,8 +25,8 @@ export interface CompressionResult {
  * Compresses an image file using Canvas API
  * 
  * Resizes the image to fit within maxWidth/maxHeight while maintaining
- * aspect ratio, then compresses to JPEG format. If the result exceeds
- * maxSizeKB, iteratively reduces quality until target is met.
+ * aspect ratio, then compresses to WebP format (default) for optimal compression.
+ * If the result exceeds maxSizeKB, iteratively reduces quality until target is met.
  * 
  * @param file - Image file to compress
  * @param options - Compression parameters
@@ -39,7 +40,8 @@ export async function compressImage(
     maxWidth = 800,   // Optimized for course card display (~400px)
     maxHeight = 600,  // Maintain 4:3 aspect ratio  
     quality = 0.8,    // High quality baseline
-    maxSizeKB = 150   // Target file size for fast loading
+    maxSizeKB = 80,   // Reduced target for WebP (smaller than JPEG)
+    format = 'webp'   // Default to WebP for optimal compression
   } = options;
 
   const originalSize = file.size;
@@ -88,6 +90,10 @@ export async function compressImage(
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, 0, 0, width, height);
       
+      // Determine output format settings
+      const outputType = format === 'webp' ? 'image/webp' : 'image/jpeg';
+      const fileExtension = format === 'webp' ? '.webp' : '.jpg';
+      
       // Convert to blob
       canvas.toBlob(
         (blob) => {
@@ -100,15 +106,15 @@ export async function compressImage(
           if (blob.size > maxSizeKB * 1024 && quality > 0.1) {
             // Recursively compress with lower quality
             const newFile = new File([blob], file.name, { 
-              type: 'image/jpeg',
+              type: outputType,
               lastModified: file.lastModified 
             });
             compressImage(newFile, { ...options, quality: Math.max(0.1, quality - 0.1) })
               .then(resolve)
               .catch(reject);
           } else {
-            const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, '.jpg'), {
-              type: 'image/jpeg',
+            const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, fileExtension), {
+              type: outputType,
               lastModified: file.lastModified
             });
             
@@ -120,7 +126,7 @@ export async function compressImage(
             });
           }
         },
-        'image/jpeg',
+        outputType,
         quality
       );
     };
@@ -165,7 +171,8 @@ export async function compressAvatarImage(
   file: File,
   size: number = 400,
   quality: number = 0.8,
-  maxSizeKB: number = 200
+  maxSizeKB: number = 100,  // Reduced for WebP
+  format: 'webp' | 'jpeg' = 'webp'  // Default to WebP
 ): Promise<CompressionResult> {
   const originalSize = file.size;
 
@@ -208,6 +215,10 @@ export async function compressAvatarImage(
         0, 0, size, size // destination: fill entire canvas
       );
       
+      // Determine output format settings
+      const outputType = format === 'webp' ? 'image/webp' : 'image/jpeg';
+      const fileExtension = format === 'webp' ? '.webp' : '.jpg';
+      
       // Convert to blob
       canvas.toBlob(
         (blob) => {
@@ -220,15 +231,15 @@ export async function compressAvatarImage(
           if (blob.size > maxSizeKB * 1024 && quality > 0.1) {
             // Recursively compress with lower quality
             const newFile = new File([blob], file.name, { 
-              type: 'image/jpeg',
+              type: outputType,
               lastModified: file.lastModified 
             });
-            compressAvatarImage(newFile, size, Math.max(0.1, quality - 0.1), maxSizeKB)
+            compressAvatarImage(newFile, size, Math.max(0.1, quality - 0.1), maxSizeKB, format)
               .then(resolve)
               .catch(reject);
           } else {
-            const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, '.jpg'), {
-              type: 'image/jpeg',
+            const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, fileExtension), {
+              type: outputType,
               lastModified: file.lastModified
             });
             
@@ -240,7 +251,7 @@ export async function compressAvatarImage(
             });
           }
         },
-        'image/jpeg',
+        outputType,
         quality
       );
     };
@@ -255,7 +266,7 @@ export async function compressAvatarImage(
  * 
  * Convenience function that applies course-specific compression settings:
  * - Sized for course card display (800x600 max)
- * - Aggressive compression for fast loading (≤100KB target)
+ * - WebP format for optimal compression and quality (≤80KB target)
  * - High quality for professional appearance
  * 
  * @param file - Course image file to compress
@@ -268,7 +279,8 @@ export async function compressCourseImage(
     maxWidth: 800,     // Optimal for course card display
     maxHeight: 600,    // Maintain aspect ratio
     quality: 0.8,      // High quality baseline
-    maxSizeKB: 100     // Aggressive compression for performance
+    maxSizeKB: 80,     // Optimized for WebP compression
+    format: 'webp'     // Use WebP for best compression/quality ratio
   });
 }
 

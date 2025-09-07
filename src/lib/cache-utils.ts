@@ -29,6 +29,6 @@ export const getCacheHeaders = () => {
   }
   
   return {
-    "Cache-Control": "private, max-age=60, must-revalidate",
+    "Cache-Control": "private, max-age=3600, must-revalidate",
   };
 };

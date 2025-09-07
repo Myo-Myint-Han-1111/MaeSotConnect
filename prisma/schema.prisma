@@ -6,7 +6,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  directUrl = env("DIRECT_URL") // Optional for connection pooling
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -110,6 +110,10 @@ model Course {
   faq                 FAQ[]
   images              Image[]
 
+  @@index([startDate])           // index for date filtering (most common query)
+  @@index([startDate, status])   // composite index for common filter combination
+  @@index([district])            // index for location search
+  @@index([province])            // index for location search  
   @@index([startByDate])
   @@index([organizationId])      // index for better org admin queries
   @@index([status])              // index for status filtering

@@ -46,13 +46,14 @@ export async function GET(request: Request) {
       };
     }
 
-    // Get total count for pagination metadata (only for non-legacy)
-    const totalCount = isLegacy ? 0 : await prisma.course.count({ where: whereClause });
+    // Optimize: Use Promise.all for concurrent execution when needed
+    let totalCount = 0;
+    let courses;
 
-    const courses = await prisma.course.findMany({
-      where: whereClause,
-      ...(isLegacy ? {} : { skip, take: limit }),
-      orderBy: getSortOrder(sortBy),
+    if (isLegacy) {
+      courses = await prisma.course.findMany({
+        where: whereClause,
+        orderBy: getSortOrder(sortBy),
       select: {
         id: true,
         slug: true,
@@ -111,9 +112,82 @@ export async function GET(request: Request) {
             backgroundColor: true,
             courseId: true,
           },
+          take: 10, // Limit badges for performance
         },
       },
     });
+    } else {
+      // Use Promise.all for concurrent execution of count and findMany
+      [totalCount, courses] = await Promise.all([
+        prisma.course.count({ where: whereClause }),
+        prisma.course.findMany({
+          where: whereClause,
+          skip,
+          take: limit,
+          orderBy: getSortOrder(sortBy),
+          select: {
+            id: true,
+            slug: true,
+            title: true,
+            titleMm: true,
+            startDate: true,
+            startDateMm: true,
+            duration: true,
+            durationUnit: true,
+            durationMm: true,
+            durationUnitMm: true,
+            province: true,
+            district: true,
+            applyByDate: true,
+            applyByDateMm: true,
+            startByDate: true,
+            startByDateMm: true,
+            feeAmount: true,
+            feeAmountMm: true,
+            estimatedDate: true,
+            estimatedDateMm: true,
+            createdAt: true,
+            createdByUser: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                role: true,
+                advocateProfile: {
+                  select: {
+                    publicName: true,
+                    avatarUrl: true,
+                    status: true,
+                  },
+                },
+              },
+            },
+            organizationInfo: {
+              select: {
+                name: true,
+              },
+            },
+            images: {
+              select: {
+                id: true,
+                url: true,
+                courseId: true,
+              },
+            },
+            badges: {
+              select: {
+                id: true,
+                text: true,
+                color: true,
+                backgroundColor: true,
+                courseId: true,
+              },
+              take: 10, // Limit badges for performance
+            },
+          },
+        })
+      ]);
+    }
 
     // Format the response to ensure dates are serialized properly
     // and to maintain backward compatibility
@@ -163,8 +237,8 @@ export async function GET(request: Request) {
     const nextResponse = NextResponse.json(response);
     
     // Add caching headers to reduce Fast Origin Transfer usage
-    nextResponse.headers.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=60'); // 5 min cache, 1 min stale
-    nextResponse.headers.set('CDN-Cache-Control', 'public, max-age=300');
+    nextResponse.headers.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=300'); // 1 hour cache, 5 min stale
+    nextResponse.headers.set('CDN-Cache-Control', 'public, max-age=3600');
     
     return nextResponse;
   } catch (error) {
