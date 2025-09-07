@@ -56,16 +56,13 @@ interface CourseResponse {
   district?: string | null;
   address?: string | null;
   applyByDate?: string | null;
-  applyByDateMm?: string | null;
   startByDate?: string | null;
   estimatedDate?: string | null;
   estimatedDateMm?: string | null;
 
   // API returns DateTime as ISO strings
   startDate: string;
-  startDateMm?: string | null;
   endDate: string;
-  endDateMm?: string | null;
   // API returns numbers for duration
   duration: number;
   durationMm?: number | null;
@@ -120,17 +117,13 @@ interface CourseFormData {
   district: string;
   address: string;
   applyByDate: string;
-  applyByDateMm: string;
   startByDate: string;
   estimatedDate: string;
   estimatedDateMm: string;
-
   location: string; // Derived from organizationInfo.address
   locationMm: string;
   startDate: string; // ISO date string for HTML date input
-  startDateMm: string;
   endDate: string;
-  endDateMm: string;
   duration: number | null;
   durationUnit?: DurationUnit;
   durationMm?: number;
@@ -248,9 +241,6 @@ export default function EditCoursePage() {
           address: data.address ?? "",
           applyByDate: data.applyByDate
             ? formatDateForInput(data.applyByDate)
-            : "",
-          applyByDateMm: data.applyByDateMm
-            ? formatDateForInput(data.applyByDateMm)
             : "",
 
           // Pass the encoded estimated date directly to CourseForm

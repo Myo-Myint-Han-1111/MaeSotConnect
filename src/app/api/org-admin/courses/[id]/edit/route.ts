@@ -106,20 +106,10 @@ export async function POST(
       startDate:
         formContent.startDate || existingCourse.startDate.toISOString(),
       endDate: formContent.endDate || existingCourse.endDate.toISOString(),
-      startDateMm:
-        formContent.startDateMm || existingCourse.startDateMm?.toISOString(),
-      endDateMm:
-        formContent.endDateMm || existingCourse.endDateMm?.toISOString(),
       applyByDate:
         formContent.applyByDate || existingCourse.applyByDate?.toISOString(),
-      applyByDateMm:
-        formContent.applyByDateMm ||
-        existingCourse.applyByDateMm?.toISOString(),
       startByDate:
         formContent.startByDate || existingCourse.startByDate?.toISOString(),
-      startByDateMm:
-        formContent.startByDateMm ||
-        existingCourse.startByDateMm?.toISOString(),
       createdAt: existingCourse.createdAt.toISOString(),
       updatedAt: new Date().toISOString(),
       publishedAt: existingCourse.publishedAt?.toISOString(),

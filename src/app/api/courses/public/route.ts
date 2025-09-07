@@ -7,16 +7,16 @@ export async function GET(request: Request) {
   try {
     // Parse query parameters for pagination and filtering
     const { searchParams } = new URL(request.url);
-    const isLegacy = searchParams.get('legacy') === 'true';
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '24'); // 24 items per page for good mobile UX
-    const search = searchParams.get('search') || '';
-    const badges = searchParams.get('badges')?.split(',').filter(Boolean) || [];
-    const sortBy = searchParams.get('sortBy') || 'startDate-asc';
+    const isLegacy = searchParams.get("legacy") === "true";
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "24"); // 24 items per page for good mobile UX
+    const search = searchParams.get("search") || "";
+    const badges = searchParams.get("badges")?.split(",").filter(Boolean) || [];
+    const sortBy = searchParams.get("sortBy") || "startDate-asc";
 
     // Calculate pagination (skip for legacy mode)
     const skip = isLegacy ? 0 : (page - 1) * limit;
-    
+
     // Build the where clause for filtering
     const whereClause: Prisma.CourseWhereInput = {
       // Only show courses that haven't started yet (future courses)
@@ -28,12 +28,16 @@ export async function GET(request: Request) {
     // Add search filtering
     if (search) {
       whereClause.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { titleMm: { contains: search, mode: 'insensitive' } },
-        { district: { contains: search, mode: 'insensitive' } },
-        { province: { contains: search, mode: 'insensitive' } },
-        { organizationInfo: { name: { contains: search, mode: 'insensitive' } } },
-        { badges: { some: { text: { contains: search, mode: 'insensitive' } } } },
+        { title: { contains: search, mode: "insensitive" } },
+        { titleMm: { contains: search, mode: "insensitive" } },
+        { district: { contains: search, mode: "insensitive" } },
+        { province: { contains: search, mode: "insensitive" } },
+        {
+          organizationInfo: { name: { contains: search, mode: "insensitive" } },
+        },
+        {
+          badges: { some: { text: { contains: search, mode: "insensitive" } } },
+        },
       ];
     }
 
@@ -41,8 +45,8 @@ export async function GET(request: Request) {
     if (badges.length > 0) {
       whereClause.badges = {
         some: {
-          text: { in: badges }
-        }
+          text: { in: badges },
+        },
       };
     }
 
@@ -54,68 +58,65 @@ export async function GET(request: Request) {
       courses = await prisma.course.findMany({
         where: whereClause,
         orderBy: getSortOrder(sortBy),
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-        titleMm: true,
-        startDate: true,
-        startDateMm: true,
-        duration: true,
-        durationUnit: true,
-        durationMm: true,
-        durationUnitMm: true,
-        province: true,
-        district: true,
-        applyByDate: true,
-        applyByDateMm: true,
-        startByDate: true,
-        startByDateMm: true,
-        // fee/feeMm fields are replaced with feeAmount/feeAmountMm
-        feeAmount: true,
-        feeAmountMm: true,
-        estimatedDate: true,
-        estimatedDateMm: true,
-        createdAt: true,
-        createdByUser: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            role: true,
-            advocateProfile: {
-              select: {
-                publicName: true,
-                avatarUrl: true,
-                status: true,
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          titleMm: true,
+          startDate: true,
+          duration: true,
+          durationUnit: true,
+          durationMm: true,
+          durationUnitMm: true,
+          province: true,
+          district: true,
+          applyByDate: true,
+          startByDate: true,
+          // fee/feeMm fields are replaced with feeAmount/feeAmountMm
+          feeAmount: true,
+          feeAmountMm: true,
+          estimatedDate: true,
+          estimatedDateMm: true,
+          createdAt: true,
+          createdByUser: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+              role: true,
+              advocateProfile: {
+                select: {
+                  publicName: true,
+                  avatarUrl: true,
+                  status: true,
+                },
               },
             },
           },
-        },
-        organizationInfo: {
-          select: {
-            name: true, // Only organization name is used in CourseCard
+          organizationInfo: {
+            select: {
+              name: true, // Only organization name is used in CourseCard
+            },
+          },
+          images: {
+            select: {
+              id: true,
+              url: true,
+              courseId: true,
+            },
+          },
+          badges: {
+            select: {
+              id: true,
+              text: true,
+              color: true,
+              backgroundColor: true,
+              courseId: true,
+            },
+            take: 10, // Limit badges for performance
           },
         },
-        images: {
-          select: {
-            id: true,
-            url: true,
-            courseId: true,
-          },
-        },
-        badges: {
-          select: {
-            id: true,
-            text: true,
-            color: true,
-            backgroundColor: true,
-            courseId: true,
-          },
-          take: 10, // Limit badges for performance
-        },
-      },
-    });
+      });
     } else {
       // Use Promise.all for concurrent execution of count and findMany
       [totalCount, courses] = await Promise.all([
@@ -131,7 +132,6 @@ export async function GET(request: Request) {
             title: true,
             titleMm: true,
             startDate: true,
-            startDateMm: true,
             duration: true,
             durationUnit: true,
             durationMm: true,
@@ -139,9 +139,7 @@ export async function GET(request: Request) {
             province: true,
             district: true,
             applyByDate: true,
-            applyByDateMm: true,
             startByDate: true,
-            startByDateMm: true,
             feeAmount: true,
             feeAmountMm: true,
             estimatedDate: true,
@@ -185,7 +183,7 @@ export async function GET(request: Request) {
               take: 10, // Limit badges for performance
             },
           },
-        })
+        }),
       ]);
     }
 
@@ -195,15 +193,8 @@ export async function GET(request: Request) {
       ...course,
       // Convert DateTime objects to ISO strings
       startDate: course.startDate.toISOString(),
-      startDateMm: course.startDateMm ? course.startDateMm.toISOString() : null,
       applyByDate: course.applyByDate ? course.applyByDate.toISOString() : null,
-      applyByDateMm: course.applyByDateMm
-        ? course.applyByDateMm.toISOString()
-        : null,
       startByDate: course.startByDate ? course.startByDate.toISOString() : null,
-      startByDateMm: course.startByDateMm
-        ? course.startByDateMm.toISOString()
-        : null,
       estimatedDate: course.estimatedDate,
       estimatedDateMm: course.estimatedDateMm,
       createdAt: course.createdAt ? course.createdAt.toISOString() : null,
@@ -235,11 +226,14 @@ export async function GET(request: Request) {
     };
 
     const nextResponse = NextResponse.json(response);
-    
+
     // Add caching headers to reduce Fast Origin Transfer usage
-    nextResponse.headers.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=300'); // 1 hour cache, 5 min stale
-    nextResponse.headers.set('CDN-Cache-Control', 'public, max-age=3600');
-    
+    nextResponse.headers.set(
+      "Cache-Control",
+      "public, max-age=3600, stale-while-revalidate=300"
+    ); // 1 hour cache, 5 min stale
+    nextResponse.headers.set("CDN-Cache-Control", "public, max-age=3600");
+
     return nextResponse;
   } catch (error) {
     console.error("Error fetching public courses:", error);
@@ -253,16 +247,16 @@ export async function GET(request: Request) {
 // Helper function to get sort order for Prisma query
 function getSortOrder(sortBy: string) {
   switch (sortBy) {
-    case 'startDate-desc':
-      return { startDate: 'desc' as const };
-    case 'applyByDate-asc':
-      return { applyByDate: 'asc' as const };
-    case 'applyByDate-desc':
-      return { applyByDate: 'desc' as const };
-    case 'default':
-      return { createdAt: 'desc' as const };
-    case 'startDate-asc':
+    case "startDate-desc":
+      return { startDate: "desc" as const };
+    case "applyByDate-asc":
+      return { applyByDate: "asc" as const };
+    case "applyByDate-desc":
+      return { applyByDate: "desc" as const };
+    case "default":
+      return { createdAt: "desc" as const };
+    case "startDate-asc":
     default:
-      return { startDate: 'asc' as const };
+      return { startDate: "asc" as const };
   }
 }

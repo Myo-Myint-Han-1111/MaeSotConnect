@@ -16,9 +16,7 @@ interface CourseDetail {
   province?: string;
   district?: string;
   startDate: string;
-  startDateMm?: string;
   endDate: string;
-  endDateMm?: string;
   duration: number;
   durationUnit: DurationUnit;
   durationMm?: number;

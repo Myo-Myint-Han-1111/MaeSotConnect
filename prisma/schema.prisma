@@ -55,9 +55,7 @@ model Course {
   subtitle            String
   subtitleMm          String?
   startDate           DateTime
-  startDateMm         DateTime?
   endDate             DateTime
-  endDateMm           DateTime?
   duration            Int
   durationUnit        DurationUnit      @default(DAYS)  // Add this new field
   durationMm          Int?
@@ -89,7 +87,6 @@ model Course {
   province            String?
   address             String?
   applyByDate         DateTime?
-  applyByDateMm       DateTime?
   slug                String        @unique
   howToApply          String[]      @default([])
   howToApplyMm        String[]      @default([])
@@ -99,7 +96,6 @@ model Course {
   estimatedDate       String?
   estimatedDateMm     String?
   startByDate         DateTime?
-  startByDateMm       DateTime?
   status              CourseStatus  @default(PUBLISHED)  // Track if course is published or draft
   lastModifiedBy      String?                           // Track who last modified the course
   publishedAt         DateTime?                         // When the course was first published

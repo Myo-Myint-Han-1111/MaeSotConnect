@@ -58,9 +58,7 @@ interface CourseFormData {
   district: string;
   address: string;
   applyByDate: string;
-  applyByDateMm: string;
   startByDate: string;
-  startByDateMm: string;
   startDate: string;
   endDate: string;
   duration: number | null;
@@ -268,9 +266,7 @@ export default function CourseForm({
       district: "",
       address: "",
       applyByDate: "",
-      applyByDateMm: "",
       startByDate: "",
-      startByDateMm: "",
       startDate: "",
       endDate: "",
       duration: null,
@@ -419,9 +415,7 @@ export default function CourseForm({
         district: initialData.district ?? "",
         address: initialData.address ?? "",
         applyByDate: initialData.applyByDate ?? "",
-        applyByDateMm: initialData.applyByDateMm ?? "",
         startByDate: initialData.startByDate ?? "",
-        startByDateMm: initialData.startByDateMm ?? "",
         startDate: initialData.startDate ?? "",
         endDate: initialData.endDate ?? "",
         duration: initialData.duration ?? null,
@@ -904,7 +898,6 @@ export default function CourseForm({
       howToApply: formData.howToApply.filter((step) => step.trim() !== ""),
       howToApplyMm: formData.howToApplyMm.filter((step) => step.trim() !== ""),
       startByDate: formData.startByDate || "",
-      startByDateMm: formData.startByDateMm || "",
       // Ensure organizationId is not null or empty
       organizationId: formData.organizationId, // Don't allow null/empty
       // Handle age fields - send null for empty values but ensure they're properly typed

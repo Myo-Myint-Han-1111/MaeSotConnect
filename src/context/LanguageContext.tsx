@@ -161,7 +161,7 @@ export const translations = {
       "and is currently self-funded. Our approach is to work with organizations that support youth to make the discovery process more accessible, transparent, and user-centered.",
     "about.komyo.title": "About Ko Myo",
     "about.komyo.content":
-      "Ko Myo is a fullstack developer sharpening his skills through open-source projects that benefit Thai and Myanmar youth. He holds a bachelors in electrical engineering and is currently attending online classes in React, Javascript, and modern backend frameworks. He is passionate about education and technology and supporting digital literacy in rural communities.",
+      "Ko Myo is a fullstack developer sharpening his skills through open-source projects that benefit Thai and Myanmar youth. He holds a bachelor in Electrical Power Engineering and is currently attending online classes in React, Javascript, and modern backend frameworks. He is passionate about education and technology and supporting digital literacy in rural communities.",
 
     "about.peter.title": "About Peter",
     "about.peter.content":
@@ -313,7 +313,7 @@ export const translations = {
       "အဖြစ် တည်ဆောက်နေပြီး လောလောဆယ် ကိုယ်ပိုင်ရန်ပုံငွေဖြင့် လုပ်ဆောင်နေပါသည်။ ကျွန်ုပ်တို့၏ ချဉ်းကပ်နည်းမှာ လူငယ်များကို ပံ့ပိုးသည့် အဖွဲ့အစည်းများနှင့် ပူးပေါင်းကာ ရှာဖွေတွေ့ရှိခြင်းလုပ်ငန်းစဉ်ကို ပိုမိုလက်လှမ်းမီစေရန်၊ ပွင့်လင်းစေရန်နှင့် အသုံးပြုသူဗဟိုပြုစေရန်ဖြစ်ပါသည်။",
     "about.komyo.title": "Ko Myo အကြောင်း",
     "about.komyo.content":
-      "Ko Myo သည် ထိုင်းနှင့် မြန်မာလူငယ်များအတွက် အကျိုးပြုသော open-source projects များမှတစ်ဆင့် ကျွမ်းကျင်မှုများကို တိုးတက်စေနေသော fullstack developer တစ်ဦးဖြစ်သည်။ သူသည် လျှပ်စစ်အင်ဂျင်နီယာဘွဲ့ရရှိထားပြီး လောလောဆယ် React၊ Javascript နှင့် ခေတ်မီ backend frameworks များကို အွန်လိုင်း class များတက်နေပါသည်။ သူသည် ပညာရေးနှင့် နည်းပညာကို စိတ်ရောက်ရောက် ခံယူထားပြီး ကျေးလက်ရှိ လူမှုအသိုင်းအဝိုင်းများတွင် ဒီဂျစ်တယ်ပညာရေးကို ထောက်ပံ့နေပါသည်။",
+      "ကိုမျိုးသည် Thai နှင့် မြန်မာလူငယ်များအတွက် အကျိုးပြုသည့် open-source ပရောဂျက်များမှတစ်ဆင့် ၎င်း၏စွမ်းရည်များကို မြှင့်တင်နေသော fullstack developer တစ်ဦးဖြစ်ပါသည်။ သူသည် လျှပ်စစ်အင်ဂျင်နီယာဘာသာရပ်တွင် ဘွဲ့ရရှိထားပြီး React၊ Javascript နှင့် ခေတ်သစ် backend frameworks များကို online သင်တန်းများမှတစ်ဆင့် လက်ရှိတက်ရောက်လျက်ရှိပါသည်။ သူသည် ပညာရေး၊ နည်းပညာနှင့် ကျေးလက်ဒေသများရှိ ဒီဂျစ်တယ်စာတတ်မြောက်မှုကို ပံ့ပိုးကူညီရန်အတွက် အထူးစိတ်ဝင်စားသူဖြစ်ပါသည်။။",
 
     "about.peter.title": "Peter အကြောင်း",
     "about.peter.content":

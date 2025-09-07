@@ -212,7 +212,6 @@ export default function AdminDraftReviewPage() {
       startDate: formatDateForInput(content.startDate),
       endDate: formatDateForInput(content.endDate),
       applyByDate: formatDateForInput(content.applyByDate),
-      applyByDateMm: formatDateForInput(content.applyByDateMm),
     };
   };
 

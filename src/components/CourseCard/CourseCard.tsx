@@ -24,11 +24,8 @@ export interface CourseCardProps {
   title: string;
   titleMm: string | null;
   startDate: string;
-  startDateMm: string | null;
   applyByDate?: string | null;
-  applyByDateMm?: string | null;
   startByDate?: string | null;
-  startByDateMm?: string | null;
   estimatedDate?: string | null;
   estimatedDateMm?: string | null;
   duration: number;
@@ -70,11 +67,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   titleMm,
   badges,
   startDate,
-  startDateMm,
   applyByDate,
-  applyByDateMm,
   startByDate,
-  startByDateMm,
   estimatedDate,
   estimatedDateMm,
   duration,
@@ -178,17 +172,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({
 
         <CourseInfoDisplay
           location={[district, province].filter(Boolean).join(", ") || ""}
-          startDate={getLocalizedContent(startDate, startDateMm)}
-          applyByDate={
-            applyByDate
-              ? getLocalizedContent(applyByDate, applyByDateMm || null)
-              : undefined
-          }
-          startByDate={
-            startByDate
-              ? getLocalizedContent(startByDate, startByDateMm || null)
-              : undefined
-          }
+          startDate={startDate}
+          applyByDate={applyByDate || undefined}
+          startByDate={startByDate || undefined}
           estimatedDate={estimatedDate}
           estimatedDateMm={estimatedDateMm}
           duration={formatDuration(

@@ -23,15 +23,7 @@ const courseSchema = z.object({
   description: z.string().optional(),
   descriptionMm: z.string().optional(),
   startDate: z.string().transform((str) => new Date(str)),
-  startDateMm: z
-    .string()
-    .transform((str) => (str ? new Date(str) : undefined))
-    .optional(),
   endDate: z.string().transform((str) => new Date(str)),
-  endDateMm: z
-    .string()
-    .transform((str) => (str ? new Date(str) : undefined))
-    .optional(),
   duration: z.number().positive(),
   durationUnit: z.enum(["DAYS", "WEEKS", "MONTHS", "YEARS"]),
   durationMm: z.number().positive().optional().nullable(),
@@ -51,10 +43,6 @@ const courseSchema = z.object({
   district: z.string().optional(),
   address: z.string().optional(),
   applyByDate: z
-    .string()
-    .transform((str) => (str ? new Date(str) : undefined))
-    .optional(),
-  applyByDateMm: z
     .string()
     .transform((str) => (str ? new Date(str) : undefined))
     .optional(),
@@ -193,10 +181,7 @@ export async function POST(request: NextRequest) {
       // Convert dates back to ISO strings for JSON storage
       startDate: validatedData.startDate.toISOString(),
       endDate: validatedData.endDate.toISOString(),
-      startDateMm: validatedData.startDateMm?.toISOString() || undefined,
-      endDateMm: validatedData.endDateMm?.toISOString() || undefined,
       applyByDate: validatedData.applyByDate?.toISOString() || undefined,
-      applyByDateMm: validatedData.applyByDateMm?.toISOString() || undefined,
       startByDate: validatedData.startByDate?.toISOString() || null,
       // CRITICAL FIX: Include the processed images in the course content
       imageUrls: imageUrls.length > 0 ? imageUrls : body.imageUrls || [],

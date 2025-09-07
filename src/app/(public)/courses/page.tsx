@@ -462,9 +462,7 @@ interface CourseDetailProps {
     location: string;
     locationMm?: string | null;
     startDate: string;
-    startDateMm?: string | null;
     endDate?: string; // New field
-    endDateMm?: string | null; // New field
     duration: string | number;
     durationMm?: string | number | null;
     schedule: string;
@@ -562,7 +560,6 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
       }
     }
   }, [id]); // Re-run this effect if the course ID changes
-
 
   // Format fee based on feeAmount if available, otherwise use legacy fee
   const formatFee = () => {
@@ -739,9 +736,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
                       {t("course.startDate")}
                     </p>
                     <p className="text-sm text-muted-foreground" dir="auto">
-                      {language === "mm" && course.startDateMm
-                        ? course.startDateMm
-                        : course.startDate}
+                      {course.startDate}
                     </p>
                   </div>
                 </div>
@@ -755,9 +750,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
                         {language === "mm" ? "ပြီးဆုံးမည့်ရက်" : "End Date"}
                       </p>
                       <p className="text-sm text-muted-foreground" dir="auto">
-                        {language === "mm" && course.endDateMm
-                          ? course.endDateMm
-                          : course.endDate}
+                        {course.endDate}
                       </p>
                     </div>
                   </div>
@@ -1163,7 +1156,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
 };
 
 // Course details cache constants
-const COURSE_DETAILS_CACHE_KEY = 'courseDetailsCache';
+const COURSE_DETAILS_CACHE_KEY = "courseDetailsCache";
 const COURSE_DETAILS_CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 
 interface CourseDetailsCache {
@@ -1178,49 +1171,52 @@ export default function CoursePage() {
   const coursesLengthRef = useRef(0);
 
   // Cache management functions
-  const saveCourseDetailsCache = useCallback((coursesData: CourseDetailProps["courses"]) => {
-    if (typeof window === "undefined") return;
-    
-    try {
-      const cache: CourseDetailsCache = {
-        courses: coursesData,
-        timestamp: Date.now()
-      };
-      sessionStorage.setItem(COURSE_DETAILS_CACHE_KEY, JSON.stringify(cache));
-    } catch (error) {
-      console.error('Error caching course details:', error);
-    }
-  }, []);
+  const saveCourseDetailsCache = useCallback(
+    (coursesData: CourseDetailProps["courses"]) => {
+      if (typeof window === "undefined") return;
+
+      try {
+        const cache: CourseDetailsCache = {
+          courses: coursesData,
+          timestamp: Date.now(),
+        };
+        sessionStorage.setItem(COURSE_DETAILS_CACHE_KEY, JSON.stringify(cache));
+      } catch (error) {
+        console.error("Error caching course details:", error);
+      }
+    },
+    []
+  );
 
   const restoreCourseDetailsCache = useCallback(() => {
     if (typeof window === "undefined") {
       return false;
     }
-    
+
     try {
       const cached = sessionStorage.getItem(COURSE_DETAILS_CACHE_KEY);
-      
+
       if (!cached) {
         return false;
       }
-      
+
       const cache: CourseDetailsCache = JSON.parse(cached);
       const age = Date.now() - cache.timestamp;
-      
+
       // Check if cache is still valid
       if (age > COURSE_DETAILS_CACHE_DURATION) {
         sessionStorage.removeItem(COURSE_DETAILS_CACHE_KEY);
         return false;
       }
-      
+
       // Restore course data immediately
       setCourses(cache.courses);
       coursesLengthRef.current = cache.courses.length;
       setLoading(false);
-      
+
       return true;
     } catch (error) {
-      console.error('Error restoring course details cache:', error);
+      console.error("Error restoring course details cache:", error);
       sessionStorage.removeItem(COURSE_DETAILS_CACHE_KEY);
       return false;
     }

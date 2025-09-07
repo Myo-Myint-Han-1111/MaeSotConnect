@@ -17,17 +17,7 @@ const courseSchema = z
       .string()
       .min(1, "Start date is required")
       .pipe(z.coerce.date()),
-    startDateMm: z
-      .string()
-      .optional()
-      .nullable()
-      .transform((val) => (val ? new Date(val) : null)),
     endDate: z.string().min(1, "End date is required").pipe(z.coerce.date()),
-    endDateMm: z
-      .string()
-      .optional()
-      .nullable()
-      .transform((val) => (val ? new Date(val) : null)),
     duration: z.number().int().positive(),
     durationUnit: z.enum(["DAYS", "WEEKS", "MONTHS", "YEARS"]),
 
@@ -49,17 +39,7 @@ const courseSchema = z
       .optional()
       .nullable()
       .transform((val) => (val ? new Date(val) : null)),
-    applyByDateMm: z
-      .string()
-      .optional()
-      .nullable()
-      .transform((val) => (val ? new Date(val) : null)),
     startByDate: z
-      .string()
-      .optional()
-      .nullable()
-      .transform((val) => (val && val.trim() !== "" ? new Date(val) : null)),
-    startByDateMm: z
       .string()
       .optional()
       .nullable()
@@ -145,17 +125,9 @@ export async function GET() {
       subtitleMm: course.subtitleMm,
       address: course.address,
       applyByDate: course.applyByDate ? course.applyByDate.toISOString() : null,
-      applyByDateMm: course.applyByDateMm
-        ? course.applyByDateMm.toISOString()
-        : null,
       startByDate: course.startByDate ? course.startByDate.toISOString() : null,
-      startByDateMm: course.startByDateMm
-        ? course.startByDateMm.toISOString()
-        : null,
       startDate: course.startDate.toISOString(),
-      startDateMm: course.startDateMm ? course.startDateMm.toISOString() : null,
       endDate: course.endDate.toISOString(),
-      endDateMm: course.endDateMm ? course.endDateMm.toISOString() : null,
       duration: course.duration,
       durationUnit: course.durationUnit,
       durationMm: course.durationMm,
@@ -362,9 +334,7 @@ export async function POST(request: NextRequest) {
           subtitle: validatedData.subtitle,
           subtitleMm: validatedData.subtitleMm || null,
           startDate: validatedData.startDate,
-          startDateMm: validatedData.startDateMm || null,
           endDate: validatedData.endDate,
-          endDateMm: validatedData.endDateMm || null,
           duration: validatedData.duration,
           durationUnit: validatedData.durationUnit,
           schedule: validatedData.schedule,
@@ -381,9 +351,7 @@ export async function POST(request: NextRequest) {
           district: validatedData.district || null,
           address: validatedData.address || null,
           applyByDate: validatedData.applyByDate || null,
-          applyByDateMm: validatedData.applyByDateMm || null,
           startByDate: validatedData.startByDate || null,
-          startByDateMm: validatedData.startByDateMm || null,
           availableDays: validatedData.availableDays,
           description: validatedData.description || null,
           descriptionMm: validatedData.descriptionMm || null,
@@ -472,9 +440,7 @@ export async function POST(request: NextRequest) {
     const formattedCourse = {
       ...course,
       startDate: course.startDate.toISOString(),
-      startDateMm: course.startDateMm ? course.startDateMm.toISOString() : null,
       endDate: course.endDate.toISOString(),
-      endDateMm: course.endDateMm ? course.endDateMm.toISOString() : null,
     };
 
     return NextResponse.json(formattedCourse, { status: 201 });

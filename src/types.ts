@@ -124,9 +124,7 @@ export interface Course {
   subtitle: string;
   subtitleMm?: string | null;
   startDate: Date;
-  startDateMm?: Date | null;
   endDate: Date;
-  endDateMm?: Date | null;
   duration: number;
   durationUnit: DurationUnit;
   durationMm?: number | null;
@@ -147,9 +145,7 @@ export interface Course {
   address?: string | null;
   // DATE FIELDS
   applyByDate?: string | null; // ISO string format
-  applyByDateMm?: string | null;
   startByDate?: string | null; // ISO string format
-  startByDateMm?: string | null;
   // APPLICATION FIELDS
   howToApply?: string[] | null;
   howToApplyMm?: string[] | null;
@@ -240,9 +236,7 @@ export interface CourseFormData {
   description?: string;
   descriptionMm?: string;
   startDate: string;
-  startDateMm?: string;
   endDate: string;
-  endDateMm?: string;
   duration: number;
   durationUnit: DurationUnit;
   durationMm?: number;
@@ -255,7 +249,6 @@ export interface CourseFormData {
   district?: string;
   address?: string;
   applyByDate?: string;
-  applyByDateMm?: string;
   ageMin?: number;
   ageMax?: number;
   ageMinMm?: number;

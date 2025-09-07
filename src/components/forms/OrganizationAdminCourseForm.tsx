@@ -57,9 +57,7 @@ interface CourseFormData {
   district: string;
   address: string;
   applyByDate: string;
-  applyByDateMm: string;
   startByDate: string;
-  startByDateMm: string;
   startDate: string;
   endDate: string;
   duration: number | null;
@@ -271,9 +269,7 @@ export default function OrganizationAdminCourseForm({
       district: initialData?.district || "",
       address: initialData?.address || "",
       applyByDate: initialData?.applyByDate || "",
-      applyByDateMm: initialData?.applyByDateMm || "",
       startByDate: initialData?.startByDate || "",
-      startByDateMm: initialData?.startByDateMm || "",
       startDate: initialData?.startDate || "",
       endDate: initialData?.endDate || "",
       duration: initialData?.duration || null,
@@ -728,7 +724,7 @@ export default function OrganizationAdminCourseForm({
       howToApply: formData.howToApply.filter((step) => step.trim() !== ""),
       howToApplyMm: formData.howToApplyMm.filter((step) => step.trim() !== ""),
       startByDate: formData.startByDate || "",
-      startByDateMm: formData.startByDateMm || "",
+
       // Handle age fields - send null for empty values but ensure they're properly typed
       ageMin:
         formData.ageMin === null || formData.ageMin === undefined

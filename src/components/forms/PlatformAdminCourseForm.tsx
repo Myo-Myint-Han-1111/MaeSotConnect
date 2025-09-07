@@ -58,9 +58,7 @@ interface CourseFormData {
   district: string;
   address: string;
   applyByDate: string;
-  applyByDateMm: string;
   startByDate: string;
-  startByDateMm: string;
   startDate: string;
   endDate: string;
   duration: number | null;
@@ -264,9 +262,7 @@ export default function PlatformAdminCourseForm({
     district: initialData?.district || "",
     address: initialData?.address || "",
     applyByDate: initialData?.applyByDate || "",
-    applyByDateMm: initialData?.applyByDateMm || "",
     startByDate: initialData?.startByDate || "",
-    startByDateMm: initialData?.startByDateMm || "",
     startDate: initialData?.startDate || "",
     endDate: initialData?.endDate || "",
     duration: initialData?.duration || null,
@@ -714,7 +710,6 @@ export default function PlatformAdminCourseForm({
       organizationId: formData.organizationId,
       feeAmount: formData.feeAmount === null ? -1 : formData.feeAmount, // -1 for hidden
       startByDate: formData.startByDate || "",
-      startByDateMm: formData.startByDateMm || "",
       ageMin:
         formData.ageMin === null || formData.ageMin === undefined
           ? null
@@ -1289,7 +1284,8 @@ export default function PlatformAdminCourseForm({
                   </div>
 
                   {/* Estimated Date Text Fields - Show if either checkbox is checked */}
-                  {(formData.showEstimatedForStartDate || formData.showEstimatedForApplyByDate) && (
+                  {(formData.showEstimatedForStartDate ||
+                    formData.showEstimatedForApplyByDate) && (
                     <div className="space-y-2 mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
                       <Label>Estimated Date Text</Label>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1320,7 +1316,8 @@ export default function PlatformAdminCourseForm({
                         </div>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Enter text that describes when the date might change (e.g., Late January, Early Spring, Mid-2025)
+                        Enter text that describes when the date might change
+                        (e.g., Late January, Early Spring, Mid-2025)
                       </p>
                     </div>
                   )}

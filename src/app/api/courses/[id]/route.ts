@@ -19,17 +19,7 @@ const courseSchema = z.object({
     .optional()
     .nullable()
     .transform((val) => (val && val.trim() !== "" ? new Date(val) : null)),
-  applyByDateMm: z
-    .string()
-    .optional()
-    .nullable()
-    .transform((val) => (val && val.trim() !== "" ? new Date(val) : null)),
   startByDate: z
-    .string()
-    .optional()
-    .nullable()
-    .transform((val) => (val && val.trim() !== "" ? new Date(val) : null)),
-  startByDateMm: z
     .string()
     .optional()
     .nullable()
@@ -438,9 +428,7 @@ export async function PUT(
             subtitleMm: validatedData.subtitleMm,
             address: validatedData.address,
             applyByDate: validatedData.applyByDate,
-            applyByDateMm: validatedData.applyByDateMm,
             startByDate: validatedData.startByDate,
-            startByDateMm: validatedData.startByDateMm,
             province: validatedData.province,
             district: validatedData.district,
             startDate: validatedData.startDate,

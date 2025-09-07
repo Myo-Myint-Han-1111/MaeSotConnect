@@ -47,13 +47,9 @@ interface CourseDetail {
   province?: string;
   district?: string;
   startDate: string;
-  startDateMm?: string;
   startByDate?: string;
-  startByDateMm?: string;
   applyByDate?: string;
-  applyByDateMm?: string;
   endDate: string;
-  endDateMm?: string;
   duration: number;
   durationUnit: DurationUnit;
   durationMm?: number;
@@ -239,7 +235,6 @@ export default function CourseDetailComponent({
 
   // Update the formatAgeRange function to be more strict
   const formatAgeRange = (min?: number | null, max?: number | null): string => {
-
     // Don't show anything if both are null/undefined or 0 or negative
     if (
       (min === null || min === undefined || min <= 0) &&
@@ -395,14 +390,11 @@ export default function CourseDetailComponent({
                         {t("course.dates")}
                       </p>
                       <p className="text-sm text-muted-foreground" dir="auto">
-                        {getLocalizedDateContent(
-                          course.startDate,
-                          course.startDateMm
-                        )}
+                        {getLocalizedDateContent(course.startDate, undefined)}
                         {course.endDate &&
                           ` - ${getLocalizedDateContent(
                             course.endDate,
-                            course.endDateMm
+                            undefined
                           )}`}
                       </p>
                     </div>
@@ -420,13 +412,13 @@ export default function CourseDetailComponent({
                           {course.startByDate &&
                             getLocalizedDateContent(
                               course.startByDate,
-                              course.startByDateMm
+                              undefined
                             )}
                           {course.startByDate && course.applyByDate && " - "}
                           {course.applyByDate &&
                             getLocalizedDateContent(
                               course.applyByDate,
-                              course.applyByDateMm
+                              undefined
                             )}
                         </p>
                       </div>
