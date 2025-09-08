@@ -26,10 +26,6 @@ const courseSchema = z.object({
   endDate: z.string().transform((str) => new Date(str)),
   duration: z.number().positive(),
   durationUnit: z.enum(["DAYS", "WEEKS", "MONTHS", "YEARS"]),
-  durationUnitMm: z
-    .enum(["DAYS", "WEEKS", "MONTHS", "YEARS"])
-    .optional()
-    .nullable(),
   schedule: z.string().min(1, "Schedule is required"),
   scheduleMm: z.string().optional(),
   feeAmount: z
@@ -37,7 +33,6 @@ const courseSchema = z.object({
     .min(-1)
     .nullable()
     .transform((val) => val ?? -1),
-  feeAmountMm: z.number().min(-1).optional().nullable(),
   province: z.string().optional(),
   district: z.string().optional(),
   address: z.string().optional(),
@@ -47,8 +42,6 @@ const courseSchema = z.object({
     .optional(),
   ageMin: z.number().nullable().optional(),
   ageMax: z.number().nullable().optional(),
-  ageMinMm: z.number().nullable().optional(),
-  ageMaxMm: z.number().nullable().optional(),
   outcomes: z.array(z.string()).default([]),
   outcomesMm: z.array(z.string()).default([]),
   selectionCriteria: z.array(z.string()).default([]),
@@ -75,7 +68,6 @@ const courseSchema = z.object({
   document: z.string().optional(),
   documentMm: z.string().optional(),
   estimatedDate: z.string().optional(),
-  estimatedDateMm: z.string().optional(),
   startByDate: z
     .string()
     .optional()

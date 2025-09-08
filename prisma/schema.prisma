@@ -1,12 +1,13 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL") // Optional for connection pooling
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [uuid_ossp(map: "uuid-ossp", schema: "extensions")]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -57,16 +58,11 @@ model Course {
   startDate           DateTime
   endDate             DateTime
   duration            Int
-  durationUnit        DurationUnit      @default(DAYS)  // Add this new field
-  durationUnitMm      DurationUnit?     // Add this for Myanmar language
   schedule            String
   scheduleMm          String?
   feeAmount           Int           @default(0)
-  feeAmountMm         Int?
   ageMin              Int?
-  ageMinMm            Int?
   ageMax              Int?
-  ageMaxMm            Int?
   document            String?
   documentMm          String?
   availableDays       Boolean[]
@@ -79,7 +75,6 @@ model Course {
   selectionCriteria   String[]
   selectionCriteriaMm String[]
   organizationId      String?
-  createdBy           String?
   createdAt           DateTime      @default(now())
   updatedAt           DateTime
   district            String?
@@ -93,32 +88,26 @@ model Course {
   applyButtonTextMm   String?
   applyLink           String?
   estimatedDate       String?
-  estimatedDateMm     String?
   startByDate         DateTime?
-  status              CourseStatus  @default(PUBLISHED)  // Track if course is published or draft
-  lastModifiedBy      String?                           // Track who last modified the course
-  publishedAt         DateTime?                         // When the course was first published
+  createdBy           String?
+  lastModifiedBy      String?
+  publishedAt         DateTime?
+  status              CourseStatus  @default(PUBLISHED)
+  durationUnit        DurationUnit  @default(DAYS)
   badges              Badge[]
-  organizationInfo    Organization? @relation(fields: [organizationId], references: [id])
   createdByUser       User?         @relation("CreatedCourses", fields: [createdBy], references: [id])
   lastModifiedByUser  User?         @relation("ModifiedCourses", fields: [lastModifiedBy], references: [id])
+  organizationInfo    Organization? @relation(fields: [organizationId], references: [id])
   faq                 FAQ[]
   images              Image[]
 
-  @@index([startDate])           // index for date filtering (most common query)
-  @@index([startDate, status])   // composite index for common filter combination
-  @@index([district])            // index for location search
-  @@index([province])            // index for location search  
+  @@index([startDate])
+  @@index([startDate, status])
+  @@index([district])
+  @@index([province])
   @@index([startByDate])
-  @@index([organizationId])      // index for better org admin queries
-  @@index([status])              // index for status filtering
-}
-
-enum CourseStatus {
-  DRAFT          // Course is being created/edited
-  PUBLISHED      // Course is live and visible
-  UNDER_REVIEW   // Course modifications are being reviewed
-  ARCHIVED       // Course is no longer active
+  @@index([organizationId])
+  @@index([status])
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -142,101 +131,108 @@ model Image {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Organization {
-  id                         String                       @id
-  name                       String
-  description                String
-  phone                      String
-  email                      String
-  address                    String?
-  facebookPage               String?
-  latitude                   Float
-  longitude                  Float
-  district                   String?
-  province                   String?
-  logoImage                  String?
-  slug                       String                       @unique
-  courses                    Course[]
-  users                      User[]
-  invitations                UserInvitation[]
-  drafts                     ContentDraft[]
+  id           String           @id
+  name         String
+  description  String
+  phone        String
+  email        String
+  address      String?
+  facebookPage String?
+  latitude     Float
+  longitude    Float
+  district     String?
+  province     String?
+  logoImage    String?
+  slug         String           @unique
+  drafts       ContentDraft[]
+  courses      Course[]
+  users        User[]
+  invitations  UserInvitation[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model User {
-  id             String        @id
-  name           String
-  email          String        @unique
-  password       String?
-  image          String?
-  role           Role          @default(ORGANIZATION_ADMIN)
-  emailVerified  DateTime?
-  organizationId String?
-  status         UserStatus    @default(ACTIVE)
-  lastLoginAt    DateTime?
-  invitedBy      String?
-  invitedAt      DateTime?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime
-  accounts       Account[]
-  organization   Organization? @relation(fields: [organizationId], references: [id])
-  drafts         ContentDraft[]
+  id              String           @id
+  name            String
+  email           String           @unique
+  password        String?
+  image           String?
+  role            Role             @default(ORGANIZATION_ADMIN)
+  emailVerified   DateTime?
+  organizationId  String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime
+  invitedAt       DateTime?
+  invitedBy       String?
+  lastLoginAt     DateTime?
+  status          UserStatus       @default(ACTIVE)
+  accounts        Account[]
   advocateProfile AdvocateProfile?
-  createdCourses Course[]      @relation("CreatedCourses")
-  modifiedCourses Course[]     @relation("ModifiedCourses")
+  drafts          ContentDraft[]
+  createdCourses  Course[]         @relation("CreatedCourses")
+  modifiedCourses Course[]         @relation("ModifiedCourses")
+  organization    Organization?    @relation(fields: [organizationId], references: [id])
+}
+
+model UserInvitation {
+  id             String           @id @default(cuid())
+  email          String           @unique
+  role           Role             @default(YOUTH_ADVOCATE)
+  organizationId String?
+  invitedBy      String
+  invitedAt      DateTime         @default(now())
+  expiresAt      DateTime
+  status         InvitationStatus @default(PENDING)
+  notes          String?
+  Organization   Organization?    @relation(fields: [organizationId], references: [id])
+}
+
+model ContentDraft {
+  id               String        @id @default(cuid())
+  title            String
+  type             DraftType
+  content          Json
+  status           DraftStatus   @default(PENDING)
+  createdBy        String
+  organizationId   String?
+  submittedAt      DateTime      @default(now())
+  reviewedAt       DateTime?
+  reviewedBy       String?
+  reviewNotes      String?
+  originalCourseId String?
+  author           User          @relation(fields: [createdBy], references: [id])
+  organization     Organization? @relation(fields: [organizationId], references: [id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model AdvocateProfile {
+  id               String        @id @default(cuid())
+  userId           String        @unique
+  publicName       String?
+  bio              String?
+  avatarUrl        String?
+  showOrganization Boolean       @default(false)
+  status           ProfileStatus @default(DRAFT)
+  submittedAt      DateTime?
+  reviewedAt       DateTime?
+  reviewedBy       String?
+  reviewNotes      String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  UNDER_REVIEW
+  ARCHIVED
 }
 
 enum Role {
   PLATFORM_ADMIN
   ORGANIZATION_ADMIN
   YOUTH_ADVOCATE
-}
-
-model UserInvitation {
-  id             String            @id @default(cuid())
-  email          String            @unique
-  role           Role              @default(YOUTH_ADVOCATE)
-  organizationId String?
-  invitedBy      String
-  invitedAt      DateTime          @default(now())
-  expiresAt      DateTime
-  status         InvitationStatus  @default(PENDING)
-  notes          String?
-  Organization   Organization?     @relation(fields: [organizationId], references: [id])
-}
-
-model ContentDraft {
-  id             String       @id @default(cuid())
-  title          String
-  type           DraftType
-  content        Json
-  status         DraftStatus  @default(PENDING)
-  createdBy      String
-  organizationId String?
-  originalCourseId String?
-  submittedAt    DateTime     @default(now())
-  reviewedAt     DateTime?
-  reviewedBy     String?
-  reviewNotes    String?
-  organization   Organization? @relation(fields: [organizationId], references: [id])
-  author         User         @relation(fields: [createdBy], references: [id])
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model AdvocateProfile {
-  id                String        @id @default(cuid())
-  userId            String        @unique
-  publicName        String?
-  bio               String?
-  avatarUrl         String?
-  showOrganization  Boolean       @default(false)
-  status            ProfileStatus @default(DRAFT)
-  submittedAt       DateTime?
-  reviewedAt        DateTime?
-  reviewedBy        String?
-  reviewNotes       String?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum InvitationStatus {
@@ -275,7 +271,7 @@ enum UserStatus {
 
 enum DurationUnit {
   DAYS
-  WEEKS  
+  WEEKS
   MONTHS
   YEARS
 }

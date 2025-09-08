@@ -242,8 +242,6 @@ export async function PATCH(
                   durationUnit:
                     (courseData.durationUnit as DurationUnit) ||
                     DurationUnit.DAYS,
-                  durationUnitMm:
-                    (courseData.durationUnitMm as DurationUnit) || null,
                   schedule: (courseData.schedule as string) || "",
                   scheduleMm: (courseData.scheduleMm as string) || null,
                   feeAmount:
@@ -274,8 +272,6 @@ export async function PATCH(
                     (courseData.applyButtonTextMm as string) || null,
                   applyLink: (courseData.applyLink as string) || null,
                   estimatedDate: (courseData.estimatedDate as string) || null,
-                  estimatedDateMm:
-                    (courseData.estimatedDateMm as string) || null,
                   updatedAt: new Date(),
                   // 🎯 Try to restore to PUBLISHED if status field exists
                   ...((await checkFieldExists(tx, "Course", "status")) && {
@@ -443,8 +439,6 @@ export async function PATCH(
                     (courseData.applyButtonTextMm as string) || null,
                   applyLink: (courseData.applyLink as string) || null,
                   estimatedDate: (courseData.estimatedDate as string) || null,
-                  estimatedDateMm:
-                    (courseData.estimatedDateMm as string) || null,
                   organizationId:
                     (courseData.organizationId as string) ||
                     existingDraft.organizationId,

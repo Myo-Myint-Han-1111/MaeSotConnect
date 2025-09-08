@@ -29,14 +29,12 @@ interface Course {
   applyByDate?: string | null;
   startByDate?: string | null;
   estimatedDate?: string | null;
-  estimatedDateMm?: string | null;
   // Updated: numeric types for duration
   duration: number;
   durationUnit: string;
   durationUnitMm?: string;
   // Updated: fee is now numeric
   feeAmount?: number;
-  feeAmountMm?: number | null;
   // Course location fields
   district?: string | null;
   province?: string | null;
@@ -675,23 +673,16 @@ export default function Home() {
                       }
                       duration={course.duration}
                       durationUnit={course.durationUnit}
-                      durationUnitMm={course.durationUnitMm}
                       applyByDate={
                         course.applyByDate
                           ? formatDate(course.applyByDate)
                           : undefined
                       }
                       estimatedDate={course.estimatedDate}
-                      estimatedDateMm={course.estimatedDateMm}
                       fee={
                         course.feeAmount !== -1
                           ? formatFee(course.feeAmount)
                           : undefined
-                      }
-                      feeMm={
-                        course.feeAmountMm
-                          ? formatFee(course.feeAmountMm)
-                          : null
                       }
                       badges={course.badges}
                       organizationInfo={

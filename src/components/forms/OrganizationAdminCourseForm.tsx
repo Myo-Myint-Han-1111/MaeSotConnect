@@ -62,7 +62,6 @@ interface CourseFormData {
   endDate: string;
   duration: number | null;
   durationUnit: string;
-  durationUnitMm?: string;
   schedule: string;
   scheduleMm: string;
   feeAmount: number | null;
@@ -85,7 +84,6 @@ interface CourseFormData {
   applyButtonTextMm?: string;
   applyLink?: string;
   estimatedDate: string;
-  estimatedDateMm: string;
   // UI-only fields for checkbox state
   showEstimatedForStartDate: boolean;
   showEstimatedForApplyByDate: boolean;
@@ -251,13 +249,6 @@ export default function OrganizationAdminCourseForm({
           showEstimatedForApplyByDate: false,
         };
 
-    const parsedEstimatedDataMm = initialData?.estimatedDateMm
-      ? parseExistingEstimatedDate(initialData.estimatedDateMm)
-      : {
-          estimatedDate: "",
-          showEstimatedForStartDate: false,
-          showEstimatedForApplyByDate: false,
-        };
 
     return {
       title: initialData?.title || "",
@@ -273,7 +264,6 @@ export default function OrganizationAdminCourseForm({
       endDate: initialData?.endDate || "",
       duration: initialData?.duration || null,
       durationUnit: initialData?.durationUnit || "DAYS",
-      durationUnitMm: initialData?.durationUnitMm,
       schedule: initialData?.schedule || "",
       scheduleMm: initialData?.scheduleMm || "",
       feeAmount: initialData?.feeAmount ?? null,
@@ -304,13 +294,8 @@ export default function OrganizationAdminCourseForm({
       applyButtonTextMm: initialData?.applyButtonTextMm || "",
       applyLink: initialData?.applyLink || "",
       estimatedDate: parsedEstimatedData.estimatedDate,
-      estimatedDateMm: parsedEstimatedDataMm.estimatedDate,
-      showEstimatedForStartDate:
-        parsedEstimatedData.showEstimatedForStartDate ||
-        parsedEstimatedDataMm.showEstimatedForStartDate,
-      showEstimatedForApplyByDate:
-        parsedEstimatedData.showEstimatedForApplyByDate ||
-        parsedEstimatedDataMm.showEstimatedForApplyByDate,
+      showEstimatedForStartDate: parsedEstimatedData.showEstimatedForStartDate,
+      showEstimatedForApplyByDate: parsedEstimatedData.showEstimatedForApplyByDate,
       images: [],
       badges: initialData?.badges || [],
       faq: initialData?.faq || [
@@ -737,13 +722,6 @@ export default function OrganizationAdminCourseForm({
         ? isAlreadyEncoded(formData.estimatedDate)
           ? formData.estimatedDate // Already encoded, don't re-encode
           : `${formData.estimatedDate}|${
-              formData.showEstimatedForStartDate ? "1" : "0"
-            }|${formData.showEstimatedForApplyByDate ? "1" : "0"}`
-        : "",
-      estimatedDateMm: formData.estimatedDateMm
-        ? isAlreadyEncoded(formData.estimatedDateMm)
-          ? formData.estimatedDateMm // Already encoded, don't re-encode
-          : `${formData.estimatedDateMm}|${
               formData.showEstimatedForStartDate ? "1" : "0"
             }|${formData.showEstimatedForApplyByDate ? "1" : "0"}`
         : "",
@@ -1558,33 +1536,13 @@ export default function OrganizationAdminCourseForm({
                     formData.showEstimatedForApplyByDate) && (
                     <div className="space-y-2 mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
                       <Label>Estimated Date Text</Label>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <div className="text-xs text-muted-foreground mb-1">
-                            English
-                          </div>
-                          <Input
-                            id="estimatedDate"
-                            name="estimatedDate"
-                            value={formData.estimatedDate ?? ""}
-                            onChange={handleTextChange}
-                            placeholder="e.g. Late January, Early March, Mid-2025"
-                          />
-                        </div>
-                        <div>
-                          <div className="text-xs text-muted-foreground mb-1">
-                            Myanmar
-                          </div>
-                          <Input
-                            id="estimatedDateMm"
-                            name="estimatedDateMm"
-                            value={formData.estimatedDateMm ?? ""}
-                            onChange={handleTextChange}
-                            placeholder="Myanmar translation..."
-                            dir="auto"
-                          />
-                        </div>
-                      </div>
+                      <Input
+                        id="estimatedDate"
+                        name="estimatedDate"
+                        value={formData.estimatedDate ?? ""}
+                        onChange={handleTextChange}
+                        placeholder="e.g. Late January, Early March, Mid-2025"
+                      />
                       <p className="text-xs text-muted-foreground">
                         Enter text that describes when the date might change
                         (e.g., Late January, Early Spring, Mid-2025)

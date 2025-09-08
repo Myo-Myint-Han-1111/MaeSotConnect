@@ -100,8 +100,6 @@ export async function POST(
       duration: formContent.duration || existingCourse.duration,
       durationUnit:
         formContent.durationUnit || existingCourse.durationUnit || "DAYS",
-      durationUnitMm:
-        formContent.durationUnitMm || existingCourse.durationUnitMm,
       startDate:
         formContent.startDate || existingCourse.startDate.toISOString(),
       endDate: formContent.endDate || existingCourse.endDate.toISOString(),
@@ -114,8 +112,6 @@ export async function POST(
       publishedAt: existingCourse.publishedAt?.toISOString(),
       estimatedDate:
         formContent.estimatedDate || existingCourse.estimatedDate || null,
-      estimatedDateMm:
-        formContent.estimatedDateMm || existingCourse.estimatedDateMm || null,
       // Include related data
       images: existingCourse.images,
       badges: existingCourse.badges,

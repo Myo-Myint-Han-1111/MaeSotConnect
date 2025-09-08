@@ -101,7 +101,6 @@ export default function DraftEditPage() {
         document: draft.content.document || "",
         documentMm: draft.content.documentMm || "",
         estimatedDate: draft.content.estimatedDate || "",
-        estimatedDateMm: draft.content.estimatedDateMm || "",
         scheduleDetails: draft.content.scheduleDetails || "",
         scheduleDetailsMm: draft.content.scheduleDetailsMm || "",
         description: draft.content.description || "",

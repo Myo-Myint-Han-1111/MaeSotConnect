@@ -66,16 +66,12 @@ export async function GET(request: Request) {
           startDate: true,
           duration: true,
           durationUnit: true,
-          durationUnitMm: true,
           province: true,
           district: true,
           applyByDate: true,
           startByDate: true,
-          // fee/feeMm fields are replaced with feeAmount/feeAmountMm
           feeAmount: true,
-          feeAmountMm: true,
           estimatedDate: true,
-          estimatedDateMm: true,
           createdAt: true,
           createdByUser: {
             select: {
@@ -133,15 +129,12 @@ export async function GET(request: Request) {
             startDate: true,
             duration: true,
             durationUnit: true,
-            durationUnitMm: true,
             province: true,
             district: true,
             applyByDate: true,
             startByDate: true,
             feeAmount: true,
-            feeAmountMm: true,
             estimatedDate: true,
-            estimatedDateMm: true,
             createdAt: true,
             createdByUser: {
               select: {
@@ -194,15 +187,12 @@ export async function GET(request: Request) {
       applyByDate: course.applyByDate ? course.applyByDate.toISOString() : null,
       startByDate: course.startByDate ? course.startByDate.toISOString() : null,
       estimatedDate: course.estimatedDate,
-      estimatedDateMm: course.estimatedDateMm,
       createdAt: course.createdAt ? course.createdAt.toISOString() : null,
       // Build location from course district/province only
       location:
         [course.district, course.province].filter(Boolean).join(", ") || "",
-      locationMm: null, // Keep for backward compatibility
       // Add empty fee fields for backward compatibility
       fee: course.feeAmount ? course.feeAmount.toString() : "",
-      feeMm: course.feeAmountMm ? course.feeAmountMm.toString() : null,
     }));
 
     // Return response based on mode

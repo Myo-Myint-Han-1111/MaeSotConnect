@@ -63,7 +63,6 @@ interface CourseFormData {
   endDate: string;
   duration: number | null;
   durationUnit: DurationUnit;
-  durationUnitMm?: DurationUnit;
   schedule: string;
   scheduleMm: string;
   feeAmount: number | null;
@@ -86,7 +85,6 @@ interface CourseFormData {
   applyButtonTextMm?: string;
   applyLink?: string;
   estimatedDate: string;
-  estimatedDateMm: string;
   showEstimatedForStartDate: boolean;
   showEstimatedForApplyByDate: boolean;
   organizationId?: string;
@@ -243,13 +241,6 @@ export default function PlatformAdminCourseForm({
         showEstimatedForApplyByDate: false,
       };
 
-  const parsedEstimatedDataMm = initialData?.estimatedDateMm
-    ? parseExistingEstimatedDate(initialData.estimatedDateMm)
-    : {
-        estimatedDate: "",
-        showEstimatedForStartDate: false,
-        showEstimatedForApplyByDate: false,
-      };
 
   // Initialize form data with initial data or default values
   const [formData, setFormData] = useState<CourseFormData>({
@@ -266,7 +257,6 @@ export default function PlatformAdminCourseForm({
     endDate: initialData?.endDate || "",
     duration: initialData?.duration || null,
     durationUnit: initialData?.durationUnit || DurationUnit.DAYS,
-    durationUnitMm: initialData?.durationUnitMm || undefined,
     schedule: initialData?.schedule || "",
     scheduleMm: initialData?.scheduleMm || "",
     feeAmount: initialData?.feeAmount ?? null,
@@ -297,7 +287,6 @@ export default function PlatformAdminCourseForm({
     applyButtonTextMm: initialData?.applyButtonTextMm || "",
     applyLink: initialData?.applyLink || "",
     estimatedDate: parsedEstimatedData.estimatedDate,
-    estimatedDateMm: parsedEstimatedDataMm.estimatedDate,
     showEstimatedForStartDate: parsedEstimatedData.showEstimatedForStartDate,
     showEstimatedForApplyByDate:
       parsedEstimatedData.showEstimatedForApplyByDate,
@@ -720,13 +709,6 @@ export default function PlatformAdminCourseForm({
         ? isAlreadyEncoded(formData.estimatedDate)
           ? formData.estimatedDate // Already encoded, don't re-encode
           : `${formData.estimatedDate}|${
-              formData.showEstimatedForStartDate ? "1" : "0"
-            }|${formData.showEstimatedForApplyByDate ? "1" : "0"}`
-        : "",
-      estimatedDateMm: formData.estimatedDateMm
-        ? isAlreadyEncoded(formData.estimatedDateMm)
-          ? formData.estimatedDateMm // Already encoded, don't re-encode
-          : `${formData.estimatedDateMm}|${
               formData.showEstimatedForStartDate ? "1" : "0"
             }|${formData.showEstimatedForApplyByDate ? "1" : "0"}`
         : "",
@@ -1286,33 +1268,13 @@ export default function PlatformAdminCourseForm({
                     formData.showEstimatedForApplyByDate) && (
                     <div className="space-y-2 mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
                       <Label>Estimated Date Text</Label>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <div className="text-xs text-muted-foreground mb-1">
-                            English
-                          </div>
-                          <Input
-                            id="estimatedDate"
-                            name="estimatedDate"
-                            value={formData.estimatedDate ?? ""}
-                            onChange={handleTextChange}
-                            placeholder="e.g. Late January, Early March, Mid-2025"
-                          />
-                        </div>
-                        <div>
-                          <div className="text-xs text-muted-foreground mb-1">
-                            Myanmar
-                          </div>
-                          <Input
-                            id="estimatedDateMm"
-                            name="estimatedDateMm"
-                            value={formData.estimatedDateMm ?? ""}
-                            onChange={handleTextChange}
-                            placeholder="Myanmar translation..."
-                            dir="auto"
-                          />
-                        </div>
-                      </div>
+                      <Input
+                        id="estimatedDate"
+                        name="estimatedDate"
+                        value={formData.estimatedDate ?? ""}
+                        onChange={handleTextChange}
+                        placeholder="e.g. Late January, Early March, Mid-2025"
+                      />
                       <p className="text-xs text-muted-foreground">
                         Enter text that describes when the date might change
                         (e.g., Late January, Early Spring, Mid-2025)

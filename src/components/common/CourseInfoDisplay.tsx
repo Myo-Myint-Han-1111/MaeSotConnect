@@ -20,7 +20,6 @@ interface CourseInfoDisplayProps {
   courseAddress?: string;
   fee?: string;
   estimatedDate?: string | null;
-  estimatedDateMm?: string | null;
   compact?: boolean;
   showDescriptions?: boolean;
 }
@@ -65,15 +64,12 @@ const CourseInfoDisplay: React.FC<CourseInfoDisplayProps> = ({
   startByDate,
   courseAddress,
   estimatedDate,
-  estimatedDateMm,
 }) => {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
 
   // Parse estimated date preferences
   const estimatedPrefs = parseEstimatedDatePreferences(
-    language === "mm" && estimatedDateMm
-      ? estimatedDateMm
-      : estimatedDate ?? null
+    estimatedDate ?? null
   );
 
   // Direct color override (keeping your existing styling)

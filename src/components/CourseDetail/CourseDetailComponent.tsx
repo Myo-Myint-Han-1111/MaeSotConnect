@@ -43,7 +43,6 @@ interface CourseDetail {
   subtitle: string;
   subtitleMm?: string;
   location: string;
-  locationMm?: string;
   province?: string;
   district?: string;
   startDate: string;
@@ -52,15 +51,11 @@ interface CourseDetail {
   endDate: string;
   duration: number;
   durationUnit: DurationUnit;
-  durationUnitMm?: DurationUnit;
   schedule: string;
   scheduleMm?: string;
   feeAmount?: number;
-  feeAmountMm?: number;
   ageMin?: number | null;
-  ageMinMm?: number | null;
   ageMax?: number | null;
-  ageMaxMm?: number | null;
   document?: string;
   documentMm?: string;
   availableDays: boolean[];
@@ -78,7 +73,6 @@ interface CourseDetail {
   applyButtonTextMm?: string;
   applyLink?: string;
   estimatedDate?: string | null;
-  estimatedDateMm?: string | null;
   badges: {
     text: string;
     color: string;
@@ -195,12 +189,11 @@ export default function CourseDetailComponent({
   // Format duration with unit - no more decimal calculations
   const formatDuration = (
     duration?: number,
-    unit?: DurationUnit,
-    unitMm?: DurationUnit
+    unit?: DurationUnit
   ): string => {
-    // Use Myanmar values if available and language is Myanmar
+    // Use duration and unit directly
     const actualDuration = duration;
-    const actualUnit = language === "mm" && unitMm ? unitMm : unit;
+    const actualUnit = unit;
 
     if (!actualDuration || !actualUnit) return "";
 
@@ -432,8 +425,7 @@ export default function CourseDetailComponent({
                       <p className="text-sm text-muted-foreground" dir="auto">
                         {formatDuration(
                           course.duration,
-                          course.durationUnit,
-                          course.durationUnitMm
+                          course.durationUnit
                         )}
                       </p>
                     </div>
@@ -454,11 +446,7 @@ export default function CourseDetailComponent({
                             className="text-sm text-muted-foreground"
                             dir="auto"
                           >
-                            {language === "mm"
-                              ? formatCurrency(
-                                  course.feeAmountMm ?? course.feeAmount
-                                )
-                              : formatCurrency(course.feeAmount)}
+                            {formatCurrency(course.feeAmount)}
                           </p>
                         </div>
                       </div>
@@ -497,12 +485,7 @@ export default function CourseDetailComponent({
                           {t("course.ageRange")}
                         </p>
                         <p className="text-sm text-muted-foreground" dir="auto">
-                          {language === "mm"
-                            ? formatAgeRange(
-                                course.ageMinMm ?? course.ageMin,
-                                course.ageMaxMm ?? course.ageMax
-                              )
-                            : formatAgeRange(course.ageMin, course.ageMax)}
+                          {formatAgeRange(course.ageMin, course.ageMax)}
                         </p>
                       </div>
                     </div>

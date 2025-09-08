@@ -28,7 +28,6 @@ const courseSchema = z.object({
   endDate: z.coerce.date(),
   duration: z.number().int().positive(),
   durationUnit: z.enum(["DAYS", "WEEKS", "MONTHS", "YEARS"]),
-  durationUnitMm: z.enum(["DAYS", "WEEKS", "MONTHS", "YEARS"]).optional(),
   schedule: z.string().min(2),
   scheduleMm: z.string().optional().nullable(),
   feeAmount: z.number().min(-1), // Allow -1 for hidden fee, 0 for free, positive for paid
@@ -53,7 +52,6 @@ const courseSchema = z.object({
   applyButtonTextMm: z.string().optional().nullable(),
   applyLink: z.string().optional().nullable(),
   estimatedDate: z.string().optional().nullable(),
-  estimatedDateMm: z.string().optional().nullable(),
   organizationId: z.string(),
   badges: z.array(
     z.object({
@@ -146,13 +144,11 @@ export async function GET(
       endDate: course.endDate.toISOString(),
       duration: course.duration,
       durationUnit: course.durationUnit,
-      durationUnitMm: course.durationUnitMm,
       schedule: course.schedule,
       scheduleMm: course.scheduleMm,
       feeAmount: course.feeAmount,
       feeAmountMm: null,
       fee: course.feeAmount.toString(),
-      feeMm: null,
       ageMin: course.ageMin,
       ageMinMm: null,
       ageMax: course.ageMax,
@@ -174,7 +170,6 @@ export async function GET(
       applyButtonTextMm: course.applyButtonTextMm,
       applyLink: course.applyLink,
       estimatedDate: course.estimatedDate,
-      estimatedDateMm: course.estimatedDateMm,
       organizationId: course.organizationId,
       createdAt: course.createdAt.toISOString(),
       createdByUser: course.createdByUser,
@@ -309,7 +304,6 @@ export async function PUT(
       applyButtonTextMm: parsedData.applyButtonTextMm || null,
       applyLink: parsedData.applyLink || null,
       estimatedDate: parsedData.estimatedDate || null,
-      estimatedDateMm: parsedData.estimatedDateMm || null,
     };
 
     // 🟡 ADD THIS DEBUG CODE HERE (after cleanedData, before validation):
@@ -422,7 +416,6 @@ export async function PUT(
             endDate: validatedData.endDate,
             duration: validatedData.duration,
             durationUnit: validatedData.durationUnit,
-            durationUnitMm: validatedData.durationUnitMm,
             schedule: validatedData.schedule,
             scheduleMm: validatedData.scheduleMm,
             feeAmount: validatedData.feeAmount,
@@ -445,7 +438,6 @@ export async function PUT(
             applyButtonTextMm: validatedData.applyButtonTextMm,
             applyLink: validatedData.applyLink,
             estimatedDate: validatedData.estimatedDate,
-            estimatedDateMm: validatedData.estimatedDateMm,
             organizationId: validatedData.organizationId,
             slug: newSlug,
           },

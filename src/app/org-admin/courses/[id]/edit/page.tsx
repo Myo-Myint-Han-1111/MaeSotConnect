@@ -22,7 +22,6 @@ interface Course {
   durationUnit?: string;
   durationUnitMm?: string;
   estimatedDate?: string | null;
-  estimatedDateMm?: string | null;
   schedule: string;
   scheduleMm?: string;
   feeAmount: number;
@@ -157,7 +156,6 @@ export default function EditCoursePage() {
     applyByDate: formatDateForInput(course.applyByDate || null),
     startByDate: formatDateForInput(course.startByDate || null),
     estimatedDate: course.estimatedDate || "",
-    estimatedDateMm: course.estimatedDateMm || "",
   };
 
   // Fixed: Handle images properly - API returns string[], form expects string[]

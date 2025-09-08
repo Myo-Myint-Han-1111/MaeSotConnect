@@ -50,12 +50,11 @@ export async function GET(
       scheduleMm: course.scheduleMm,
       // Format fee information
       fee: course.feeAmount.toString(),
-      feeMm: course.feeAmountMm ? course.feeAmountMm.toString() : null,
       // Age range
       ageMin: course.ageMin,
-      ageMinMm: course.ageMinMm,
+      ageMinMm: null,
       ageMax: course.ageMax,
-      ageMaxMm: course.ageMaxMm,
+      ageMaxMm: null,
       // Document requirements
       document: course.document,
       documentMm: course.documentMm,

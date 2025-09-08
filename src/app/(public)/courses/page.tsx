@@ -460,20 +460,15 @@ interface CourseDetailProps {
     subtitle: string;
     subtitleMm?: string | null;
     location: string;
-    locationMm?: string | null;
     startDate: string;
     endDate?: string; // New field
     duration: string | number;
     schedule: string;
     scheduleMm?: string | null;
     fee?: string;
-    feeMm?: string | null;
     feeAmount?: number; // New field
-    feeAmountMm?: number | null; // New field
     ageMin?: number; // New field
-    ageMinMm?: number | null; // New field
     ageMax?: number; // New field
-    ageMaxMm?: number | null; // New field
     document?: string; // New field
     documentMm?: string | null; // New field
     availableDays: boolean[];
@@ -578,7 +573,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
       }).format(amount);
     } else if (course?.fee) {
       // Fall back to legacy string fee field
-      return language === "mm" && course.feeMm ? course.feeMm : course.fee;
+      return course.fee;
     }
 
     return null;
@@ -607,14 +602,8 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
     if (!course) return "";
     if (!course.ageMin && !course.ageMax) return "";
 
-    const min =
-      language === "mm" && course.ageMinMm !== undefined
-        ? course.ageMinMm
-        : course.ageMin;
-    const max =
-      language === "mm" && course.ageMaxMm !== undefined
-        ? course.ageMaxMm
-        : course.ageMax;
+    const min = course.ageMin;
+    const max = course.ageMax;
 
     if (min && !max) return `${min}+`;
     if (!min && max) return `0-${max}`;
@@ -715,9 +704,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses }) => {
                       {t("course.location")}
                     </p>
                     <p className="text-sm text-muted-foreground" dir="auto">
-                      {language === "mm" && course.locationMm
-                        ? course.locationMm
-                        : course.location}
+                      {course.location}
                     </p>
                   </div>
                 </div>

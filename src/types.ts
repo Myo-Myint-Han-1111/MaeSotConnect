@@ -127,15 +127,11 @@ export interface Course {
   endDate: Date;
   duration: number;
   durationUnit: DurationUnit;
-  durationUnitMm?: DurationUnit | null;
   schedule: string;
   scheduleMm?: string | null;
   feeAmount: number;
-  feeAmountMm?: number | null;
   ageMin: number;
-  ageMinMm?: number | null;
   ageMax: number;
-  ageMaxMm?: number | null;
   document: string;
   documentMm?: string | null;
   // LOCATION FIELDS
@@ -152,7 +148,6 @@ export interface Course {
   applyButtonTextMm?: string | null;
   applyLink?: string | null;
   estimatedDate?: string | null;
-  estimatedDateMm?: string | null;
   // SYSTEM FIELDS
   availableDays: boolean[];
   description?: string | null;

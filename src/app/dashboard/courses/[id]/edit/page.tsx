@@ -58,7 +58,6 @@ interface CourseResponse {
   applyByDate?: string | null;
   startByDate?: string | null;
   estimatedDate?: string | null;
-  estimatedDateMm?: string | null;
 
   // API returns DateTime as ISO strings
   startDate: string;
@@ -66,17 +65,13 @@ interface CourseResponse {
   // API returns numbers for duration
   duration: number;
   durationUnit?: string;
-  durationUnitMm?: string;
   schedule: string;
   scheduleMm?: string | null;
   // API returns numbers for fee amounts
   feeAmount: number;
-  feeAmountMm?: number | null;
   // New age fields
   ageMin: number;
-  ageMinMm?: number | null;
   ageMax: number;
-  ageMaxMm?: number | null;
   // New document fields
   document: string;
   documentMm?: string | null;
@@ -118,22 +113,16 @@ interface CourseFormData {
   applyByDate: string;
   startByDate: string;
   estimatedDate: string;
-  estimatedDateMm: string;
   location: string; // Derived from organizationInfo.address
-  locationMm: string;
   startDate: string; // ISO date string for HTML date input
   endDate: string;
   duration: number | null;
   durationUnit?: DurationUnit;
-  durationUnitMm?: DurationUnit;
   schedule: string;
   scheduleMm: string;
   feeAmount: number;
-  feeAmountMm: number;
   ageMin?: number | null;
   ageMax?: number | null;
-  ageMinMm?: number | null;
-  ageMaxMm?: number | null;
   document: string;
   documentMm: string;
   availableDays: boolean[];
@@ -208,7 +197,6 @@ export default function EditCoursePage() {
         console.log("Province:", data.province);
         console.log("District:", data.district);
         console.log("EstimatedDate (raw from API):", data.estimatedDate);
-        console.log("EstimatedDateMm (raw from API):", data.estimatedDateMm);
 
         // Store existing images separately - handle both string[] and object[] formats
         const imageUrls: string[] = [];
@@ -244,7 +232,6 @@ export default function EditCoursePage() {
           // Pass the encoded estimated date directly to CourseForm
           // CourseForm will handle the decoding
           estimatedDate: data.estimatedDate ?? "",
-          estimatedDateMm: data.estimatedDateMm ?? "",
 
           // Format dates for HTML date inputs (YYYY-MM-DD format)
           startDate: formatDateForInput(data.startDate),
@@ -327,10 +314,6 @@ export default function EditCoursePage() {
         console.log("Province being set:", processedData.province);
         console.log("District being set:", processedData.district);
         console.log("EstimatedDate being passed:", processedData.estimatedDate);
-        console.log(
-          "EstimatedDateMm being passed:",
-          processedData.estimatedDateMm
-        );
 
         setCourse(processedData);
       } catch (err) {

@@ -24,11 +24,8 @@ const courseSchema = z
     schedule: z.string().min(2, "Schedule must be at least 2 characters"),
     scheduleMm: z.string().optional(),
     feeAmount: z.number().min(-1), // Allow -1 for hidden fee, 0 for free, positive for paid
-    feeAmountMm: z.number().nonnegative().optional().nullable(),
     ageMin: z.number().int().nonnegative().optional().nullable(),
-    ageMinMm: z.number().int().nonnegative().optional().nullable(),
     ageMax: z.number().int().nonnegative().optional().nullable(),
-    ageMaxMm: z.number().int().nonnegative().optional().nullable(),
     document: z.string().optional().nullable(),
     documentMm: z.string().optional().nullable(),
     province: z.string().optional(),
@@ -59,8 +56,7 @@ const courseSchema = z
     applyButtonTextMm: z.string().optional(),
     applyLink: z.string().url().optional().or(z.literal("")),
     estimatedDate: z.string().optional().nullable(),
-    estimatedDateMm: z.string().optional().nullable(),
-    organizationId: z.string(),
+      organizationId: z.string(),
     badges: z.array(
       z.object({
         text: z.string(),
@@ -130,15 +126,11 @@ export async function GET() {
       endDate: course.endDate.toISOString(),
       duration: course.duration,
       durationUnit: course.durationUnit,
-      durationUnitMm: course.durationUnitMm,
       schedule: course.schedule,
       scheduleMm: course.scheduleMm,
       feeAmount: course.feeAmount,
-      feeAmountMm: course.feeAmountMm,
       ageMin: course.ageMin,
-      ageMinMm: course.ageMinMm,
       ageMax: course.ageMax,
-      ageMaxMm: course.ageMaxMm,
       document: course.document,
       documentMm: course.documentMm,
       availableDays: course.availableDays,
@@ -215,9 +207,6 @@ export async function POST(request: NextRequest) {
     if (parsedData.feeAmount !== undefined) {
       parsedData.feeAmount = Math.round(Number(parsedData.feeAmount));
     }
-    if (parsedData.feeAmountMm !== undefined) {
-      parsedData.feeAmountMm = Math.round(Number(parsedData.feeAmountMm));
-    }
 
     // Validate required dates
     if (!parsedData.startDate || parsedData.startDate === "") {
@@ -249,20 +238,6 @@ export async function POST(request: NextRequest) {
       const ageMaxValue = Number(parsedData.ageMax);
       parsedData.ageMax =
         isNaN(ageMaxValue) || ageMaxValue <= 0 ? null : Math.round(ageMaxValue);
-    }
-    if (parsedData.ageMinMm !== undefined) {
-      const ageMinMmValue = Number(parsedData.ageMinMm);
-      parsedData.ageMinMm =
-        isNaN(ageMinMmValue) || ageMinMmValue <= 0
-          ? null
-          : Math.round(ageMinMmValue);
-    }
-    if (parsedData.ageMaxMm !== undefined) {
-      const ageMaxMmValue = Number(parsedData.ageMaxMm);
-      parsedData.ageMaxMm =
-        isNaN(ageMaxMmValue) || ageMaxMmValue <= 0
-          ? null
-          : Math.round(ageMaxMmValue);
     }
 
     // Also handle document fields as optional
@@ -336,11 +311,8 @@ export async function POST(request: NextRequest) {
           schedule: validatedData.schedule,
           scheduleMm: validatedData.scheduleMm || null,
           feeAmount: validatedData.feeAmount,
-          feeAmountMm: validatedData.feeAmountMm || null,
           ageMin: validatedData.ageMin || null,
-          ageMinMm: validatedData.ageMinMm || null,
           ageMax: validatedData.ageMax || null,
-          ageMaxMm: validatedData.ageMaxMm || null,
           document: validatedData.document,
           documentMm: validatedData.documentMm || null,
           province: validatedData.province || null,
@@ -363,7 +335,6 @@ export async function POST(request: NextRequest) {
           applyButtonTextMm: validatedData.applyButtonTextMm || null,
           applyLink: validatedData.applyLink || null,
           estimatedDate: validatedData.estimatedDate || null,
-          estimatedDateMm: validatedData.estimatedDateMm || null,
           organizationId: validatedData.organizationId || null,
           slug: `${initialBaseSlug}-temp-${Date.now()}`,
           updatedAt: new Date(),

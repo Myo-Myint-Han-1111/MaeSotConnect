@@ -12,7 +12,6 @@ interface CourseDetail {
   subtitle: string;
   subtitleMm?: string;
   location: string;
-  locationMm?: string;
   province?: string;
   district?: string;
   startDate: string;
