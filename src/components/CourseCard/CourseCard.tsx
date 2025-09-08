@@ -25,7 +25,6 @@ export interface CourseCardProps {
   titleMm: string | null;
   startDate: string;
   applyByDate?: string | null;
-  startByDate?: string | null;
   estimatedDate?: string | null;
   duration: number;
   durationUnit: string;
@@ -64,7 +63,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   badges,
   startDate,
   applyByDate,
-  startByDate,
   estimatedDate,
   duration,
   durationUnit,
@@ -162,7 +160,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           location={[district, province].filter(Boolean).join(", ") || ""}
           startDate={startDate}
           applyByDate={applyByDate || undefined}
-          startByDate={startByDate || undefined}
           estimatedDate={estimatedDate}
           duration={formatDuration(duration, durationUnit)}
           fee={fee || undefined}

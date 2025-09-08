@@ -7,15 +7,14 @@ export async function GET(request: Request) {
   try {
     // Parse query parameters for pagination and filtering
     const { searchParams } = new URL(request.url);
-    const isLegacy = searchParams.get("legacy") === "true";
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "24"); // 24 items per page for good mobile UX
+    const limit = parseInt(searchParams.get("limit") || "15"); // Responsive: 15 mobile, 30 desktop
     const search = searchParams.get("search") || "";
     const badges = searchParams.get("badges")?.split(",").filter(Boolean) || [];
     const sortBy = searchParams.get("sortBy") || "startDate-asc";
 
-    // Calculate pagination (skip for legacy mode)
-    const skip = isLegacy ? 0 : (page - 1) * limit;
+    // Calculate pagination
+    const skip = (page - 1) * limit;
 
     // Build the where clause for filtering
     const whereClause: Prisma.CourseWhereInput = {
@@ -50,13 +49,13 @@ export async function GET(request: Request) {
       };
     }
 
-    // Optimize: Use Promise.all for concurrent execution when needed
-    let totalCount = 0;
-    let courses;
-
-    if (isLegacy) {
-      courses = await prisma.course.findMany({
+    // Use Promise.all for concurrent execution of count and findMany
+    const [totalCount, courses] = await Promise.all([
+      prisma.course.count({ where: whereClause }),
+      prisma.course.findMany({
         where: whereClause,
+        skip,
+        take: limit,
         orderBy: getSortOrder(sortBy),
         select: {
           id: true,
@@ -90,7 +89,7 @@ export async function GET(request: Request) {
           },
           organizationInfo: {
             select: {
-              name: true, // Only organization name is used in CourseCard
+              name: true,
             },
           },
           images: {
@@ -111,72 +110,8 @@ export async function GET(request: Request) {
             take: 10, // Limit badges for performance
           },
         },
-      });
-    } else {
-      // Use Promise.all for concurrent execution of count and findMany
-      [totalCount, courses] = await Promise.all([
-        prisma.course.count({ where: whereClause }),
-        prisma.course.findMany({
-          where: whereClause,
-          skip,
-          take: limit,
-          orderBy: getSortOrder(sortBy),
-          select: {
-            id: true,
-            slug: true,
-            title: true,
-            titleMm: true,
-            startDate: true,
-            duration: true,
-            durationUnit: true,
-            province: true,
-            district: true,
-            applyByDate: true,
-            startByDate: true,
-            feeAmount: true,
-            estimatedDate: true,
-            createdAt: true,
-            createdByUser: {
-              select: {
-                id: true,
-                name: true,
-                image: true,
-                role: true,
-                advocateProfile: {
-                  select: {
-                    publicName: true,
-                    avatarUrl: true,
-                    status: true,
-                  },
-                },
-              },
-            },
-            organizationInfo: {
-              select: {
-                name: true,
-              },
-            },
-            images: {
-              select: {
-                id: true,
-                url: true,
-                courseId: true,
-              },
-            },
-            badges: {
-              select: {
-                id: true,
-                text: true,
-                color: true,
-                backgroundColor: true,
-                courseId: true,
-              },
-              take: 10, // Limit badges for performance
-            },
-          },
-        }),
-      ]);
-    }
+      }),
+    ]);
 
     // Format the response to ensure dates are serialized properly
     // and to maintain backward compatibility
@@ -194,11 +129,6 @@ export async function GET(request: Request) {
       // Add empty fee fields for backward compatibility
       fee: course.feeAmount ? course.feeAmount.toString() : "",
     }));
-
-    // Return response based on mode
-    if (isLegacy) {
-      return NextResponse.json(formattedCourses);
-    }
 
     // Return paginated response with metadata
     const hasMore = skip + courses.length < totalCount;

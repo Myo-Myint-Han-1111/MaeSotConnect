@@ -54,6 +54,7 @@ export const translations = {
     "home.clear.search": "Clear All Filters",
     "home.courses.found": "courses found",
     "home.course.found": "course found", // For singular case
+    "home.courses.showing": "Showing {showing} of {total} courses",
     "home.loading": "Loading...",
     "home.load.more": "Load More",
 
@@ -77,7 +78,6 @@ export const translations = {
     "course.info.schedule": "Schedule",
     "course.info.fee": "Fee",
     "course.info.applyBy": "Application Deadline",
-    "course.info.startByDate": "Application Open",
 
     // Course detail
     "course.back": "Back",
@@ -201,6 +201,7 @@ export const translations = {
     "home.clear.search": "ရှာဖွေမှုများအားလုံး ရှင်းလင်းရန်",
     "home.courses.found": "သင်တန်းများ {count} ခုတွေ့ရှိသည်",
     "home.course.found": "သင်တန်း {count} ခုတွေ့ရှိသည်",
+    "home.courses.showing": "စုစုပေါင်း {total} ခုအနက် {showing} ခု ပြသနေသည်",
     "home.loading": "ဖွင့်နေသည်...",
     "home.load.more": "နောက်ထပ် ပြရန်",
 
@@ -224,7 +225,6 @@ export const translations = {
     "course.info.schedule": "အချိန်ဇယား",
     "course.info.fee": "သင်တန်းကြေး",
     "course.info.applyBy": "နောက်ဆုံးလျှောက်ရမည့်ရက်",
-    "course.info.startByDate": "လျှောက်လွှာဖွင့်သည့်ရက်",
 
     "course.address": "သင်တန်းလိပ်စာ",
 
