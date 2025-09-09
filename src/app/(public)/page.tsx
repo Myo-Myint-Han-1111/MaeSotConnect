@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { CourseCard } from "@/components/CourseCard/CourseCard";
 import { useBadgeTranslation, getBadgeStyle } from "@/lib/badges";
@@ -85,6 +85,8 @@ export default function Home() {
   const [totalCount, setTotalCount] = useState(0);
   const [isFromCache, setIsFromCache] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [allAvailableBadges, setAllAvailableBadges] = useState<string[]>([]);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Cache management functions for pagination
   const savePageState = useCallback(() => {
@@ -106,7 +108,15 @@ export default function Home() {
         console.error("Error saving page state:", error);
       }
     }
-  }, [courses, currentPage, totalCount, hasMore, searchTerm, activeFilters, sortBy]);
+  }, [
+    courses,
+    currentPage,
+    totalCount,
+    hasMore,
+    searchTerm,
+    activeFilters,
+    sortBy,
+  ]);
 
   const restorePageState = useCallback(() => {
     if (typeof window !== "undefined") {
@@ -115,7 +125,7 @@ export default function Home() {
         if (cached) {
           const cacheData = JSON.parse(cached);
           const isValid = Date.now() - cacheData.timestamp < 5 * 60 * 1000;
-          
+
           if (isValid) {
             // Restore all pagination state
             setCourses(cacheData.courses || []);
@@ -150,49 +160,70 @@ export default function Home() {
   }, []);
 
   // Fetch courses function
-  const fetchCourses = useCallback(async (page: number = 1, isLoadMore: boolean = false) => {
-    try {
-      if (isLoadMore) {
-        setLoadingMore(true);
-      } else {
-        setLoading(true);
+  const fetchCourses = useCallback(
+    async (page: number = 1, isLoadMore: boolean = false) => {
+      try {
+        // Cancel previous request if it exists
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+        }
+
+        // Create new AbortController for this request
+        abortControllerRef.current = new AbortController();
+
+        if (isLoadMore) {
+          setLoadingMore(true);
+        } else {
+          setLoading(true);
+        }
+
+        const limit = getPageLimit();
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
+          sortBy: sortBy,
+        });
+
+        if (searchTerm) params.append("search", searchTerm);
+        if (activeFilters.length > 0)
+          params.append("badges", activeFilters.join(","));
+
+        const response = await fetch(`/api/courses/public?${params}`, {
+          signal: abortControllerRef.current.signal,
+        });
+        if (!response.ok) {
+          throw new Error("Failed to fetch courses");
+        }
+
+        const data = await response.json();
+
+        // Only update state if request wasn't cancelled
+        if (!abortControllerRef.current.signal.aborted) {
+          if (isLoadMore) {
+            setCourses((prev) => [...prev, ...data.courses]);
+          } else {
+            setCourses(data.courses);
+          }
+
+          setHasMore(data.pagination.hasMore);
+          setTotalCount(data.pagination.total);
+          setCurrentPage(page);
+        }
+      } catch (error) {
+        // Don't log error if request was intentionally cancelled
+        if ((error as Error).name !== "AbortError") {
+          console.error("Error fetching courses:", error);
+        }
+      } finally {
+        // Only update loading states if request wasn't cancelled
+        if (!abortControllerRef.current?.signal.aborted) {
+          setLoading(false);
+          setLoadingMore(false);
+        }
       }
-
-      const limit = getPageLimit();
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
-        sortBy: sortBy,
-      });
-
-      if (searchTerm) params.append("search", searchTerm);
-      if (activeFilters.length > 0) params.append("badges", activeFilters.join(","));
-
-      const response = await fetch(`/api/courses/public?${params}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch courses");
-      }
-      
-      const data = await response.json();
-      
-      
-      if (isLoadMore) {
-        setCourses(prev => [...prev, ...data.courses]);
-      } else {
-        setCourses(data.courses);
-      }
-      
-      setHasMore(data.pagination.hasMore);
-      setTotalCount(data.pagination.total);
-      setCurrentPage(page);
-
-    } catch (error) {
-      console.error("Error fetching courses:", error);
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, [sortBy, searchTerm, activeFilters, getPageLimit]);
+    },
+    [sortBy, searchTerm, activeFilters, getPageLimit]
+  );
 
   // Initial course fetching
   useEffect(() => {
@@ -202,7 +233,7 @@ export default function Home() {
     if (!wasRestored) {
       fetchCourses(1);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restorePageState]); // fetchCourses omitted to prevent infinite loop
 
   // Scroll position restoration
@@ -212,18 +243,21 @@ export default function Home() {
       // Use longer delay and multiple attempts for better reliability
       let attempts = 0;
       const maxAttempts = 5;
-      
+
       const restoreScroll = () => {
         attempts++;
         const savedScrollPos = sessionStorage.getItem(SCROLL_CACHE_KEY);
-        
+
         if (savedScrollPos) {
           const scrollPosition = parseInt(savedScrollPos, 10);
           window.scrollTo(0, scrollPosition);
-          
+
           // Verify scroll worked (within 50px tolerance)
           setTimeout(() => {
-            if (Math.abs(window.scrollY - scrollPosition) > 50 && attempts < maxAttempts) {
+            if (
+              Math.abs(window.scrollY - scrollPosition) > 50 &&
+              attempts < maxAttempts
+            ) {
               // Scroll didn't work, try again
               restoreScroll();
             } else {
@@ -233,7 +267,7 @@ export default function Home() {
           }, 100);
         }
       };
-      
+
       // Initial delay to ensure DOM is fully rendered
       setTimeout(restoreScroll, 300);
     }
@@ -312,15 +346,7 @@ export default function Home() {
   // Remove unused function since server now filters started courses
 
   // Get all unique badge texts from current courses
-  const availableBadges = useMemo(() => {
-    const badgeSet = new Set<string>();
-    courses.forEach((course) => {
-      course.badges.forEach((badge) => {
-        badgeSet.add(badge.text);
-      });
-    });
-    return Array.from(badgeSet);
-  }, [courses]);
+  const availableBadges = allAvailableBadges;
 
   // Format date for display (convert from ISO string to localized format)
   const formatDate = (dateStr: string): string => {
@@ -349,6 +375,11 @@ export default function Home() {
 
   // Toggle a filter badge
   const toggleFilter = (badge: string) => {
+    // Cancel any ongoing request first
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
     setActiveFilters((prevFilters) =>
       prevFilters.includes(badge)
         ? prevFilters.filter((f) => f !== badge)
@@ -360,13 +391,14 @@ export default function Home() {
   useEffect(() => {
     if (!loading && !isFromCache && hasInitialized) {
       setCurrentPage(1);
+      setCourses([]); // Clear courses when filters change
       fetchCourses(1);
     }
     // Reset the cache flag after initial load
     if (isFromCache) {
       setIsFromCache(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, activeFilters, sortBy, isFromCache, hasInitialized]); // fetchCourses and loading omitted to prevent infinite loop
 
   // Load more function
@@ -386,7 +418,16 @@ export default function Home() {
       }, 500);
       return () => clearTimeout(timeoutId);
     }
-  }, [courses, currentPage, hasMore, totalCount, savePageState, loading, isFromCache, hasInitialized]);
+  }, [
+    courses,
+    currentPage,
+    hasMore,
+    totalCount,
+    savePageState,
+    loading,
+    isFromCache,
+    hasInitialized,
+  ]);
 
   // Clear all filters and search
   const clearFilters = () => {
@@ -407,12 +448,12 @@ export default function Home() {
       setHasInitialized(true);
       return;
     }
-    
+
     // Don't clear cache if we're restoring from cache
     if (isFromCache) {
       return;
     }
-    
+
     if (typeof window !== "undefined") {
       sessionStorage.removeItem(COURSE_CACHE_KEY);
       sessionStorage.removeItem(SCROLL_CACHE_KEY);
@@ -422,33 +463,58 @@ export default function Home() {
   // Handle screen size changes to adjust pagination
   useEffect(() => {
     let lastScreenType: string | null = null;
-    
+
     const handleResize = () => {
-      const currentScreenType = window.innerWidth < 768 ? 'mobile' : 'desktop';
-      
+      const currentScreenType = window.innerWidth < 768 ? "mobile" : "desktop";
+
       if (lastScreenType && lastScreenType !== currentScreenType) {
         // Screen type changed, clear cache to get appropriate page size
         sessionStorage.removeItem(COURSE_CACHE_KEY);
         sessionStorage.removeItem(SCROLL_CACHE_KEY);
-        
+
         // Refetch with new page size if courses are loaded
         if (courses.length > 0 && !loading) {
           setCurrentPage(1);
           fetchCourses(1);
         }
       }
-      
+
       lastScreenType = currentScreenType;
     };
 
     if (typeof window !== "undefined") {
       // Set initial screen type
-      lastScreenType = window.innerWidth < 768 ? 'mobile' : 'desktop';
-      
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
+      lastScreenType = window.innerWidth < 768 ? "mobile" : "desktop";
+
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
     }
   }, [courses.length, loading, fetchCourses]);
+
+  const fetchAllBadges = useCallback(async () => {
+    try {
+      const response = await fetch("/api/courses/badges");
+      if (response.ok) {
+        const badges = await response.json();
+        setAllAvailableBadges(badges);
+      }
+    } catch (error) {
+      console.error("Error fetching all badges:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAllBadges();
+  }, [fetchAllBadges]);
+
+  // Cleanup effect to cancel requests on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   return (
     <>
@@ -559,11 +625,12 @@ export default function Home() {
                     <button
                       key={badge}
                       onClick={() => toggleFilter(badge)}
+                      disabled={loading}
                       className={`px-3 pt-1 pb-1.5 rounded-full text-xs font-medium transition-all hover:opacity-70 ${
                         isActive
                           ? "ring-2 ring-offset-2 ring-gray-900"
                           : "bg-gray-200 text-gray-600"
-                      }`}
+                      } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
                       style={
                         isActive
                           ? {
@@ -599,13 +666,12 @@ export default function Home() {
             {courses.length > 0 && (
               <p className="text-left text-sm text-muted-foreground mb-6 ml-1">
                 {language === "mm"
-                  ? t("home.courses.showing").replace(
-                      "{showing}",
-                      convertToMyanmarNumber(courses.length)
-                    ).replace(
-                      "{total}",
-                      convertToMyanmarNumber(totalCount)
-                    )
+                  ? t("home.courses.showing")
+                      .replace(
+                        "{showing}",
+                        convertToMyanmarNumber(courses.length)
+                      )
+                      .replace("{total}", convertToMyanmarNumber(totalCount))
                   : `Showing ${courses.length} of ${totalCount} ${
                       totalCount === 1 ? "course" : "courses"
                     }`}

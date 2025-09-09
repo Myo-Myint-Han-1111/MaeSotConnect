@@ -4,16 +4,23 @@ import { prisma } from "@/lib/db";
 
 export async function GET() {
   try {
-    // Get all unique badge texts from all courses
+    // Get unique badge texts from upcoming courses only
     const badges = await prisma.badge.findMany({
-      distinct: ['text'],
+      distinct: ["text"],
       select: {
         text: true,
       },
+      where: {
+        Course: {
+          startDate: {
+            gte: new Date(),
+          },
+        },
+      },
     });
 
-    const uniqueBadges = badges.map(badge => badge.text);
-    
+    const uniqueBadges = badges.map((badge) => badge.text);
+
     return NextResponse.json(uniqueBadges);
   } catch (error) {
     console.error("Error fetching badges:", error);

@@ -40,13 +40,15 @@ export async function GET(request: Request) {
       ];
     }
 
-    // Add badge filtering
+    // Add badge filtering with AND logic
     if (badges.length > 0) {
-      whereClause.badges = {
-        some: {
-          text: { in: badges },
+      whereClause.AND = badges.map((badgeText) => ({
+        badges: {
+          some: {
+            text: badgeText,
+          },
         },
-      };
+      }));
     }
 
     // Use Promise.all for concurrent execution of count and findMany
