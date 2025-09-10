@@ -36,7 +36,9 @@ const isAuthorizedAdmin = async (email: string): Promise<boolean> => {
 };
 
 // Get user role and info from database
-const getUserInfo = async (email: string): Promise<{
+const getUserInfo = async (
+  email: string
+): Promise<{
   role: Role | null;
   status: UserStatus;
   organizationId?: string;
@@ -65,10 +67,10 @@ const getUserInfo = async (email: string): Promise<{
 
     // Check if user has pending invitation
     const invitation = await prisma.userInvitation.findUnique({
-      where: { 
+      where: {
         email,
         status: "PENDING",
-        expiresAt: { gt: new Date() }
+        expiresAt: { gt: new Date() },
       },
     });
 
@@ -93,7 +95,7 @@ export const authConfig: NextAuthConfig = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-      allowDangerousEmailAccountLinking: true,
+      allowDangerousEmailAccountLinking: false,
     }),
   ],
   callbacks: {
@@ -101,7 +103,7 @@ export const authConfig: NextAuthConfig = {
       if (user && user.email) {
         // First check if user is authorized admin (legacy support)
         const isAdmin = await isAuthorizedAdmin(user.email);
-        
+
         if (isAdmin) {
           token.role = Role.PLATFORM_ADMIN;
           token.status = UserStatus.ACTIVE;
@@ -138,13 +140,13 @@ export const authConfig: NextAuthConfig = {
         // that will handle the role-based routing
         return `${baseUrl}/auth/redirect`;
       }
-      
+
       // If it's a relative URL, make it absolute
       if (url.startsWith("/")) return `${baseUrl}${url}`;
-      
+
       // If it's the same origin, allow it
       if (new URL(url).origin === baseUrl) return url;
-      
+
       // Default to base URL
       return baseUrl;
     },
@@ -175,7 +177,7 @@ export const authConfig: NextAuthConfig = {
                 updatedAt: new Date(),
               },
             });
-            
+
             user.role = Role.PLATFORM_ADMIN;
             user.status = UserStatus.ACTIVE;
             return true;
@@ -183,7 +185,7 @@ export const authConfig: NextAuthConfig = {
 
           // Check if user has other roles (Youth Advocate, etc.)
           const userInfo = await getUserInfo(profile.email);
-          
+
           if (userInfo && userInfo.status === UserStatus.ACTIVE) {
             // If user has invitation, accept it and create user record
             if (!userInfo.userId) {
@@ -203,19 +205,19 @@ export const authConfig: NextAuthConfig = {
 
               // Mark invitation as accepted
               await prisma.userInvitation.updateMany({
-                where: { 
+                where: {
                   email: profile.email,
-                  status: "PENDING" 
+                  status: "PENDING",
                 },
-                data: { 
-                  status: "ACCEPTED" 
+                data: {
+                  status: "ACCEPTED",
                 },
               });
             } else {
               // Update existing user's last login
               await prisma.user.update({
                 where: { id: userInfo.userId },
-                data: { 
+                data: {
                   lastLoginAt: new Date(),
                   name: profile.name || "",
                   image: profile.picture,
@@ -254,23 +256,24 @@ export const authConfig: NextAuthConfig = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
     updateAge: 24 * 60 * 60, // Update session every 24 hours if user is active
   },
-  
+
   // Enhanced security settings
   cookies: {
     sessionToken: {
-      name: process.env.NODE_ENV === 'production' 
-        ? `__Secure-authjs.session-token` 
-        : `authjs.session-token`,
+      name:
+        process.env.NODE_ENV === "production"
+          ? `__Secure-authjs.session-token`
+          : `authjs.session-token`,
       options: {
         httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
         maxAge: 30 * 24 * 60 * 60, // Match session maxAge
       },
     },
   },
-  
+
   debug: false,
 };
 

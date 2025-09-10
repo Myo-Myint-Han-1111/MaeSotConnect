@@ -1,12 +1,13 @@
 "use client";
 
 // app/org-admin/courses/page.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Plus,
   Edit,
@@ -15,6 +16,7 @@ import {
   DollarSign,
   Clock,
   BookOpen,
+  Search,
 } from "lucide-react";
 
 interface Course {
@@ -54,6 +56,7 @@ export default function OrgAdminCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchCourses();
@@ -90,6 +93,50 @@ export default function OrgAdminCoursesPage() {
     }
   };
 
+  // Filter courses based on search term
+  const filteredCourses = useMemo(() => {
+    if (!searchTerm) return courses;
+
+    const searchLower = searchTerm.toLowerCase();
+
+    return courses.filter((course) => {
+      // Search in title (English and Myanmar)
+      const titleMatch =
+        course.title.toLowerCase().includes(searchLower) ||
+        (course.titleMm && course.titleMm.toLowerCase().includes(searchLower));
+
+      // Search in subtitle (English and Myanmar)
+      const subtitleMatch =
+        course.subtitle.toLowerCase().includes(searchLower) ||
+        (course.subtitleMm &&
+          course.subtitleMm.toLowerCase().includes(searchLower));
+
+      // Search in location fields
+      const locationMatch =
+        (course.province &&
+          course.province.toLowerCase().includes(searchLower)) ||
+        (course.district &&
+          course.district.toLowerCase().includes(searchLower)) ||
+        (course.address && course.address.toLowerCase().includes(searchLower));
+
+      // Search in badges
+      const badgeMatch = course.badges.some((badge) =>
+        badge.text.toLowerCase().includes(searchLower)
+      );
+
+      // Search in schedule
+      const scheduleMatch = course.schedule.toLowerCase().includes(searchLower);
+
+      return (
+        titleMatch ||
+        subtitleMatch ||
+        locationMatch ||
+        badgeMatch ||
+        scheduleMatch
+      );
+    });
+  }, [courses, searchTerm]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -112,30 +159,46 @@ export default function OrgAdminCoursesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Courses</h1>
-          <p className="text-gray-600 mt-1">
-            Manage your organization&apos;s courses
-          </p>
+      {/* Search Bar */}
+      <div className="mb-6">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search courses by title, location, or keywords..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
         </div>
-        <Link href="/org-admin/courses/new">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Create New Course
-          </Button>
-        </Link>
+        {searchTerm && (
+          <div className="mt-2 text-sm text-muted-foreground">
+            Found {filteredCourses.length} course Found {filteredCourses.length}{" "}
+            course
+            {filteredCourses.length !== 1 ? "s" : ""} matching{" "}
+            {`"${searchTerm}"`}
+            <Button
+              variant="link"
+              className="h-auto p-0 ml-2 text-primary"
+              onClick={() => setSearchTerm("")}
+            >
+              Clear search
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Courses Grid */}
-      {courses.length === 0 ? (
+      {filteredCourses.length === 0 ? (
         <Card>
           <CardContent className="text-center py-12">
             <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No courses yet</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              {searchTerm ? "No courses found" : "No courses yet"}
+            </h3>
             <p className="text-gray-600 mb-4">
-              Get started by creating your first course for your organization.
+              {searchTerm
+                ? "Try adjusting your search terms or create a new course."
+                : "Get started by creating your first course for your organization."}
             </p>
             <Link href="/org-admin/courses/new">
               <Button>
@@ -147,7 +210,7 @@ export default function OrgAdminCoursesPage() {
         </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {courses.map((course) => (
+          {filteredCourses.map((course) => (
             <Card key={course.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex justify-between items-start">
