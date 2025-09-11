@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
 import { Button } from "@/components/ui/button";
@@ -119,7 +118,6 @@ interface CourseDetailComponentProps {
 export default function CourseDetailComponent({
   course,
 }: CourseDetailComponentProps) {
-  const router = useRouter();
   const { t, language } = useLanguage();
 
   // Date formatting function to convert to DD/MM/YYYY format
@@ -314,7 +312,7 @@ export default function CourseDetailComponent({
             variant="outline"
             size="sm"
             className="border border-gray-300 bg-white hover:bg-gray-100 rounded-md"
-            onClick={() => router.back()}
+            onClick={() => window.history.back()}
           >
             <ChevronLeft className="mr-2 h-4 w-4" />
             {t("course.back")}

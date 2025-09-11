@@ -2,29 +2,20 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   const robotsContent = `User-agent: *
-Disallow: /
+Allow: /
 
-# Block all search engines from indexing this site
-User-agent: Googlebot
-Disallow: /
+# Block private/admin areas
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /advocate/
+Disallow: /org-admin/
+Disallow: /auth/
 
-User-agent: Bingbot
-Disallow: /
+# Block API endpoints
+Disallow: /api/
 
-User-agent: Slurp
-Disallow: /
-
-User-agent: DuckDuckBot
-Disallow: /
-
-User-agent: Baiduspider
-Disallow: /
-
-User-agent: facebookexternalhit
-Disallow: /
-
-User-agent: Twitterbot
-Disallow: /`;
+# Sitemap location
+Sitemap: ${process.env.NEXT_PUBLIC_APP_URL || 'https://jumpstudy.org'}/sitemap.xml`;
 
   return new NextResponse(robotsContent, {
     headers: {

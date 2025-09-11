@@ -18,24 +18,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Updated interface to match new schema - only fields needed for CourseCard component
 interface Course {
   id: string;
   slug: string;
   title: string;
   titleMm: string | null;
-  // Updated: DateTime types for dates
-  startDate: string; // ISO string format for frontend
+  startDate: string;
   applyByDate?: string | null;
   startByDate?: string | null;
   estimatedDate?: string | null;
-  // Updated: numeric types for duration
   duration: number;
   durationUnit: string;
   durationUnitMm?: string;
-  // Updated: fee is now numeric
   feeAmount?: number;
-  // Course location fields
   district?: string | null;
   province?: string | null;
   organizationInfo?: {
@@ -67,7 +62,6 @@ interface Course {
   createdAt?: string;
 }
 
-// Cache key for storing course data
 const COURSE_CACHE_KEY = "courseCache";
 const SCROLL_CACHE_KEY = "homeScrollPosition";
 
@@ -86,9 +80,8 @@ export default function Home() {
   const [isFromCache, setIsFromCache] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [allAvailableBadges, setAllAvailableBadges] = useState<string[]>([]);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const hasInitializedRef = useRef(false);
 
-  // Cache management functions for pagination
   const savePageState = useCallback(() => {
     if (typeof window !== "undefined") {
       try {
@@ -103,7 +96,6 @@ export default function Home() {
           timestamp: Date.now(),
         };
         sessionStorage.setItem(COURSE_CACHE_KEY, JSON.stringify(cacheData));
-        sessionStorage.setItem(SCROLL_CACHE_KEY, window.scrollY.toString());
       } catch (error) {
         console.error("Error saving page state:", error);
       }
@@ -125,9 +117,10 @@ export default function Home() {
         if (cached) {
           const cacheData = JSON.parse(cached);
           const isValid = Date.now() - cacheData.timestamp < 5 * 60 * 1000;
-
+          
           if (isValid) {
-            // Restore all pagination state
+            sessionStorage.removeItem(SCROLL_CACHE_KEY);
+
             setCourses(cacheData.courses || []);
             setCurrentPage(cacheData.currentPage || 1);
             setTotalCount(cacheData.totalCount || 0);
@@ -139,7 +132,6 @@ export default function Home() {
             setLoading(false);
             return true;
           } else {
-            // Clear expired cache
             sessionStorage.removeItem(COURSE_CACHE_KEY);
             sessionStorage.removeItem(SCROLL_CACHE_KEY);
           }
@@ -160,73 +152,59 @@ export default function Home() {
   }, []);
 
   // Fetch courses function
-  const fetchCourses = useCallback(
-    async (page: number = 1, isLoadMore: boolean = false) => {
-      try {
-        // Cancel previous request if it exists
-        if (abortControllerRef.current) {
-          abortControllerRef.current.abort();
-        }
-
-        // Create new AbortController for this request
-        abortControllerRef.current = new AbortController();
-
-        if (isLoadMore) {
-          setLoadingMore(true);
-        } else {
-          setLoading(true);
-        }
-
-        const limit = getPageLimit();
-        const params = new URLSearchParams({
-          page: page.toString(),
-          limit: limit.toString(),
-          sortBy: sortBy,
-        });
-
-        if (searchTerm) params.append("search", searchTerm);
-        if (activeFilters.length > 0)
-          params.append("badges", activeFilters.join(","));
-
-        const response = await fetch(`/api/courses/public?${params}`, {
-          signal: abortControllerRef.current.signal,
-        });
-        if (!response.ok) {
-          throw new Error("Failed to fetch courses");
-        }
-
-        const data = await response.json();
-
-        // Only update state if request wasn't cancelled
-        if (!abortControllerRef.current.signal.aborted) {
-          if (isLoadMore) {
-            setCourses((prev) => [...prev, ...data.courses]);
-          } else {
-            setCourses(data.courses);
-          }
-
-          setHasMore(data.pagination.hasMore);
-          setTotalCount(data.pagination.total);
-          setCurrentPage(page);
-        }
-      } catch (error) {
-        // Don't log error if request was intentionally cancelled
-        if ((error as Error).name !== "AbortError") {
-          console.error("Error fetching courses:", error);
-        }
-      } finally {
-        // Only update loading states if request wasn't cancelled
-        if (!abortControllerRef.current?.signal.aborted) {
-          setLoading(false);
-          setLoadingMore(false);
-        }
+  const fetchCourses = useCallback(async (page: number = 1, isLoadMore: boolean = false) => {
+    try {
+      if (isLoadMore) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
       }
-    },
-    [sortBy, searchTerm, activeFilters, getPageLimit]
-  );
+
+      const limit = getPageLimit();
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        sortBy: sortBy,
+      });
+
+      if (searchTerm) params.append("search", searchTerm);
+      if (activeFilters.length > 0) params.append("badges", activeFilters.join(","));
+
+      const response = await fetch(`/api/courses/public?${params}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch courses");
+      }
+      
+      const data = await response.json();
+      
+      if (isLoadMore) {
+        setCourses(prev => [...prev, ...data.courses]);
+      } else {
+        setCourses(data.courses);
+      }
+      
+      setHasMore(data.pagination.hasMore);
+      setTotalCount(data.pagination.total);
+      setCurrentPage(page);
+
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [sortBy, searchTerm, activeFilters, getPageLimit]);
+
 
   // Initial course fetching
   useEffect(() => {
+    // Prevent duplicate initialization in Strict Mode
+    if (hasInitializedRef.current) {
+      return;
+    }
+    
+    hasInitializedRef.current = true;
+    
     // Try to restore from cache first
     const wasRestored = restorePageState();
 
@@ -234,46 +212,8 @@ export default function Home() {
       fetchCourses(1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [restorePageState]); // fetchCourses omitted to prevent infinite loop
+  }, [restorePageState]);
 
-  // Scroll position restoration
-  useEffect(() => {
-    if (!loading && courses.length > 0 && isFromCache) {
-      // Restore scroll position after cached content loads
-      // Use longer delay and multiple attempts for better reliability
-      let attempts = 0;
-      const maxAttempts = 5;
-
-      const restoreScroll = () => {
-        attempts++;
-        const savedScrollPos = sessionStorage.getItem(SCROLL_CACHE_KEY);
-
-        if (savedScrollPos) {
-          const scrollPosition = parseInt(savedScrollPos, 10);
-          window.scrollTo(0, scrollPosition);
-
-          // Verify scroll worked (within 50px tolerance)
-          setTimeout(() => {
-            if (
-              Math.abs(window.scrollY - scrollPosition) > 50 &&
-              attempts < maxAttempts
-            ) {
-              // Scroll didn't work, try again
-              restoreScroll();
-            } else {
-              // Success or max attempts reached, clean up
-              sessionStorage.removeItem(SCROLL_CACHE_KEY);
-            }
-          }, 100);
-        }
-      };
-
-      // Initial delay to ensure DOM is fully rendered
-      setTimeout(restoreScroll, 300);
-    }
-  }, [loading, courses.length, isFromCache]);
-
-  // Save state before navigation
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (!loading && courses.length > 0) {
@@ -281,7 +221,6 @@ export default function Home() {
       }
     };
 
-    // Save state when navigating to course details
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const courseCard = target.closest("[data-course-slug]");
@@ -299,7 +238,6 @@ export default function Home() {
     };
   }, [loading, courses.length, savePageState]);
 
-  // ADD THESE SORT OPTIONS:
   const sortOptions = [
     { value: "default", label: t("sort.default") },
     { value: "startDate-asc", label: t("sort.startDate.earliest") },
@@ -308,7 +246,6 @@ export default function Home() {
     { value: "applyByDate-desc", label: t("sort.applyByDate.latest") },
   ];
 
-  // Load saved filter state on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
@@ -326,7 +263,6 @@ export default function Home() {
     }
   }, []);
 
-  // Save state to sessionStorage whenever searchTerm or activeFilters change
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
@@ -343,12 +279,12 @@ export default function Home() {
     }
   }, [searchTerm, activeFilters]);
 
-  // Remove unused function since server now filters started courses
+  const getAllBadges = () => {
+    return allAvailableBadges;
+  };
 
-  // Get all unique badge texts from current courses
-  const availableBadges = allAvailableBadges;
+  const availableBadges = getAllBadges();
 
-  // Format date for display (convert from ISO string to localized format)
   const formatDate = (dateStr: string): string => {
     const date = new Date(dateStr);
     return date.toLocaleDateString(language === "mm" ? "my-MM" : "en-US", {
@@ -358,28 +294,13 @@ export default function Home() {
     });
   };
 
-  // Format fee for display
   const formatFee = (amount: number | undefined): string | null => {
-    if (amount === -1 || amount === undefined) return null; // Hide fee when -1 or undefined
+    if (amount === -1 || amount === undefined) return null;
     if (amount === 0) return "Free";
     return `฿${amount.toLocaleString()}`;
   };
 
-  // Remove old client-side sorting - now handled by API
-
-  // Remove old filtering logic - now handled by API
-
-  // REMOVED: Save state before navigation - not needed for load more button approach
-
-  // REMOVED: Scroll state saving - not needed for load more button approach
-
-  // Toggle a filter badge
   const toggleFilter = (badge: string) => {
-    // Cancel any ongoing request first
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
     setActiveFilters((prevFilters) =>
       prevFilters.includes(badge)
         ? prevFilters.filter((f) => f !== badge)
@@ -387,21 +308,24 @@ export default function Home() {
     );
   };
 
-  // Handle filter/search changes (only if not from cache restore)
+  useEffect(() => {
+    if (isFromCache) {
+      const timeout = setTimeout(() => {
+        setIsFromCache(false);
+      }, 1000);
+      return () => clearTimeout(timeout);
+    }
+  }, [isFromCache]);
+
   useEffect(() => {
     if (!loading && !isFromCache && hasInitialized) {
       setCurrentPage(1);
-      setCourses([]); // Clear courses when filters change
+      setCourses([]);
       fetchCourses(1);
     }
-    // Reset the cache flag after initial load
-    if (isFromCache) {
-      setIsFromCache(false);
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, activeFilters, sortBy, isFromCache, hasInitialized]); // fetchCourses and loading omitted to prevent infinite loop
+  }, [searchTerm, activeFilters, sortBy, hasInitialized]);
 
-  // Load more function
   const loadMore = () => {
     if (hasMore && !loadingMore) {
       const nextPage = currentPage + 1;
@@ -409,10 +333,8 @@ export default function Home() {
     }
   };
 
-  // Auto-save state whenever courses/pagination data changes
   useEffect(() => {
     if (!loading && courses.length > 0 && !isFromCache && hasInitialized) {
-      // Small delay to avoid saving during rapid state changes
       const timeoutId = setTimeout(() => {
         savePageState();
       }, 500);
@@ -429,7 +351,6 @@ export default function Home() {
     hasInitialized,
   ]);
 
-  // Clear all filters and search
   const clearFilters = () => {
     setSearchTerm("");
     setActiveFilters([]);
@@ -442,14 +363,12 @@ export default function Home() {
     }
   };
 
-  // Clear cache when filters change to prevent stale data
   useEffect(() => {
     if (!hasInitialized) {
       setHasInitialized(true);
       return;
     }
 
-    // Don't clear cache if we're restoring from cache
     if (isFromCache) {
       return;
     }
@@ -460,20 +379,21 @@ export default function Home() {
     }
   }, [searchTerm, activeFilters, sortBy, isFromCache, hasInitialized]);
 
-  // Handle screen size changes to adjust pagination
   useEffect(() => {
+    if (isFromCache) {
+      return;
+    }
+
     let lastScreenType: string | null = null;
 
     const handleResize = () => {
       const currentScreenType = window.innerWidth < 768 ? "mobile" : "desktop";
 
       if (lastScreenType && lastScreenType !== currentScreenType) {
-        // Screen type changed, clear cache to get appropriate page size
         sessionStorage.removeItem(COURSE_CACHE_KEY);
         sessionStorage.removeItem(SCROLL_CACHE_KEY);
 
-        // Refetch with new page size if courses are loaded
-        if (courses.length > 0 && !loading) {
+        if (courses.length > 0 && !loading && !isFromCache) {
           setCurrentPage(1);
           fetchCourses(1);
         }
@@ -483,13 +403,12 @@ export default function Home() {
     };
 
     if (typeof window !== "undefined") {
-      // Set initial screen type
       lastScreenType = window.innerWidth < 768 ? "mobile" : "desktop";
 
       window.addEventListener("resize", handleResize);
       return () => window.removeEventListener("resize", handleResize);
     }
-  }, [courses.length, loading, fetchCourses]);
+  }, [courses.length, loading, fetchCourses, isFromCache]);
 
   const fetchAllBadges = useCallback(async () => {
     try {
@@ -507,18 +426,9 @@ export default function Home() {
     fetchAllBadges();
   }, [fetchAllBadges]);
 
-  // Cleanup effect to cancel requests on unmount
-  useEffect(() => {
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, []);
 
   return (
     <>
-      {/* Hero section with gradient background */}
       <div
         className="absolute top-0 left-0 w-full hero-gradient pt-40 pb-24 -mt-16"
         data-language={language}
@@ -545,11 +455,9 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Search bar positioned to intersect with hero section */}
       <div className="search-container -mt-6 mb-8 relative z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row gap-4 max-w-4xl">
-            {/* Search Input */}
             <div className="flex-1 bg-white rounded-lg  p-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -561,7 +469,7 @@ export default function Home() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      e.currentTarget.blur(); // This hides the keyboard on mobile
+                      e.currentTarget.blur();
                     }
                   }}
                   enterKeyHint="search"
@@ -585,14 +493,11 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Rest of content in container */}
       <div className="content">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Filter badges with sort dropdown */}
           <div className="mb-6">
             <div className="flex flex-col gap-4">
               <div className="flex justify-start">
-                {/* Sort Dropdown - Minimalist text with arrow */}
                 <div className="w-auto">
                   <Select value={sortBy} onValueChange={setSortBy}>
                     <SelectTrigger
@@ -646,7 +551,6 @@ export default function Home() {
                 })}
               </div>
 
-              {/* Clear All Filters button */}
               {(searchTerm || activeFilters.length > 0) && (
                 <div className="flex justify-start">
                   <button
@@ -660,9 +564,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Course Grid */}
           <div className="space-y-6">
-            {/* Results count */}
             {courses.length > 0 && (
               <p className="text-left text-sm text-muted-foreground mb-6 ml-1">
                 {language === "mm"
@@ -678,34 +580,26 @@ export default function Home() {
               </p>
             )}
 
-            {/* Course grid */}
             {loading && courses.length === 0 ? (
-              // Show skeleton for initial loading
               <div className="course-grid-flex">
                 {Array.from({ length: 6 }, (_, i) => (
                   <div key={`skeleton-${i}`} className="course-card-flex">
                     <div className="w-full border border-gray-200 rounded-lg p-4 space-y-4 bg-white">
-                      {/* Image skeleton */}
                       <Skeleton className="w-full h-48 rounded-md" />
 
-                      {/* Content skeleton */}
                       <div className="space-y-3">
-                        {/* Title */}
                         <Skeleton className="h-5 w-3/4" />
 
-                        {/* Date info */}
                         <div className="space-y-2">
                           <Skeleton className="h-4 w-1/2" />
                           <Skeleton className="h-4 w-2/3" />
                         </div>
 
-                        {/* Badges */}
                         <div className="flex gap-2 flex-wrap">
                           <Skeleton className="h-6 w-16 rounded-full" />
                           <Skeleton className="h-6 w-20 rounded-full" />
                         </div>
 
-                        {/* Organization */}
                         <Skeleton className="h-4 w-1/3" />
                       </div>
                     </div>
@@ -757,7 +651,6 @@ export default function Home() {
                   ))}
                 </div>
 
-                {/* Load More Button */}
                 {hasMore && (
                   <div className="flex justify-center mt-8">
                     <button
@@ -779,7 +672,6 @@ export default function Home() {
               </>
             ) : (
               <>
-                {/* No results display */}
                 <div className="flex flex-col items-center justify-center py-16">
                   <div className="no-results-icon">🔎</div>
                   <h3
@@ -811,7 +703,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Footer with navigation links */}
       <footer className="bg-gray-100 py-8 mt-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
