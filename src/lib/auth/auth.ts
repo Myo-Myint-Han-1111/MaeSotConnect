@@ -102,7 +102,7 @@ export const authConfig: NextAuthConfig = {
           response_type: "code",
         },
       },
-      allowDangerousEmailAccountLinking: false,
+      allowDangerousEmailAccountLinking: true,
     }),
   ],
   callbacks: {
