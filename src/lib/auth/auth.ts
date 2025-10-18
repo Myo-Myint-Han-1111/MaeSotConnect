@@ -95,6 +95,13 @@ export const authConfig: NextAuthConfig = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      authorization: {
+        params: {
+          prompt: "select_account",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
       allowDangerousEmailAccountLinking: false,
     }),
   ],
@@ -168,7 +175,7 @@ export const authConfig: NextAuthConfig = {
                 image: profile.picture,
               },
               create: {
-                id: crypto.randomUUID(),
+                id: user.id || crypto.randomUUID(),
                 email: profile.email,
                 name: profile.name || "",
                 image: profile.picture,
@@ -191,7 +198,7 @@ export const authConfig: NextAuthConfig = {
             if (!userInfo.userId) {
               await prisma.user.create({
                 data: {
-                  id: crypto.randomUUID(),
+                  id: user.id || crypto.randomUUID(),
                   email: profile.email,
                   name: profile.name || "",
                   image: profile.picture,
