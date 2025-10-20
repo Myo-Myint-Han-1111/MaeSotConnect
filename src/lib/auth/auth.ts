@@ -6,7 +6,6 @@ import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@/lib/db";
 import { Role, UserStatus } from "./roles";
 
-// Simple admin emails function
 const _getAdminEmails = (): string[] => {
   const adminEmailsEnv = process.env.ADMIN_EMAILS || "";
   return adminEmailsEnv
@@ -15,15 +14,12 @@ const _getAdminEmails = (): string[] => {
     .filter(Boolean);
 };
 
-// Check if email is authorized as admin
 const isAuthorizedAdmin = async (email: string): Promise<boolean> => {
-  // Check environment variable first
   const adminEmails = _getAdminEmails();
   if (adminEmails.includes(email)) {
     return true;
   }
 
-  // Check database allowlist
   try {
     const allowlistEntry = await prisma.adminAllowList.findUnique({
       where: { email },
@@ -35,7 +31,6 @@ const isAuthorizedAdmin = async (email: string): Promise<boolean> => {
   }
 };
 
-// Get user role and info from database
 const getUserInfo = async (
   email: string
 ): Promise<{
@@ -45,7 +40,6 @@ const getUserInfo = async (
   userId?: string;
 } | null> => {
   try {
-    // Check if user exists in database
     const user = await prisma.user.findUnique({
       where: { email },
       select: {
@@ -65,7 +59,6 @@ const getUserInfo = async (
       };
     }
 
-    // Check if user has pending invitation
     const invitation = await prisma.userInvitation.findUnique({
       where: {
         email,
@@ -100,18 +93,14 @@ export const authConfig: NextAuthConfig = {
   ],
   callbacks: {
     async jwt({ token, user, trigger }) {
-      // On sign in or token update, fetch fresh user data
       if (user?.email || trigger === "update") {
-        const email = user?.email || (token.email as string);
-
-        // First check if user is authorized admin (legacy support)
+        const email = (user?.email || token.email) as string;
         const isAdmin = await isAuthorizedAdmin(email);
 
         if (isAdmin) {
           token.role = Role.PLATFORM_ADMIN;
           token.status = UserStatus.ACTIVE;
         } else {
-          // Check if user has other roles (Youth Advocate, etc.)
           const userInfo = await getUserInfo(email);
           if (userInfo) {
             token.role = userInfo.role;
@@ -137,112 +126,30 @@ export const authConfig: NextAuthConfig = {
     },
 
     async redirect({ url, baseUrl }) {
-      // If redirecting after signin, redirect based on role
       if (url === baseUrl || url === `${baseUrl}/dashboard`) {
-        // For role-based redirects after signin, we'll redirect to a landing page
-        // that will handle the role-based routing
         return `${baseUrl}/auth/redirect`;
       }
-
-      // If it's a relative URL, make it absolute
       if (url.startsWith("/")) return `${baseUrl}${url}`;
-
-      // If it's the same origin, allow it
       if (new URL(url).origin === baseUrl) return url;
-
-      // Default to base URL
       return baseUrl;
     },
 
+    // ✅ SIMPLIFIED: Just check authorization, nothing else
     async signIn({ user: _user, account, profile }) {
       try {
         if (account?.provider === "google" && profile?.email) {
-          // Check if the email is authorized as admin (legacy support)
+          // Check if admin
           const isAdmin = await isAuthorizedAdmin(profile.email);
-
           if (isAdmin) {
-            // Let PrismaAdapter create the user if it doesn't exist
-            // Then update the user record with custom fields
-            const existingUser = await prisma.user.findUnique({
-              where: { email: profile.email },
-            });
-
-            if (existingUser) {
-              // Update existing user
-              await prisma.user.update({
-                where: { email: profile.email },
-                data: {
-                  role: Role.PLATFORM_ADMIN,
-                  lastLoginAt: new Date(),
-                  status: UserStatus.ACTIVE,
-                  name: profile.name || existingUser.name,
-                  image: profile.picture || existingUser.image,
-                },
-              });
-            }
-            // If user doesn't exist, PrismaAdapter will create it,
-            // and we'll update it in the next sign-in
-
-            return true;
+            return true; // Let PrismaAdapter handle everything
           }
 
-          // Check if user has other roles (Youth Advocate, etc.)
+          // Check if user is authorized (has invitation or exists)
           const userInfo = await getUserInfo(profile.email);
-
           if (userInfo && userInfo.status === UserStatus.ACTIVE) {
-            // Get or wait for PrismaAdapter to create the user
-            const existingUser = await prisma.user.findUnique({
-              where: { email: profile.email },
-            });
-
-            if (existingUser) {
-              // Update existing user's last login and role info
-              await prisma.user.update({
-                where: { id: existingUser.id },
-                data: {
-                  lastLoginAt: new Date(),
-                  name: profile.name || existingUser.name,
-                  image: profile.picture || existingUser.image,
-                  role: userInfo.role || existingUser.role,
-                  organizationId:
-                    userInfo.organizationId || existingUser.organizationId,
-                  status: userInfo.status,
-                },
-              });
-
-              // Mark invitation as accepted if there was one
-              if (!userInfo.userId) {
-                await prisma.userInvitation.updateMany({
-                  where: {
-                    email: profile.email,
-                    status: "PENDING",
-                  },
-                  data: {
-                    status: "ACCEPTED",
-                  },
-                });
-              }
-            } else if (userInfo && !userInfo.userId) {
-              // User has invitation but no account yet
-              // PrismaAdapter will create the user, but we need to set custom fields
-              // This will be handled in the next callback after adapter creates the user
-
-              // Mark invitation as accepted
-              await prisma.userInvitation.updateMany({
-                where: {
-                  email: profile.email,
-                  status: "PENDING",
-                },
-                data: {
-                  status: "ACCEPTED",
-                },
-              });
-            }
-
-            return true;
+            return true; // Let PrismaAdapter handle everything
           }
 
-          // Reject unauthorized users
           console.log(`Unauthorized sign-in attempt from: ${profile.email}`);
           return false;
         }
@@ -254,11 +161,12 @@ export const authConfig: NextAuthConfig = {
     },
   },
 
+  // ✅ Set custom fields AFTER PrismaAdapter creates user
   events: {
     async createUser({ user }) {
-      // This event fires AFTER PrismaAdapter creates the user
-      // Use this to set custom fields for newly created users
-      if (user.email) {
+      if (!user.email) return;
+
+      try {
         const isAdmin = await isAuthorizedAdmin(user.email);
 
         if (isAdmin) {
@@ -270,19 +178,55 @@ export const authConfig: NextAuthConfig = {
               lastLoginAt: new Date(),
             },
           });
-        } else {
-          const userInfo = await getUserInfo(user.email);
-          if (userInfo) {
+          return;
+        }
+
+        const userInfo = await getUserInfo(user.email);
+        if (userInfo) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              role: userInfo.role || Role.ORGANIZATION_ADMIN,
+              status: userInfo.status,
+              organizationId: userInfo.organizationId,
+              lastLoginAt: new Date(),
+            },
+          });
+
+          // Mark invitation as accepted
+          await prisma.userInvitation.updateMany({
+            where: {
+              email: user.email,
+              status: "PENDING",
+            },
+            data: {
+              status: "ACCEPTED",
+            },
+          });
+        }
+      } catch (error) {
+        console.error("Error in createUser event:", error);
+      }
+    },
+
+    // ✅ Update lastLoginAt for EXISTING users
+    async signIn({ user }) {
+      if (user?.id && user?.email) {
+        try {
+          // Check if user already exists (skip for new users)
+          const existingUser = await prisma.user.findUnique({
+            where: { id: user.id },
+            select: { id: true },
+          });
+
+          if (existingUser) {
             await prisma.user.update({
               where: { id: user.id },
-              data: {
-                role: userInfo.role || Role.ORGANIZATION_ADMIN,
-                status: userInfo.status,
-                organizationId: userInfo.organizationId,
-                lastLoginAt: new Date(),
-              },
+              data: { lastLoginAt: new Date() },
             });
           }
+        } catch (error) {
+          console.error("Error updating lastLoginAt:", error);
         }
       }
     },
@@ -295,11 +239,10 @@ export const authConfig: NextAuthConfig = {
 
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-    updateAge: 24 * 60 * 60, // Update session every 24 hours if user is active
+    maxAge: 30 * 24 * 60 * 60,
+    updateAge: 24 * 60 * 60,
   },
 
-  // Enhanced security settings
   cookies: {
     sessionToken: {
       name:
@@ -311,7 +254,7 @@ export const authConfig: NextAuthConfig = {
         sameSite: "lax",
         path: "/",
         secure: process.env.NODE_ENV === "production",
-        maxAge: 30 * 24 * 60 * 60, // Match session maxAge
+        maxAge: 30 * 24 * 60 * 60,
       },
     },
   },
@@ -320,6 +263,4 @@ export const authConfig: NextAuthConfig = {
 };
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
-
-// Export for API route
 export const authOptions = authConfig;
