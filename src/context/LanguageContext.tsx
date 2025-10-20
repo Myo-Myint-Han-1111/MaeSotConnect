@@ -161,7 +161,7 @@ export const translations = {
       "and is currently self-funded. Our approach is to work with organizations that support youth to make the discovery process more accessible, transparent, and user-centered.",
     "about.komyo.title": "About Ko Myo",
     "about.komyo.content":
-      "Ko Myo is a fullstack developer sharpening his skills through open-source projects that benefit Thai and Myanmar youth. He holds a bachelor in Electrical Power Engineering and is currently attending online classes in React, Javascript, and modern backend frameworks. He is passionate about education and technology and supporting digital literacy in rural communities.",
+      "Ko Myo is working hard to be a fullstack developer sharpening his skills through open-source projects that benefit Thai and Myanmar youth. He holds a bachelor in Electrical Power Engineering and is currently attending online classes in React, Javascript, and modern backend frameworks. He is passionate about education and technology and supporting digital literacy in rural communities.",
 
     "about.peter.title": "About Peter",
     "about.peter.content":
@@ -191,7 +191,7 @@ export const translations = {
     // Home page
     "home.welcome": "သင် ဘာသင်ယူချင်ပါသလဲ။",
     "home.subtitle":
-      "အတတ်ပညာကိုသင်ယူလေ့လာပါ။ သင့်ရည်မှန်းချက်နှင့် ကိုက်ညီသော သင်တန်းများနှင့် ပညာရေးအစီအစဉ်များကို ရှာဖွေပါ။",
+      "အတတ်ပညာများကိုသင်ယူလေ့လာပါ။ သင့်ရည်မှန်းချက်နှင့် ကိုက်ညီသော သင်တန်းများနှင့် ပညာရေးအစီအစဉ်များကို ရှာဖွေပါ။",
     "home.search.placeholder": "သင်တန်းအမည် သို့မဟုတ် တည်နေရာ ရှာဖွေပါ...",
     "home.filter.category": "အမျိုးအစားဖြင့် စစ်ထုတ်ရန်:",
     "home.filter.clear": "ပြန်လည်စတင်ရန်",
@@ -242,7 +242,7 @@ export const translations = {
     "course.about": "ဤသင်တန်းအကြောင်း",
     "course.outcomes": "လေ့လာသင်ယူမှုရလဒ်များ",
     "course.detailedSchedule": "အသေးစိတ်အချိန်ဇယား",
-    "course.selectionCriteria": "ရွေးချယ်ရေးစံနှုန်းများ",
+    "course.selectionCriteria": "ရွေးချယ်မှုစံနှုန်းများ",
     "course.howToApply": "လျှောက်ထားပုံ",
     "course.faq": "မေးလေ့ရှိသောမေးခွန်းများ",
     "course.apply": "လျှောက်ထားရန်",
@@ -270,15 +270,15 @@ export const translations = {
       "အရေးကြီးသော ကွန်ပျူတာနှင့် ရုံးသုံးဆော့ဖ်ဝဲကျွမ်းကျင်မှုများ သင်ယူရန်",
 
     // Badge texts
-    "badge.in-person": "သင်တန်းခန်းမ",
+    "badge.in-person": "လူတွေ့သင်တန်း",
     "badge.online": "အွန်လိုင်း",
     "badge.free": "အခမဲ့",
     "badge.internship": "အလုပ်သင်",
-    "badge.certificate": "လက်မှတ်",
+    "badge.certificate": "သင်တန်းအောင်လက်မှတ်",
     "badge.vocational": "အသက်မွေးပညာ",
     "badge.cooking": "ချက်ပြုတ်ခြင်း",
     "badge.barista training": "ကော်ဖီပြုလုပ်ခြင်း",
-    "badge.hospitality": "ဧည့်ခံမှု",
+    "badge.hospitality": "ဟိုတယ်နှင့်ဧည့်ဝန်ဆောင်မှု",
     "badge.hair dressing": "ဆံပင်ညှပ်ခြင်း",
     "badge.fashion": "ဖက်ရှင်",
     "badge.technology": "နည်းပညာ",
@@ -305,7 +305,7 @@ export const translations = {
     "about.title": "ကျွန်ုပ်တို့အကြောင်း",
     "about.subtitle": "ကျွန်ုပ်တို့၏ ရည်မှန်းချက်နှင့် အဖွဲ့အကြောင်း လေ့လာပါ",
     "about.mission.p1":
-      "ယခုဝက်ဆိုဒ်သည် ပညာရေးအခွင့်အလမ်းများကို လွယ်ကူထိရောက်စွာ ရှာဖွေရယူနိုင်သော အချိန်သက်သာသည့် စနစ်တစ်ခုပေးအပ်ခြင်းဖြင့် လူငယ်များကို စွမ်းဆောင်ရည်မြှင့်တင်ပေးပါသည်။ ကျွန်ုပ်တို့သည် သင်ယူရရှိနိုင်သော သင်တန်းအချက်အလက်များအား တစ်နေရာတည်းတွင် ဖော်ပြသော၊ အသုံးပြုရလွယ်ကူသည့် အက်ပလီကေးရှင်းတစ်ခုဖန်တီးခြင်းဖြင့် လူငယ်များအား ၎င်းတို့၏ အသက်မွေးဝမ်းကြောင်းရည်မှန်းချက်များနှင့် အချိန်ဇယားများနှင့်ကိုက်ညီသော အသက်မွေးပညာလေ့ကျင့်ရေးအစီအစဉ်များ၊ ဘာသာစကားသင်တန်းများနှင့် ကျွမ်းကျင်မှုတိုးတက်ရေးအခွင့်အလမ်းများကို လွယ်ကူစွာ နှိုင်းယှဉ်၊  စစ်ထုတ်၊ ရှာဖွေ နိုင်စေပါသည်။",
+      "ယခုဝက်ဆိုဒ်သည် ပညာရေးအခွင့်အလမ်းများကို လွယ်ကူထိရောက်စွာ ရှာဖွေရယူနိုင်စေရန် အချိန်သက်သာသည့် စနစ်တစ်ခုပေးအပ်ခြင်းဖြင့် လူငယ်များကို စွမ်းဆောင်ရည်မြှင့်တင်ပေးပါသည်။ ကျွန်ုပ်တို့သည် သင်ယူရရှိနိုင်သော သင်တန်းအချက်အလက်များအား တစ်နေရာတည်းတွင် ဖော်ပြသော၊ အသုံးပြုရလွယ်ကူသည့် အက်ပလီကေးရှင်းတစ်ခုဖန်တီးခြင်းဖြင့် လူငယ်များအား ၎င်းတို့၏ အသက်မွေးဝမ်းကြောင်း ရည်မှန်းချက်များ၊ အချိန်ဇယားများ နှင့် ကိုက်ညီသော အသက်မွေးပညာလေ့ကျင့်ရေးအစီအစဉ်များ၊ ဘာသာစကားသင်တန်းများနှင့် ကျွမ်းကျင်မှုတိုးတက်ရေးအခွင့်အလမ်းများကို လွယ်ကူစွာ နှိုင်းယှဉ်၊  စစ်ထုတ်၊ ရှာဖွေ နိုင်စေပါသည်။",
     "about.mission.p2.part1":
       "Ko Myo နှင့် Peter တို့သည် ၂၀၂၅ ခုနှစ်တွင် ပူးပေါင်းကာ ဤပြဿနာကို ဖြေရှင်းရန် ဗဟိုချုပ်ကိုင်သော၊ အသုံးပြုရလွယ်ကူသည့် ပလပ်ဖောင်းတစ်ခုကို တည်ဆောက်ခဲ့ပြီး အသက်မွေးပညာလေ့ကျင့်ရေးအစီအစဉ်များ၊ ဘာသာစကားသင်တန်းများနှင့် ကျွမ်းကျင်မှုတိုးတက်ရေးအခွင့်အလမ်းများကို ရှာဖွေ၊ စစ်ထုတ်၊ နှိုင်းယှဉ်နိုင်စေပါသည်။ ၎င်းကို",
     "about.mission.p2.link": "အများသုံး ပရိုဂျက်တစ်ခု",
@@ -313,7 +313,7 @@ export const translations = {
       "အဖြစ် တည်ဆောက်နေပြီး လောလောဆယ် ကိုယ်ပိုင်ရန်ပုံငွေဖြင့် လုပ်ဆောင်နေပါသည်။ ကျွန်ုပ်တို့၏ ချဉ်းကပ်နည်းမှာ လူငယ်များကို ပံ့ပိုးသည့် အဖွဲ့အစည်းများနှင့် ပူးပေါင်းကာ ရှာဖွေတွေ့ရှိခြင်းလုပ်ငန်းစဉ်ကို ပိုမိုလက်လှမ်းမီစေရန်၊ ပွင့်လင်းစေရန်နှင့် အသုံးပြုသူဗဟိုပြုစေရန်ဖြစ်ပါသည်။",
     "about.komyo.title": "Ko Myo အကြောင်း",
     "about.komyo.content":
-      "ကိုမျိုးသည် Thai နှင့် မြန်မာလူငယ်များအတွက် အကျိုးပြုသည့် open-source ပရောဂျက်များမှတစ်ဆင့် ၎င်း၏စွမ်းရည်များကို မြှင့်တင်နေသော fullstack developer တစ်ဦးဖြစ်ပါသည်။ သူသည် လျှပ်စစ်အင်ဂျင်နီယာဘာသာရပ်တွင် ဘွဲ့ရရှိထားပြီး React၊ Javascript နှင့် ခေတ်သစ် backend frameworks များကို online သင်တန်းများမှတစ်ဆင့် လက်ရှိတက်ရောက်လျက်ရှိပါသည်။ သူသည် ပညာရေး၊ နည်းပညာနှင့် ကျေးလက်ဒေသများရှိ ဒီဂျစ်တယ်စာတတ်မြောက်မှုကို ပံ့ပိုးကူညီရန်အတွက် အထူးစိတ်ဝင်စားသူဖြစ်ပါသည်။။",
+      "ကိုမျိုးသည် ထိုင်း နှင့် မြန်မာလူငယ်များအတွက် အကျိုးပြုသည့် open-source ပရောဂျက်များမှတစ်ဆင့် ၎င်း၏စွမ်းရည်များကို မြှင့်တင်ကာ fullstack developer တစ်ဦးအဖြစ် ကြိုးစားနေသူဖြစ်ပါသည်။ သူသည် လျှပ်စစ်အင်ဂျင်နီယာဘာသာရပ်တွင် ဘွဲ့ရရှိထားပြီး React၊ Javascript နှင့် ခေတ်သစ် backend frameworks များကို online သင်တန်းများမှတစ်ဆင့် လက်ရှိတက်ရောက်လျက်ရှိပါသည်။ သူသည် ပညာရေး၊ နည်းပညာနှင့် ကျေးလက်ဒေသများရှိ ဒီဂျစ်တယ်စာတတ်မြောက်မှုကို ပံ့ပိုးကူညီရန်အတွက် အထူးစိတ်ဝင်စားသူဖြစ်ပါသည်။။",
 
     "about.peter.title": "Peter အကြောင်း",
     "about.peter.content":
@@ -322,16 +322,16 @@ export const translations = {
     "about.contact.title": "ဆက်သွယ်ရန်",
     "about.contact.email": "contact@jumpstudy.org",
     "about.contact.description":
-      "ကျွန်ုပ်တို့သည် လောလောဆယ် ထိုင်းနိုင်ငံမှ လူငယ်ပညာရေးကို ပံ့ပိုးရန် ကျွန်ုပ်တို့၏ ရည်မှန်းချက်နှင့် သဘောထားတူသော အဖွဲ့အစည်းများနှင့် တစ်ဦးချင်းပုဂ္ဂိုလ်များကို ရှာဖွေနေပါသည်။ အကယ်၍ သင်တွင် app နှင့် ပတ်သတ်သော အကြံပြုချက်များရှိပါက သို့မဟုတ် ပူးပေါင်းဆောင်ရွက်လိုပါက ကျွန်ုပ်တို့ထံ email ပို့ရန် မဝန်လျတ် ပါ။",
+      "ကျွန်ုပ်တို့သည် လောလောဆယ် ထိုင်းနိုင်ငံမှ လူငယ်ပညာရေးကို ပံ့ပိုးရန် ကျွန်ုပ်တို့၏ ရည်မှန်းချက်နှင့် သဘောထားတူညီသော အဖွဲ့အစည်းများနှင့် တစ်ဦးချင်းပုဂ္ဂိုလ်များကို ရှာဖွေနေပါသည်။ အကယ်၍ သင့်အနေဖြင့် app နှင့် ပတ်သတ်သော အကြံပြုချက်များရှိပါက သို့မဟုတ် ပူးပေါင်းဆောင်ရွက်လိုပါက ကျွန်ုပ်တို့ထံ email ပို့ရန် မေတ္တာရပ်ခံအပ်ပါသည်။",
     "about.team.title": "ကျွန်ုပ်တို့၏အဖွဲ့နှင့် တွေ့ဆုံပါ",
 
     // Add these sort translations:
-    "sort.default": "အသစ်ဆုံးကို ဦးစွာ",
-    "sort.placeholder": "အစီအစဉ်ခွဲ",
+    "sort.default": "အသစ်ဆုံး အရင်ဦးစွာ",
+    "sort.placeholder": "စီစဉ်ရန်",
     "sort.startDate.earliest": "မကြာမီစတင်မည်",
     "sort.startDate.latest": "နောက်ပိုင်းစတင်မည်",
-    "sort.applyByDate.earliest": "မကြာမီလျှောက်ပါ",
-    "sort.applyByDate.latest": "နောက်ပိုင်းလျှောက်ပါ",
+    "sort.applyByDate.earliest": "မကြာမီလျှောက်ရန်",
+    "sort.applyByDate.latest": "နောက်ပိုင်းလျှောက်ရန်",
   },
 };
 

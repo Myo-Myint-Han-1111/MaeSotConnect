@@ -185,10 +185,7 @@ export default function CourseDetailComponent({
 
   // Format duration string with appropriate units
   // Format duration with unit - no more decimal calculations
-  const formatDuration = (
-    duration?: number,
-    unit?: DurationUnit
-  ): string => {
+  const formatDuration = (duration?: number, unit?: DurationUnit): string => {
     // Use duration and unit directly
     const actualDuration = duration;
     const actualUnit = unit;
@@ -421,10 +418,7 @@ export default function CourseDetailComponent({
                         {t("course.duration")}
                       </p>
                       <p className="text-sm text-muted-foreground" dir="auto">
-                        {formatDuration(
-                          course.duration,
-                          course.durationUnit
-                        )}
+                        {formatDuration(course.duration, course.durationUnit)}
                       </p>
                     </div>
                   </div>
@@ -901,7 +895,7 @@ export default function CourseDetailComponent({
         <div className="mt-8 p-5 bg-gray-50 rounded-lg mb-10">
           <p className="text-sm text-muted-foreground leading-relaxed italic mb-3">
             {language === "mm"
-              ? "ကျွန်ုပ်တို့၏ လူငယ်ကိုယ်စားလှယ်များသည် ပညာရေးအစီအစဉ်များအကြောင်း လူငယ်များအား သတင်းအချက်အလက်များ မျှဝေပေးသူများဖြစ်ပါသည်။"
+              ? "ကျွန်ုပ်တို့၏ လူငယ်ကိုယ်စားလှယ်များသည် ဤအစီအစဉ်ကဲ့သို့သော အစီအစဉ်များအကြောင်း အချက်အလက်များကို မျှဝေခြင်းဖြင့် လူငယ်များအား ပညာရေးအခွင့်အလမ်းများနှင့် ချိတ်ဆက်ပေးရန် ကူညီပါသည်။"
               : "Our youth advocates help connect young people with educational opportunities by sharing information about programs like this one."}
           </p>
           <Link href="/youthadvocates">
@@ -911,7 +905,7 @@ export default function CourseDetailComponent({
               className="text-xs bg-white hover:bg-blue-700 hover:text-white"
             >
               {language === "mm"
-                ? "လူငယ်ကိုယ်စားလှယ်များကို မိတ်ဆက်ပါ"
+                ? "လူငယ်ကိုယ်စားလှယ်များကို တွေ့ဆုံလေ့လာရန်"
                 : "Meet Our Youth Advocates"}
             </Button>
           </Link>

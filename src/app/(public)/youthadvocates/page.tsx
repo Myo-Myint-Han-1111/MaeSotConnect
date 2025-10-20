@@ -53,33 +53,41 @@ export default function AdvocatesPage() {
 
   return (
     <div className="min-h-screen">
-       {/* High Score Header */}
+      {/* High Score Header */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 mt-20">
         <div className="text-center">
-          <h1 
-            className={`${getFontSizeClasses("heading1", language)} font-bold text-gray-900 mb-4 text-4xl`}
+          <h1
+            className={`${getFontSizeClasses(
+              "heading1",
+              language
+            )} font-bold text-gray-900 mb-4 text-4xl`}
             data-language={language}
           >
-            {language === "mm" ? "🏆 လူငယ်ကိုယ်စားလှယ်များ" : "🏆 YOUTH ADVOCATES"}
+            {language === "mm"
+              ? "🏆 လူငယ်ကိုယ်စားလှယ်များ"
+              : "🏆 YOUTH ADVOCATES"}
           </h1>
           <div className="inline-block bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-transparent bg-clip-text font-bold text-lg mb-4">
-            {language === "mm" ? "ထိပ်တန်းပေါင်းသူများ" : "TOP CONTRIBUTORS"}
+            {language === "mm"
+              ? "ထိပ်တန်းကူညီပံ့ပိုးသူများ"
+              : "TOP CONTRIBUTORS"}
           </div>
-          <p 
-            className={`${getFontSizeClasses("bodyRegular", language)} text-gray-600 max-w-2xl mx-auto`}
+          <p
+            className={`${getFontSizeClasses(
+              "bodyRegular",
+              language
+            )} text-gray-600 max-w-2xl mx-auto`}
             data-language={language}
           >
-            {language === "mm" 
+            {language === "mm"
               ? "ပညာရေးအခွင့်အလမ်းများ မျှဝေရန် ကူညီပေးသော ကျွန်ုပ်တို့၏ ကိုယ်စားလှယ်များ"
-              : "People helping share educational opportunities"
-            }
+              : "People helping share educational opportunities"}
           </p>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-
         {/* High Score Leaderboard */}
         {profiles.length > 0 ? (
           <div>
@@ -94,13 +102,11 @@ export default function AdvocatesPage() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-8 flex-1">
-                    <div className="w-24">
-                      {/* Avatar space placeholder */}
-                    </div>
+                    <div className="w-24">{/* Avatar space placeholder */}</div>
                     <div className="flex items-center flex-1">
                       <div className="min-w-[160px]">
                         <div className="text-gray-700 font-bold text-xl uppercase tracking-wider">
-                          {language === "mm" ? "ကစားသမား" : "PLAYER"}
+                          {language === "mm" ? "ပံ့ပိုးကူညီသူ" : "Contributor"}
                         </div>
                       </div>
                     </div>
@@ -108,15 +114,15 @@ export default function AdvocatesPage() {
                 </div>
                 <div className="flex flex-col items-end ml-4">
                   <div className="text-gray-700 font-bold text-xl uppercase tracking-wider">
-                    {language === "mm" ? "အပြေ့များ" : "STATS"}
+                    {language === "mm" ? "ပံ့ပိုးမှု" : "Contribution"}
                   </div>
                 </div>
               </div>
-              
+
               {/* Mobile Header - Single centered title */}
               <div className="md:hidden flex-1 text-center">
                 <h2 className="text-gray-700 font-bold text-lg uppercase tracking-wide">
-                  {language === "mm" ? "ကစားသမားများ" : "LEADERBOARD"}
+                  {language === "mm" ? "ပံ့ပိုးကူညီသူများ" : "Contributors"}
                 </h2>
               </div>
             </div>
@@ -125,9 +131,9 @@ export default function AdvocatesPage() {
             <div className="space-y-6">
               {profiles.map((profile, index) => {
                 const rank = index + 1;
-                
+
                 return (
-                  <div 
+                  <div
                     key={profile.id}
                     className="rounded-xl md:p-4 py-4 pr-4 hover:bg-gray-50 transition-all duration-300 group border-b border-gray-200 last:border-b-0"
                   >
@@ -138,7 +144,7 @@ export default function AdvocatesPage() {
                         <div className="min-w-[60px] text-center flex items-center justify-center">
                           {rank <= 3 ? (
                             <div className="text-4xl">
-                              {rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'}
+                              {rank === 1 ? "🥇" : rank === 2 ? "🥈" : "🥉"}
                             </div>
                           ) : (
                             <div className="text-gray-500 font-bold text-3xl">
@@ -146,43 +152,53 @@ export default function AdvocatesPage() {
                             </div>
                           )}
                         </div>
-                        
+
                         {/* Avatar, Name, and Bio */}
                         <div className="flex items-center space-x-8 flex-1">
                           <Avatar className="w-24 h-24 ring-2 ring-gray-200 group-hover:ring-gray-300 transition-all duration-200">
-                            <AvatarImage 
-                              src={profile.avatarUrl || undefined} 
+                            <AvatarImage
+                              src={profile.avatarUrl || undefined}
                               alt={profile.publicName}
                             />
                             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-2xl font-bold">
                               {profile.publicName.charAt(0).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
-                          
+
                           <div className="flex items-center flex-1">
                             {/* Name and Organization */}
                             <div className="min-w-[160px]">
-                              <h3 
-                                className={`${getFontSizeClasses("heading3", language)} font-bold text-gray-900 mb-2`}
+                              <h3
+                                className={`${getFontSizeClasses(
+                                  "heading3",
+                                  language
+                                )} font-bold text-gray-900 mb-2`}
                                 data-language={language}
                               >
                                 {profile.publicName}
                               </h3>
-                              {profile.showOrganization && profile.organizationName && (
-                                <p 
-                                  className={`${getFontSizeClasses("bodySmall", language)} text-gray-500`}
-                                  data-language={language}
-                                >
-                                  {profile.organizationName}
-                                </p>
-                              )}
+                              {profile.showOrganization &&
+                                profile.organizationName && (
+                                  <p
+                                    className={`${getFontSizeClasses(
+                                      "bodySmall",
+                                      language
+                                    )} text-gray-500`}
+                                    data-language={language}
+                                  >
+                                    {profile.organizationName}
+                                  </p>
+                                )}
                             </div>
-                            
+
                             {/* Bio */}
                             {profile.bio && (
                               <div className="flex-1 ml-6">
-                                <p 
-                                  className={`${getFontSizeClasses("bodyRegular", language)} text-gray-700 leading-relaxed`}
+                                <p
+                                  className={`${getFontSizeClasses(
+                                    "bodyRegular",
+                                    language
+                                  )} text-gray-700 leading-relaxed`}
                                   data-language={language}
                                 >
                                   {profile.bio}
@@ -192,14 +208,18 @@ export default function AdvocatesPage() {
                           </div>
                         </div>
                       </div>
-                      
+
                       {/* Stats */}
                       <div className="flex flex-col items-end ml-4">
                         <div className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold mb-2">
-                          {language === "mm" ? `အပြေ့ ${profile.courseCount}` : `Score ${profile.courseCount}`}
+                          {language === "mm"
+                            ? `အမှတ် ${profile.courseCount}`
+                            : `Score ${profile.courseCount}`}
                         </div>
                         <div className="text-xs text-gray-500">
-                          {language === "mm" ? "ကူရစ် အများ" : "Courses Added"}
+                          {language === "mm"
+                            ? "ထည့်သွင်းသောသင်တန်းများ"
+                            : "Courses Added"}
                         </div>
                       </div>
                     </div>
@@ -212,7 +232,7 @@ export default function AdvocatesPage() {
                         <div className="flex items-center justify-start flex-shrink-0 w-10">
                           {rank <= 3 ? (
                             <div className="text-4xl">
-                              {rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'}
+                              {rank === 1 ? "🥇" : rank === 2 ? "🥈" : "🥉"}
                             </div>
                           ) : (
                             <div className="text-gray-500 font-bold text-lg">
@@ -220,52 +240,66 @@ export default function AdvocatesPage() {
                             </div>
                           )}
                         </div>
-                        
+
                         {/* Avatar */}
                         <Avatar className="w-14 h-14 ring-2 ring-gray-200 flex-shrink-0 ml-3">
-                          <AvatarImage 
-                            src={profile.avatarUrl || undefined} 
+                          <AvatarImage
+                            src={profile.avatarUrl || undefined}
                             alt={profile.publicName}
                           />
                           <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-base font-bold">
                             {profile.publicName.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        
+
                         {/* Player Details */}
                         <div className="flex-1 ml-3">
-                          <h3 
-                            className={`${getFontSizeClasses("heading3", language)} font-bold text-gray-900 mb-1`}
+                          <h3
+                            className={`${getFontSizeClasses(
+                              "heading3",
+                              language
+                            )} font-bold text-gray-900 mb-1`}
                             data-language={language}
                           >
                             {profile.publicName}
                           </h3>
-                          {profile.showOrganization && profile.organizationName && (
-                            <p 
-                              className={`${getFontSizeClasses("bodySmall", language)} text-gray-500 mb-2`}
-                              data-language={language}
-                            >
-                              {profile.organizationName}
-                            </p>
-                          )}
-                          
+                          {profile.showOrganization &&
+                            profile.organizationName && (
+                              <p
+                                className={`${getFontSizeClasses(
+                                  "bodySmall",
+                                  language
+                                )} text-gray-500 mb-2`}
+                                data-language={language}
+                              >
+                                {profile.organizationName}
+                              </p>
+                            )}
+
                           {/* Mobile Bio */}
                           {profile.bio && (
-                            <p 
-                              className={`${getFontSizeClasses("bodyRegular", language)} text-gray-700 leading-relaxed mb-3`}
+                            <p
+                              className={`${getFontSizeClasses(
+                                "bodyRegular",
+                                language
+                              )} text-gray-700 leading-relaxed mb-3`}
                               data-language={language}
                             >
                               {profile.bio}
                             </p>
                           )}
-                          
+
                           {/* Mobile Stats */}
                           <div className="flex items-center space-x-4">
                             <div className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold">
-                              {language === "mm" ? `အပြေ့ ${profile.courseCount}` : `Score ${profile.courseCount}`}
+                              {language === "mm"
+                                ? `အပြေ့ ${profile.courseCount}`
+                                : `Score ${profile.courseCount}`}
                             </div>
                             <span className="text-xs text-gray-500">
-                              {language === "mm" ? "ကူရစ် အများ" : "Courses Added"}
+                              {language === "mm"
+                                ? "ကူရစ် အများ"
+                                : "Courses Added"}
                             </span>
                           </div>
                         </div>
@@ -279,20 +313,27 @@ export default function AdvocatesPage() {
         ) : (
           <div className="text-center py-20">
             <div className="max-w-md mx-auto">
-              <h3 
-                className={`${getFontSizeClasses("heading3", language)} font-bold mb-4 text-gray-800`}
+              <h3
+                className={`${getFontSizeClasses(
+                  "heading3",
+                  language
+                )} font-bold mb-4 text-gray-800`}
                 data-language={language}
               >
-                {language === "mm" ? "လူငယ်ကိုယ်စားလှယ်များမရှိသေးပါ" : "No Youth Advocates Yet"}
+                {language === "mm"
+                  ? "လူငယ်ကိုယ်စားလှယ်များမရှိသေးပါ"
+                  : "No Youth Advocates Yet"}
               </h3>
-              <p 
-                className={`${getFontSizeClasses("bodyRegular", language)} text-gray-600`}
+              <p
+                className={`${getFontSizeClasses(
+                  "bodyRegular",
+                  language
+                )} text-gray-600`}
                 data-language={language}
               >
-                {language === "mm" 
+                {language === "mm"
                   ? "လူငယ်ကိုယ်စားလှယ်များသည် မကြာမီတွင် ၎င်းတို့၏ပရိုဖိုင်းများကို ဖန်တီးပြီး မျှဝေကြမည်ဖြစ်ပါသည်။"
-                  : "Youth advocates will create and share their profiles soon."
-                }
+                  : "Youth advocates will create and share their profiles soon."}
               </p>
             </div>
           </div>
@@ -300,20 +341,27 @@ export default function AdvocatesPage() {
 
         {/* Simple call-to-action */}
         <div className="mt-20 text-center max-w-2xl mx-auto">
-          <h3 
-            className={`${getFontSizeClasses("heading3", language)} font-bold mb-4 text-gray-800`}
+          <h3
+            className={`${getFontSizeClasses(
+              "heading3",
+              language
+            )} font-bold mb-4 text-gray-800`}
             data-language={language}
           >
-            {language === "mm" ? "လူငယ်ကိုယ်စားလှယ်ဖြစ်လိုပါသလား?" : "Want to Become a Youth Advocate?"}
+            {language === "mm"
+              ? "လူငယ်ကိုယ်စားလှယ်ဖြစ်လိုပါသလား?"
+              : "Want to Become a Youth Advocate?"}
           </h3>
-          <p 
-            className={`${getFontSizeClasses("bodyRegular", language)} text-gray-600`}
+          <p
+            className={`${getFontSizeClasses(
+              "bodyRegular",
+              language
+            )} text-gray-600`}
             data-language={language}
           >
             {language === "mm"
               ? "ပညာရေးအခွင့်အလမ်းများကို မျှဝေရန် ကူညီပေးလိုပါက ကျွန်ုပ်တို့နှင့် ဆက်သွယ်ပါ။"
-              : "If you're interested in becoming a youth advocate, please contact us."
-            }
+              : "If you're interested in becoming a youth advocate, please contact us."}
           </p>
         </div>
       </div>
@@ -347,7 +395,9 @@ export default function AdvocatesPage() {
                 href="/youthadvocates"
                 className="text-gray-600 hover:text-primary transition-colors text-sm"
               >
-                {language === "mm" ? "လူငယ်ကိုယ်စားလှယ်များ" : "Youth Advocates"}
+                {language === "mm"
+                  ? "လူငယ်ကိုယ်စားလှယ်များ"
+                  : "Youth Advocates"}
               </Link>
             </nav>
           </div>
