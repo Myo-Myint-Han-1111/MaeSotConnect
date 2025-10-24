@@ -2,20 +2,36 @@
 import React from "react";
 import { Metadata } from "next";
 import ClientProviders from "@/components/providers/ClientProviders";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://jumpstudy.org")),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ||
+      (process.env.NODE_ENV === "development"
+        ? "http://localhost:3000"
+        : "https://jumpstudy.org")
+  ),
   title: {
     default: "JumpStudy.org - Educational Opportunities in Thailand",
-    template: "%s | JumpStudy.org"
+    template: "%s | JumpStudy.org",
   },
-  description: "Discover training programs, courses, and educational opportunities in Thailand. Connect with youth advocates and find the right path for your future.",
-  keywords: ["Thailand education", "Myanmar community Thailand", "training programs", "courses", "youth advocates", "educational opportunities", "Mae Sot", "migrant education"],
+  description:
+    "Discover training programs, courses, and educational opportunities in Thailand. Connect with youth advocates and find the right path for your future.",
+  keywords: [
+    "Thailand education",
+    "Myanmar community Thailand",
+    "training programs",
+    "courses",
+    "youth advocates",
+    "educational opportunities",
+    "Mae Sot",
+    "migrant education",
+  ],
   authors: [{ name: "JumpStudy.org" }],
   creator: "JumpStudy.org",
   publisher: "JumpStudy.org",
-  
+
   // Open Graph (optimized for Facebook)
   openGraph: {
     type: "website",
@@ -23,7 +39,8 @@ export const metadata: Metadata = {
     alternateLocale: ["my_MM"], // For Myanmar users
     url: "/",
     title: "JumpStudy.org - Educational Opportunities in Thailand",
-    description: "Discover training programs, courses, and educational opportunities in Thailand. Connect with youth advocates and find the right path for your future.",
+    description:
+      "Discover training programs, courses, and educational opportunities in Thailand. Connect with youth advocates and find the right path for your future.",
     siteName: "JumpStudy.org",
     images: [
       {
@@ -42,17 +59,18 @@ export const metadata: Metadata = {
       },
     ],
   },
-  
+
   // Twitter Card
   twitter: {
     card: "summary_large_image",
     title: "JumpStudy.org - Educational Opportunities in Thailand",
-    description: "Discover training programs, courses, and educational opportunities in Thailand. Connect with youth advocates and find the right path for your future.",
+    description:
+      "Discover training programs, courses, and educational opportunities in Thailand. Connect with youth advocates and find the right path for your future.",
     images: ["/images/JumpStudyLogo.svg"],
     creator: "@jumpstudy_org",
     site: "@jumpstudy_org",
   },
-  
+
   // Icons
   icons: {
     icon: [
@@ -68,7 +86,7 @@ export const metadata: Metadata = {
       { rel: "android-chrome-512x512", url: "/android-chrome-512x512.png" },
     ],
   },
-  
+
   // Additional metadata
   robots: {
     index: process.env.NODE_ENV === "production",
@@ -81,7 +99,7 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  
+
   // Verification (add these when you set up Search Console)
   // verification: {
   //   google: "your-google-verification-code",
@@ -96,6 +114,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
+        <GoogleAnalytics />
         <ClientProviders>{children}</ClientProviders>
       </body>
     </html>

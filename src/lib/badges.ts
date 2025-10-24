@@ -147,6 +147,11 @@ export const BADGE_STYLES: Record<string, BadgeStyle> = {
     color: "#fff",
     backgroundColor: "#8b4513",
   },
+  Agriculture: {
+    text: "Agriculture",
+    color: "#fff",
+    backgroundColor: "#8bc34a",
+  },
 };
 
 const DEFAULT_BADGE_STYLE: BadgeStyle = {
@@ -159,10 +164,12 @@ const DEFAULT_BADGE_STYLE: BadgeStyle = {
  * Optimized badge style resolution with direct lookup
  */
 export const getBadgeStyle = (badgeText: string): BadgeStyle => {
-  return BADGE_STYLES[badgeText] || {
-    ...DEFAULT_BADGE_STYLE,
-    text: badgeText,
-  };
+  return (
+    BADGE_STYLES[badgeText] || {
+      ...DEFAULT_BADGE_STYLE,
+      text: badgeText,
+    }
+  );
 };
 
 /**
@@ -174,7 +181,7 @@ export const useBadgeTranslation = () => {
   const translateBadge = (badgeText: string): string => {
     const translationKey = `badge.${badgeText.toLowerCase()}`;
     const translation = t(translationKey);
-    
+
     return translationKey !== translation ? translation : badgeText;
   };
 
