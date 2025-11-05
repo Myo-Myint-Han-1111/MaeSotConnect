@@ -31,6 +31,8 @@ const ContentSecurityPolicy = `
   connect-src 'self' 
     https://*.google.com 
     https://*.googleapis.com
+    https://*.google-analytics.com
+    https://*.googletagmanager.com
     https://${supabaseUrl}
     wss://${supabaseUrl}
     ${process.env.NODE_ENV === "development" ? "http://localhost:*" : ""};
@@ -81,7 +83,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  
+
   images: {
     remotePatterns: [
       ...(supabaseUrl
@@ -113,7 +115,7 @@ const nextConfig: NextConfig = {
     formats: ["image/webp", "image/avif"], // Keep format optimization for non-Supabase images
     minimumCacheTTL: 2678400, // 31 days cache (Vercel recommendation for static content)
     dangerouslyAllowSVG: true, // Allow SVG images for logos
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;"
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 
   // Ensure Prisma client works in serverless environment
@@ -176,17 +178,23 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: "Cache-Control",
-            value: process.env.NODE_ENV === "development" 
-              ? "private, no-cache, no-store, must-revalidate" 
-              : "private, max-age=60, must-revalidate", // 1 minute cache in production
+            value:
+              process.env.NODE_ENV === "development"
+                ? "private, no-cache, no-store, must-revalidate"
+                : "private, max-age=60, must-revalidate", // 1 minute cache in production
           },
-          ...(process.env.NODE_ENV === "development" ? [{
-            key: "Pragma",
-            value: "no-cache",
-          }, {
-            key: "Expires",
-            value: "0",
-          }] : []),
+          ...(process.env.NODE_ENV === "development"
+            ? [
+                {
+                  key: "Pragma",
+                  value: "no-cache",
+                },
+                {
+                  key: "Expires",
+                  value: "0",
+                },
+              ]
+            : []),
         ],
       },
       {
@@ -291,9 +299,12 @@ const nextConfig: NextConfig = {
 
   // Environment variables validation (compile-time)
   env: {
-    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === "development" ? "http://localhost:3000" : ""),
+    NEXT_PUBLIC_APP_URL:
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (process.env.NODE_ENV === "development" ? "http://localhost:3000" : ""),
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+    NEXT_PUBLIC_SUPABASE_ANON_KEY:
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
   },
 
   // Experimental features for better performance

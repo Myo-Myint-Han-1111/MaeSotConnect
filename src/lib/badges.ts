@@ -152,6 +152,11 @@ export const BADGE_STYLES: Record<string, BadgeStyle> = {
     color: "#fff",
     backgroundColor: "#8bc34a",
   },
+  Sewing: {
+    text: "Sewing",
+    color: "#fff",
+    backgroundColor: "#9b59b6",
+  },
 };
 
 const DEFAULT_BADGE_STYLE: BadgeStyle = {

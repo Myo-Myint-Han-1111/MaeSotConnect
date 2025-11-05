@@ -143,6 +143,7 @@ const badgeOptions: BadgeOption[] = [
   { text: "Pre-career", color: "#fff", backgroundColor: "#388e3c" },
   { text: "Chess", color: "#fff", backgroundColor: "#8b4513" },
   { text: "Agriculture", color: "#fff", backgroundColor: "#8bc34a" },
+  { text: "Sewing", color: "#fff", backgroundColor: "#9b59b6" },
 ];
 
 // Helper function to check if estimated date is already encoded

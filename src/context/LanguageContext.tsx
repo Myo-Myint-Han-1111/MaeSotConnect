@@ -149,6 +149,8 @@ export const translations = {
     "badge.pre-university": "Pre-university",
     "badge.pre-career": "Pre-career",
     "badge.chess": "Chess",
+    "badge.agriculture": "Agriculture",
+    "badge.sewing": "Sewing",
 
     // About page
     "about.title": "About Us",
@@ -300,6 +302,8 @@ export const translations = {
     "badge.pre-university": "တက္ကသိုလ်ပြင်ဆင်ရေး",
     "badge.pre-career": "အလုပ်အကိုင်ပြင်ဆင်ရေး",
     "badge.chess": "စစ်တုရင်",
+    "badge.sewing": "အထည်ချုပ်နှင့် အထည်ဒီဇိုင်း",
+    "badge.agriculture": "စိုက်ပျိုးရေး",
 
     // About page
     "about.title": "ကျွန်ုပ်တို့အကြောင်း",

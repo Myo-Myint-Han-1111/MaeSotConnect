@@ -112,9 +112,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <body>
-        <GoogleAnalytics />
+        <GoogleAnalytics /> {/* Add this line */}
         <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
