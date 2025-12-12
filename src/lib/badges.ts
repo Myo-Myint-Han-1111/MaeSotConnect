@@ -157,6 +157,16 @@ export const BADGE_STYLES: Record<string, BadgeStyle> = {
     color: "#fff",
     backgroundColor: "#9b59b6",
   },
+  Programming: {
+    text: "Programming",
+    color: "#fff",
+    backgroundColor: "#2ecc71",
+  },
+  "Web Development": {
+    text: "Web Development",
+    color: "#fff",
+    backgroundColor: "#3498db",
+  },
 };
 
 const DEFAULT_BADGE_STYLE: BadgeStyle = {

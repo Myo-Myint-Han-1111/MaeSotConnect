@@ -151,6 +151,8 @@ export const translations = {
     "badge.chess": "Chess",
     "badge.agriculture": "Agriculture",
     "badge.sewing": "Sewing",
+    "badge.programming": "Programming",
+    "badge.web development": "Web Development",
 
     // About page
     "about.title": "About Us",
@@ -170,7 +172,7 @@ export const translations = {
       "Peter is currently a graduate student in Boston supporting the development of JumpStudy part-time. He works to build bi-partisan constituencies that support education in conflict-affected settings. Peter worked in Mae Sot for several years, supporting local education organizations and teaching research and computer science part-time to youth.",
 
     "about.contact.title": "Contact",
-    "about.contact.email": "contact@jumpstudy.org",
+    "about.contact.email": "jumpstudyorg@gmail.com",
     "about.contact.description":
       "We're currently looking to partner with organizations and individuals who share our mission of supporting migrant and refugee youth education in Thailand. If you have feedback about the app, or would like to collaborate, please don't hesitate to send us an email.",
 
@@ -304,6 +306,8 @@ export const translations = {
     "badge.chess": "စစ်တုရင်",
     "badge.sewing": "အထည်ချုပ်နှင့် အထည်ဒီဇိုင်း",
     "badge.agriculture": "စိုက်ပျိုးရေး",
+    "badge.programming": "ပရိုဂရမ်ရေးခြင်း",
+    "badge.web development": "ဝဘ်ဆိုက်ရေးဆွဲခြင်း",
 
     // About page
     "about.title": "ကျွန်ုပ်တို့အကြောင်း",

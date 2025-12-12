@@ -117,7 +117,7 @@ export default function Home() {
         if (cached) {
           const cacheData = JSON.parse(cached);
           const isValid = Date.now() - cacheData.timestamp < 5 * 60 * 1000;
-          
+
           if (isValid) {
             sessionStorage.removeItem(SCROLL_CACHE_KEY);
 
@@ -152,49 +152,51 @@ export default function Home() {
   }, []);
 
   // Fetch courses function
-  const fetchCourses = useCallback(async (page: number = 1, isLoadMore: boolean = false) => {
-    try {
-      if (isLoadMore) {
-        setLoadingMore(true);
-      } else {
-        setLoading(true);
+  const fetchCourses = useCallback(
+    async (page: number = 1, isLoadMore: boolean = false) => {
+      try {
+        if (isLoadMore) {
+          setLoadingMore(true);
+        } else {
+          setLoading(true);
+        }
+
+        const limit = getPageLimit();
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
+          sortBy: sortBy,
+        });
+
+        if (searchTerm) params.append("search", searchTerm);
+        if (activeFilters.length > 0)
+          params.append("badges", activeFilters.join(","));
+
+        const response = await fetch(`/api/courses/public?${params}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch courses");
+        }
+
+        const data = await response.json();
+
+        if (isLoadMore) {
+          setCourses((prev) => [...prev, ...data.courses]);
+        } else {
+          setCourses(data.courses);
+        }
+
+        setHasMore(data.pagination.hasMore);
+        setTotalCount(data.pagination.total);
+        setCurrentPage(page);
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
       }
-
-      const limit = getPageLimit();
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
-        sortBy: sortBy,
-      });
-
-      if (searchTerm) params.append("search", searchTerm);
-      if (activeFilters.length > 0) params.append("badges", activeFilters.join(","));
-
-      const response = await fetch(`/api/courses/public?${params}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch courses");
-      }
-      
-      const data = await response.json();
-      
-      if (isLoadMore) {
-        setCourses(prev => [...prev, ...data.courses]);
-      } else {
-        setCourses(data.courses);
-      }
-      
-      setHasMore(data.pagination.hasMore);
-      setTotalCount(data.pagination.total);
-      setCurrentPage(page);
-
-    } catch (error) {
-      console.error("Error fetching courses:", error);
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, [sortBy, searchTerm, activeFilters, getPageLimit]);
-
+    },
+    [sortBy, searchTerm, activeFilters, getPageLimit]
+  );
 
   // Initial course fetching
   useEffect(() => {
@@ -202,9 +204,9 @@ export default function Home() {
     if (hasInitializedRef.current) {
       return;
     }
-    
+
     hasInitializedRef.current = true;
-    
+
     // Try to restore from cache first
     const wasRestored = restorePageState();
 
@@ -425,7 +427,6 @@ export default function Home() {
   useEffect(() => {
     fetchAllBadges();
   }, [fetchAllBadges]);
-
 
   return (
     <>
